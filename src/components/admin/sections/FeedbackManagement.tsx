@@ -328,7 +328,7 @@ export function FeedbackManagement() {
       {/* Feedback Details Modal */}
       {selectedFeedback && (
         <Dialog open={!!selectedFeedback} onOpenChange={() => setSelectedFeedback(null)}>
-          <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto bg-background border shadow-lg">
+          <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto bg-background border shadow-lg z-50">
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
                 {CategoryIcon(selectedFeedback.category)}
