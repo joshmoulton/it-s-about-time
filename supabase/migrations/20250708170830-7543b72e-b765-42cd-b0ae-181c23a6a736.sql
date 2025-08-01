@@ -1,0 +1,58 @@
+-- Update accept_beta_invite function to handle case-insensitive email matching
+CREATE OR REPLACE FUNCTION public.accept_beta_invite(p_token text, p_email text)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path TO 'public'
+AS $function$
+DECLARE
+  invite_record beta_invites%ROWTYPE;
+  subscriber_record beehiiv_subscribers%ROWTYPE;
+  result JSONB;
+BEGIN
+  -- Find the invite using case-insensitive email matching
+  SELECT * INTO invite_record 
+  FROM beta_invites 
+  WHERE invite_token = p_token 
+    AND LOWER(email) = LOWER(p_email)
+    AND status = 'pending' 
+    AND expires_at > now();
+  
+  IF NOT FOUND THEN
+    RETURN jsonb_build_object('success', false, 'error', 'Invalid or expired invite');
+  END IF;
+  
+  -- Update invite status
+  UPDATE beta_invites 
+  SET status = 'accepted', 
+      accepted_at = now(),
+      updated_at = now()
+  WHERE id = invite_record.id;
+  
+  -- Create or update subscriber record with beta user flag using case-insensitive email
+  INSERT INTO beehiiv_subscribers (
+    email, 
+    status, 
+    subscription_tier, 
+    beta_access_granted,
+    beta_access_expires_at,
+    beta_user
+  ) VALUES (
+    p_email, 
+    'active', 
+    'premium'::subscription_tier,
+    true,
+    now() + INTERVAL '30 days',
+    true
+  )
+  ON CONFLICT (email) 
+  DO UPDATE SET
+    subscription_tier = 'premium'::subscription_tier,
+    beta_access_granted = true,
+    beta_access_expires_at = now() + INTERVAL '30 days',
+    beta_user = true,
+    updated_at = now();
+  
+  RETURN jsonb_build_object('success', true, 'message', 'Beta invite accepted successfully', 'requires_setup', true);
+END;
+$function$

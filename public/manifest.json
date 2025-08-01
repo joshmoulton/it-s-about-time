@@ -1,0 +1,40 @@
+{
+  "name": "Weekly Wizdom - Investment Intelligence",
+  "short_name": "Weekly Wizdom",
+  "description": "Master the Art of Investing Across All Asset Classes",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#081426",
+  "theme_color": "#335FFF",
+  "orientation": "portrait-primary",
+  "categories": ["finance", "business", "news"],
+  "lang": "en-US",
+  "icons": [
+    {
+      "src": "/lovable-uploads/9dfade30-70dd-424e-b0e6-51a7141c0d5b.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/lovable-uploads/9dfade30-70dd-424e-b0e6-51a7141c0d5b.png",
+      "sizes": "512x512",  
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/lovable-uploads/a8eaa39b-22e5-4a3c-a288-fe43b8619eab.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "platform": "wide"
+    }
+  ],
+  "prefer_related_applications": false,
+  "edge_side_panel": {
+    "preferred_width": 400
+  },
+  "scope": "/",
+  "id": "weekly-wizdom-app"
+}

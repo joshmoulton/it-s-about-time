@@ -1,0 +1,659 @@
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+@import './styles/admin-responsive.css';
+@import './styles/brand-utilities.css';
+@import './styles/browser-compatibility.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. */
+
+@layer base {
+  /* Smooth scrolling for desktop only */
+  @media (min-width: 768px) {
+    html {
+      scroll-behavior: smooth;
+    }
+  }
+  
+  /* Ensure consistent background on all devices */
+  html, body {
+    background-color: hsl(var(--background));
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+  
+  #root {
+    min-height: 100vh;
+    background-color: hsl(var(--background));
+  }
+  :root {
+    /* Core neutral colors - using exact brand palette */
+    --background: 220 22% 97%; /* Brand White #F5F7FA */
+    --foreground: 220 65% 9%; /* Brand Navy #081426 */
+
+    --card: 0 0% 100%; /* Pure white cards */
+    --card-foreground: 220 65% 9%; /* Brand Navy text */
+
+    --popover: 0 0% 100%; /* Pure white */
+    --popover-foreground: 220 65% 9%; /* Brand Navy text */
+
+    /* Weekly Wizdom Brand Colors - Exact Brand Palette */
+    --primary: 230 100% 60%; /* Brand Blue/Primary #3355FF */
+    --primary-foreground: 220 22% 97%; /* Brand White text on blue */
+
+    --secondary: 225 9% 88%; /* Neutral 10 #DDDEE1 */
+    --secondary-foreground: 220 65% 9%; /* Brand Navy text */
+
+    --muted: 225 9% 88%; /* Neutral 10 #DDDEE1 */
+    --muted-foreground: 0 0% 39%; /* Neutral 40 #626364 */
+
+    --accent: 230 100% 95%; /* Very light brand blue tint */
+    --accent-foreground: 230 75% 22%; /* Brand Deep Blue #182152 */
+
+    --destructive: 350 85% 50%; /* Detail Red #D92534 */
+    --destructive-foreground: 220 22% 97%; /* Brand White text on red */
+
+    --border: 225 9% 88%; /* Neutral 10 #DDDEE1 */
+    --input: 225 9% 88%; /* Neutral 10 border */
+    --ring: 230 100% 60%; /* Brand Blue focus ring */
+
+    --radius: 0.75rem; /* Slightly rounded */
+
+    /* Sidebar colors - using brand palette */
+    --sidebar-background: 220 65% 9%; /* Brand Navy #081426 */
+    --sidebar-foreground: 220 22% 97%; /* Brand White text */
+    --sidebar-primary: 230 100% 60%; /* Brand Blue */
+    --sidebar-primary-foreground: 220 22% 97%; /* Brand White text */
+    --sidebar-accent: 230 75% 22%; /* Brand Deep Blue #182152 */
+    --sidebar-accent-foreground: 225 9% 88%; /* Neutral 10 text */
+    --sidebar-border: 230 75% 22%; /* Brand Deep Blue border */
+    --sidebar-ring: 230 100% 60%; /* Brand Blue focus */
+
+    /* Enhanced Brand Colors - Exact Brand Guidelines */
+    --brand-primary: 230 100% 60%; /* Brand Blue/Primary #3355FF */
+    --brand-navy: 220 65% 9%; /* Brand Navy #081426 */
+    --brand-white: 220 22% 97%; /* Brand White #F5F7FA */
+    --brand-deep-blue: 230 75% 22%; /* Brand Deep Blue #182152 */
+    --brand-success: 142 94% 24%; /* Detail Green #06804D */
+    --brand-error: 350 85% 50%; /* Detail Red #D92534 */
+    --brand-warning: 38 92% 50%; /* Warning Orange */
+    
+    /* Brand Neutrals - Exact Palette */
+    --brand-neutral-10: 225 9% 88%; /* Neutral 10 #DDDEE1 */
+    --brand-neutral-20: 225 7% 78%; /* Neutral 20 #C4C6C8 */
+    --brand-neutral-40: 0 0% 39%; /* Neutral 40 #626364 */
+    --brand-neutral-60: 0 0% 58%; /* Neutral 60 #939496 */
+    --brand-black: 0 0% 3%; /* Black #080808 */
+    
+    /* Gradient definitions - using exact brand colors */
+    --gradient-brand: linear-gradient(135deg, hsl(230 100% 60%), hsl(230 100% 70%));
+    --gradient-dark: linear-gradient(135deg, hsl(220 65% 9%), hsl(230 75% 22%));
+    --gradient-subtle: linear-gradient(135deg, hsl(220 22% 97%), hsl(0 0% 100%));
+  }
+
+  .dark {
+    /* Dark mode - using brand palette with adjustments */
+    --background: 220 65% 9%; /* Brand Navy #081426 */
+    --foreground: 220 22% 97%; /* Brand White text */
+
+    --card: 230 75% 22%; /* Brand Deep Blue #182152 */
+    --card-foreground: 220 22% 97%; /* Brand White text */
+
+    --popover: 230 75% 22%; /* Brand Deep Blue */
+    --popover-foreground: 220 22% 97%; /* Brand White text */
+
+    --primary: 230 100% 65%; /* Slightly lighter brand blue for dark mode */
+    --primary-foreground: 220 65% 9%; /* Brand Navy text on blue */
+
+    --secondary: 230 75% 22%; /* Brand Deep Blue background */
+    --secondary-foreground: 225 9% 88%; /* Neutral 10 text */
+
+    --muted: 0 0% 39%; /* Neutral 40 background */
+    --muted-foreground: 225 9% 88%; /* Neutral 10 text */
+
+    --accent: 230 75% 22%; /* Brand Deep Blue accent */
+    --accent-foreground: 230 100% 70%; /* Light brand blue text */
+
+    --destructive: 350 85% 55%; /* Slightly lighter Detail Red for dark mode */
+    --destructive-foreground: 220 22% 97%; /* Brand White text */
+
+    --border: 0 0% 39%; /* Neutral 40 border */
+    --input: 0 0% 39%; /* Neutral 40 input border */
+    --ring: 230 100% 65%; /* Lighter brand blue focus ring */
+
+    /* Dark sidebar - even darker for contrast */
+    --sidebar-background: 0 0% 3%; /* Brand Black #080808 */
+    --sidebar-foreground: 220 22% 97%; /* Brand White text */
+    --sidebar-primary: 230 100% 65%; /* Lighter brand blue */
+    --sidebar-primary-foreground: 220 65% 9%; /* Brand Navy text */
+    --sidebar-accent: 220 65% 9%; /* Brand Navy accent */
+    --sidebar-accent-foreground: 225 9% 88%; /* Neutral 10 text */
+    --sidebar-border: 230 75% 22%; /* Brand Deep Blue border */
+    --sidebar-ring: 230 100% 65%; /* Lighter brand blue focus */
+
+    /* Dark mode brand colors */
+    --brand-primary: 230 100% 65%; /* Lighter brand blue for dark */
+    --brand-navy: 220 22% 97%; /* Brand White in dark mode */
+    --brand-white: 220 65% 9%; /* Brand Navy as background in dark */
+    --brand-deep-blue: 230 75% 30%; /* Lighter deep blue for dark mode */
+    --brand-success: 142 94% 30%; /* Lighter detail green for dark mode */
+    --brand-error: 350 85% 55%; /* Lighter detail red for dark mode */
+    --brand-warning: 38 92% 60%; /* Lighter orange for dark mode */
+    
+    /* Dark gradients */
+    --gradient-brand: linear-gradient(135deg, hsl(230 100% 65%), hsl(230 100% 75%));
+    --gradient-dark: linear-gradient(135deg, hsl(0 0% 3%), hsl(220 65% 9%));
+    --gradient-subtle: linear-gradient(135deg, hsl(220 65% 9%), hsl(230 75% 22%));
+  }
+}
+
+/* Browser-specific optimizations */
+@layer base {
+  /* Chrome and Chromium-based browsers (including Brave) */
+  .chrome body, .brave body {
+    font-feature-settings: 'kern' 1;
+    text-rendering: optimizeLegibility;
+  }
+  
+  /* Safari specific */
+  .safari body {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  
+  /* Firefox specific */
+  .firefox body {
+    -moz-osx-font-smoothing: grayscale;
+    -moz-font-feature-settings: 'kern' 1;
+  }
+  
+  /* Edge specific */
+  .edge body {
+    -ms-text-size-adjust: 100%;
+    font-feature-settings: 'kern' 1;
+  }
+  
+  /* iOS specific fixes */
+  .ios body {
+    /* Use CSS custom properties for viewport height */
+    height: 100vh;
+    height: calc(var(--vh, 1vh) * 100);
+    -webkit-overflow-scrolling: touch;
+    -webkit-text-size-adjust: 100%;
+  }
+  
+  /* Android specific */
+  .android body {
+    text-rendering: optimizeSpeed;
+    -webkit-font-smoothing: antialiased;
+  }
+  
+  /* Mobile-specific optimizations */
+  .mobile {
+    /* Improve tap performance */
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+  }
+  
+  .mobile input, .mobile textarea, .mobile select {
+    /* Prevent zoom on focus */
+    font-size: 16px !important;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+  }
+}
+
+/* Enhanced animations for the new hero section */
+@keyframes fade-in-up {
+  0% {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes glow-pulse {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(20, 184, 166, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 35px rgba(20, 184, 166, 0.7);
+  }
+}
+
+@keyframes gradient-shift {
+  0%, 100% {
+    transform: translateY(0) scale(1);
+  }
+  33% {
+    transform: translateY(-2%) scale(1.02);
+  }
+  66% {
+    transform: translateY(1%) scale(0.98);
+  }
+}
+
+@keyframes button-glow {
+  0%, 100% {
+    opacity: 0.6;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
+}
+
+@keyframes shine {
+  0% {
+    transform: translateX(-100%) skewX(-12deg);
+  }
+  100% {
+    transform: translateX(200%) skewX(-12deg);
+  }
+}
+
+@keyframes shimmer-subtle {
+  0% {
+    transform: translateX(-200%);
+  }
+  100% {
+    transform: translateX(200%);
+  }
+}
+
+@keyframes wiz-shine {
+  0%, 100% {
+    background-position: -200% center;
+  }
+  50% {
+    background-position: 200% center;
+  }
+}
+
+@keyframes marquee {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+@keyframes shake {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-4px);
+  }
+   75% {
+     transform: translateX(4px);
+   }
+ }
+
+ @keyframes shimmer {
+   0% {
+     opacity: 0.4;
+     transform: scale(0.9);
+   }
+   50% {
+     opacity: 0.8;
+     transform: scale(1.1);
+   }
+   100% {
+     opacity: 0.4;
+     transform: scale(0.9);
+   }
+ }
+
+ @keyframes shimmer-subtle {
+   0% {
+     opacity: 0.8;
+     transform: scale(1);
+   }
+   50% {
+     opacity: 1;
+     transform: scale(1.05);
+   }
+   100% {
+     opacity: 0.8;
+     transform: scale(1);
+   }
+ }
+
+.animate-fade-in-up {
+  animation: fade-in-up 0.8s ease-out forwards;
+}
+
+.brand-glow:hover {
+  animation: glow-pulse 2s ease-in-out infinite;
+}
+
+.animate-gradient-shift {
+  animation: gradient-shift 30s ease-in-out infinite;
+}
+
+.animate-button-glow {
+  animation: button-glow 25s ease-in-out infinite;
+}
+
+.animate-shine {
+  animation: shine 2s ease-in-out infinite;
+}
+
+.animate-wiz-shine {
+  background-size: 200% 100%;
+  animation: wiz-shine 5s ease-in-out infinite;
+}
+
+.logo-marquee {
+  animation: marquee 20s linear infinite;
+  display: flex;
+  align-items: center;
+  white-space: nowrap;
+  gap: 3rem;
+  width: max-content;
+}
+
+.logo-marquee:hover {
+  animation-play-state: paused;
+}
+
+/* Performance optimizations for animations */
+@layer utilities {
+  .will-change-transform {
+    will-change: transform;
+  }
+  
+  .will-change-opacity {
+    will-change: opacity;
+  }
+  
+  .gpu-accelerated {
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    perspective: 1000px;
+  }
+  
+  /* Cross-browser mobile optimizations */
+  @media (max-width: 768px) {
+    .animate-fade-in-up {
+      animation: none;
+      opacity: 1;
+      transform: translateY(0);
+    }
+    
+    .animate-gradient-shift {
+      animation: none;
+    }
+    
+    .animate-button-glow {
+      animation: none;
+    }
+    
+    .animate-shine {
+      animation: none;
+    }
+    
+    .animate-wiz-shine {
+      animation: none;
+    }
+    
+    .logo-marquee {
+      animation: none;
+    }
+    
+    /* Enhanced mobile scrolling for all browsers */
+    html {
+      scroll-behavior: smooth;
+      -webkit-text-size-adjust: 100%;
+      -ms-text-size-adjust: 100%;
+    }
+    
+    body {
+      -webkit-overflow-scrolling: touch;
+      /* Disable pull-to-refresh on mobile */
+      overscroll-behavior-y: contain;
+      /* Enable proper scrolling on mobile */
+      position: relative;
+      width: 100%;
+      min-height: 100vh;
+      overflow-x: hidden;
+      overflow-y: auto;
+      /* Ensure background is properly applied on mobile */
+      background-color: hsl(var(--background)) !important;
+    }
+    
+    /* Ensure main container has proper background */
+    #root {
+      background-color: hsl(var(--background)) !important;
+      min-height: 100vh;
+    }
+    
+    /* Fix viewport issues on mobile */
+    html {
+      height: 100%;
+      background-color: hsl(var(--background)) !important;
+    }
+    
+    /* Enhanced touch improvements for all mobile browsers */
+    * {
+      -webkit-tap-highlight-color: transparent;
+      -webkit-touch-callout: none;
+      -webkit-user-select: none;
+      -khtml-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      user-select: none;
+    }
+    
+    /* Re-enable selection for text content */
+    p, span, div[contenteditable], input, textarea {
+      -webkit-user-select: text;
+      -khtml-user-select: text;
+      -moz-user-select: text;
+      -ms-user-select: text;
+      user-select: text;
+    }
+    
+    /* Prevent zoom on input focus - all mobile browsers */
+    input, select, textarea {
+      font-size: 16px !important;
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      appearance: none;
+    }
+    
+    /* iOS specific fixes */
+    input[type="text"], input[type="email"], input[type="password"] {
+      -webkit-border-radius: 0;
+      border-radius: 0;
+    }
+  }
+  
+  /* Android Chrome specific optimizations */
+  @media screen and (-webkit-min-device-pixel-ratio: 0) and (min-resolution: .001dpcm) {
+    html {
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+  }
+  
+  /* iOS Safari specific optimizations */
+  @supports (-webkit-touch-callout: none) {
+    html {
+      -webkit-text-size-adjust: 100%;
+    }
+    
+    body {
+      -webkit-font-smoothing: antialiased;
+    }
+  }
+  
+  /* Disable animations on slow connections */
+  @media (connection: slow-2g) {
+    * {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+/* Cross-browser utilities and mobile enhancements */
+@layer utilities {
+  /* Enhanced scrollbar hiding for all browsers */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+    scrollbar-color: transparent transparent;
+  }
+  
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+    width: 0;
+    height: 0;
+  }
+  
+  .scrollbar-hide::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  
+  /* Hide scrollbars on mobile */
+  @media (max-width: 768px) {
+    html {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+    
+    html::-webkit-scrollbar {
+      display: none;
+      width: 0;
+      height: 0;
+    }
+    
+    body {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+    
+    body::-webkit-scrollbar {
+      display: none;
+      width: 0;
+      height: 0;
+    }
+  }
+  
+  /* Cross-browser smooth scrolling */
+  .smooth-scroll {
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+  }
+  
+  /* Enhanced touch enhancements for all browsers */
+  .touch-manipulation {
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+    touch-action: manipulation;
+    -ms-touch-action: manipulation;
+  }
+  
+  /* Accessibility-compliant tap targets */
+  .min-tap-target {
+    min-height: 44px;
+    min-width: 44px;
+    cursor: pointer;
+  }
+  
+  /* Cross-browser text selection control */
+  .no-select {
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+  }
+  
+  /* Hardware acceleration for better performance */
+  .gpu-accelerated {
+    -webkit-transform: translateZ(0);
+    -moz-transform: translateZ(0);
+    -ms-transform: translateZ(0);
+    -o-transform: translateZ(0);
+    transform: translateZ(0);
+    -webkit-backface-visibility: hidden;
+    -moz-backface-visibility: hidden;
+    -ms-backface-visibility: hidden;
+    backface-visibility: hidden;
+    -webkit-perspective: 1000px;
+    -moz-perspective: 1000px;
+    -ms-perspective: 1000px;
+    perspective: 1000px;
+  }
+  
+  /* Cross-browser font smoothing */
+  .font-smooth {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+  
+  /* Better focus indicators for all browsers */
+  .focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 2px;
+  }
+  
+  /* Prevent layout shift */
+  .prevent-layout-shift {
+    contain: layout style paint;
+  }
+}
+
+/* Accessibility: Respect user's motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  
+  .animate-fade-in-up {
+    animation: none;
+    opacity: 1;
+    transform: translateY(0);
+  }
+  
+  /* FAQ Toggle Button Styles */
+  .faq-btn-selected.faq-btn-selected {
+    background-color: white !important;
+    color: #182152 !important;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05) !important;
+    border: 1px solid #C4C6C9 !important;
+  }
+  
+  .faq-btn-unselected.faq-btn-unselected {
+    color: #656560 !important;
+    background-color: transparent !important;
+    border: 1px solid transparent !important;
+  }
+  
+  .faq-btn-unselected-mobile.faq-btn-unselected-mobile {
+    color: #656560 !important;
+    background-color: #DDDEE1 !important;
+    border: 1px solid #C4C6C9 !important;
+  }
+  
+  .faq-btn-hover.faq-btn-hover {
+    background-color: #C4C6C9 !important;
+    color: #656560 !important;
+  }
+}

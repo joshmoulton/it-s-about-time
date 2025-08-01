@@ -1,0 +1,90 @@
+/* Admin Panel Responsive Utilities */
+
+/* Text truncation utilities */
+.line-clamp-1 {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 1;
+}
+
+.line-clamp-2 {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.line-clamp-3 {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+}
+
+/* Admin specific responsive containers */
+.admin-container {
+  @apply container mx-auto px-4 sm:px-6 lg:px-8;
+}
+
+.admin-header {
+  @apply mb-6 space-y-2;
+}
+
+.admin-header h1 {
+  @apply text-2xl sm:text-3xl font-bold text-foreground;
+}
+
+.admin-header p {
+  @apply text-sm sm:text-base text-muted-foreground;
+}
+
+/* Card responsive layouts */
+.admin-cards-grid {
+  @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4;
+}
+
+.admin-cards-grid-large {
+  @apply grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6;
+}
+
+/* Button groups */
+.admin-button-group {
+  @apply flex flex-col sm:flex-row gap-2;
+}
+
+.admin-button-group-compact {
+  @apply flex flex-wrap gap-2;
+}
+
+/* Responsive spacing */
+.admin-section {
+  @apply space-y-4 sm:space-y-6;
+}
+
+.admin-content {
+  @apply p-4 sm:p-6 lg:p-8;
+}
+
+/* Mobile-first breakpoints for admin */
+@media (max-width: 640px) {
+  .admin-mobile-stack {
+    @apply flex-col space-y-2;
+  }
+  
+  .admin-mobile-full {
+    @apply w-full;
+  }
+}
+
+@media (min-width: 768px) {
+  .admin-tablet-up {
+    @apply flex-row space-x-4 space-y-0;
+  }
+}
+
+@media (min-width: 1024px) {
+  .admin-desktop-up {
+    @apply grid-cols-2;
+  }
+}

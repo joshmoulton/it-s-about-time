@@ -1,0 +1,253 @@
+/* Browser Compatibility Styles */
+
+/* Firefox specific fixes */
+.firefox-flex-fix {
+  /* Fix Firefox flexbox min-height issues */
+}
+
+.firefox-flex-fix .flex {
+  min-height: 0;
+}
+
+.firefox input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+.firefox input[type="number"]::-webkit-outer-spin-button,
+.firefox input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Safari specific fixes */
+.safari input,
+.safari textarea,
+.safari select,
+.safari button {
+  -webkit-appearance: none;
+  border-radius: 0;
+}
+
+.safari input[type="search"] {
+  -webkit-appearance: none;
+  -webkit-border-radius: 0;
+}
+
+.safari input[type="search"]::-webkit-search-cancel-button,
+.safari input[type="search"]::-webkit-search-decoration {
+  -webkit-appearance: none;
+}
+
+/* iOS Safari specific fixes */
+.ios input,
+.ios textarea,
+.ios select {
+  font-size: 16px; /* Prevent zoom on focus */
+  -webkit-appearance: none;
+  border-radius: 0;
+}
+
+.ios .fixed {
+  /* Fix iOS fixed positioning issues */
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
+}
+
+/* Android specific fixes */
+.android input,
+.android textarea {
+  /* Fix Android input styling */
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.android select {
+  background-image: none;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+/* Chrome specific fixes */
+.chrome input:-webkit-autofill,
+.chrome input:-webkit-autofill:hover,
+.chrome input:-webkit-autofill:focus {
+  -webkit-text-fill-color: var(--foreground) !important;
+  -webkit-box-shadow: 0 0 0px 1000px var(--background) inset !important;
+  transition: background-color 5000s ease-in-out 0s !important;
+}
+
+/* Edge specific fixes */
+.edge-grid-fix {
+  /* Fix Edge CSS Grid issues */
+}
+
+.edge-grid-fix .grid {
+  display: -ms-grid;
+  display: grid;
+}
+
+/* High DPI display optimizations */
+.high-dpi {
+  /* Optimize for retina/high DPI displays */
+}
+
+.high-dpi img {
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
+}
+
+/* Mobile optimizations */
+.mobile-optimized {
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.mobile-optimized p,
+.mobile-optimized span,
+.mobile-optimized div[contenteditable],
+.mobile-optimized input,
+.mobile-optimized textarea {
+  -webkit-user-select: text;
+  user-select: text;
+}
+
+.mobile-optimized * {
+  touch-action: manipulation;
+}
+
+/* Touch device optimizations */
+.touch-enabled {
+  /* Optimize for touch devices */
+}
+
+.touch-enabled button,
+.touch-enabled [role="button"],
+.touch-enabled .clickable {
+  min-height: 44px; /* iOS/Android recommended touch target size */
+  min-width: 44px;
+}
+
+/* Landscape mode optimizations */
+.landscape-mode {
+  /* Optimize for landscape orientation */
+}
+
+/* Feature-based fallbacks */
+.no-css-custom-properties {
+  /* Fallback styles for browsers without CSS custom properties */
+}
+
+.no-css-grid .grid {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.no-flexbox-gap .flex {
+  /* Fallback for flexbox gap using margins */
+}
+
+.no-flexbox-gap .flex > * {
+  margin-right: 1rem;
+  margin-bottom: 1rem;
+}
+
+.no-flexbox-gap .flex > *:last-child {
+  margin-right: 0;
+}
+
+.no-backdrop-filter {
+  /* Fallback for backdrop-filter */
+}
+
+.no-backdrop-filter .backdrop-blur {
+  background-color: rgba(0, 0, 0, 0.8);
+}
+
+.no-position-sticky .sticky {
+  position: relative;
+}
+
+/* Reduced motion preferences */
+.reduced-motion *,
+.reduced-motion *::before,
+.reduced-motion *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+}
+
+/* Save data mode optimizations */
+.save-data {
+  /* Reduce bandwidth usage */
+}
+
+.save-data .animation,
+.save-data [data-animation] {
+  animation: none !important;
+}
+
+.save-data .video,
+.save-data video {
+  display: none;
+}
+
+/* Viewport height fixes */
+:root {
+  --vh: 1vh; /* Default fallback */
+  --vh-android: 1vh; /* Android specific */
+}
+
+.ios {
+  height: calc(var(--vh, 1vh) * 100);
+  min-height: calc(var(--vh, 1vh) * 100);
+}
+
+.android {
+  height: calc(var(--vh-android, 1vh) * 100);
+  min-height: calc(var(--vh-android, 1vh) * 100);
+}
+
+/* Scrollbar styling for different browsers */
+.firefox {
+  scrollbar-width: thin;
+  scrollbar-color: var(--muted-foreground) var(--muted);
+}
+
+/* Webkit browsers (Chrome, Safari, Edge) */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--muted);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--muted-foreground);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--foreground);
+}
+
+/* Form element consistency across browsers */
+input, textarea, select, button {
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+}
+
+/* Fix for browsers that don't support CSS Grid */
+.no-css-grid .grid-cols-1 { width: 100%; }
+.no-css-grid .grid-cols-2 > * { width: calc(50% - 0.5rem); }
+.no-css-grid .grid-cols-3 > * { width: calc(33.333% - 0.667rem); }
+.no-css-grid .grid-cols-4 > * { width: calc(25% - 0.75rem); }
+
+/* Ensure consistent box-sizing */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
