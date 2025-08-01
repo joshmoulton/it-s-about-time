@@ -204,7 +204,9 @@ export function FeedbackManagement() {
   };
 
   const openFeedbackDetails = (feedbackItem: Feedback) => {
+    console.log('🔍 Opening feedback details:', feedbackItem);
     setSelectedFeedback(feedbackItem);
+    console.log('📱 Selected feedback set, loading replies...');
     loadReplies(feedbackItem.id);
   };
 
@@ -326,8 +328,15 @@ export function FeedbackManagement() {
       )}
 
       {/* Feedback Details Modal */}
+      {selectedFeedback && (() => {
+        console.log('💬 Rendering Dialog with selectedFeedback:', selectedFeedback.title);
+        return null;
+      })()}
       {selectedFeedback && (
-        <Dialog open={!!selectedFeedback} onOpenChange={() => setSelectedFeedback(null)}>
+        <Dialog open={!!selectedFeedback} onOpenChange={() => {
+          console.log('🚪 Dialog closing...');
+          setSelectedFeedback(null);
+        }}>
           <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto bg-background border shadow-lg z-50">
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
