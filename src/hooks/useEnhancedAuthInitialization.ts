@@ -85,27 +85,51 @@ export const useEnhancedAuthInitialization = ({
               localStorage.setItem('auth_method', 'supabase_user');
               
               try {
-                console.log('🔍 Checking Beehiiv tier for non-admin user...');
+                console.log('🔍 Checking user source and tier for non-admin user...');
                 
-                // Check beehiiv_subscribers table directly for faster and more reliable tier detection
+                // Check user source and tier from beehiiv_subscribers table
                 const { data: subscriberData, error: subscriberError } = await supabase
                   .from('beehiiv_subscribers')
-                  .select('subscription_tier')
+                  .select('subscription_tier, metadata')
                   .eq('email', session.user.email)
                   .maybeSingle();
                 
                 if (subscriberError) {
                   console.warn('⚠️ Error checking beehiiv_subscribers:', subscriberError);
                   subscriptionTier = 'free';
-                } else if (subscriberData && subscriberData.subscription_tier !== 'free') {
-                  subscriptionTier = subscriberData.subscription_tier as 'free' | 'premium';
-                  console.log(`✅ Direct Beehiiv tier found: ${subscriberData.subscription_tier}`);
+                } else if (subscriberData) {
+                  const userSource = (subscriberData.metadata as any)?.source;
+                  
+                  if (userSource === 'admin_created') {
+                    // Local admin-created user - use tier directly from database
+                    subscriptionTier = subscriberData.subscription_tier as 'free' | 'premium';
+                    console.log(`✅ Admin-created user tier: ${subscriberData.subscription_tier}`);
+                  } else {
+                    // External user - verify via beehiiv API for security
+                    console.log('🌐 External user detected - verifying via Beehiiv API...');
+                    try {
+                      const { data: syncData } = await supabase.functions.invoke('beehiiv-user-sync', {
+                        body: { email: session.user.email }
+                      });
+                      
+                      if (syncData?.success && syncData.tier && syncData.tier !== 'free') {
+                        subscriptionTier = syncData.tier as 'free' | 'premium';
+                        console.log(`✅ Beehiiv API tier: ${syncData.tier}`);
+                      } else {
+                        subscriptionTier = 'free';
+                        console.log('ℹ️ No premium Beehiiv subscription found, using free tier');
+                      }
+                    } catch (apiError) {
+                      console.warn('⚠️ Beehiiv API verification failed, using local tier:', apiError);
+                      subscriptionTier = subscriberData.subscription_tier as 'free' | 'premium';
+                    }
+                  }
                 } else {
                   subscriptionTier = 'free';
-                  console.log('ℹ️ No premium Beehiiv subscription found, using free tier');
+                  console.log('ℹ️ No subscriber record found, using free tier');
                 }
               } catch (error) {
-                console.warn('⚠️ Beehiiv tier check failed, defaulting to free:', error);
+                console.warn('⚠️ User tier check failed, defaulting to free:', error);
                 subscriptionTier = 'free';
               }
             }
@@ -194,25 +218,48 @@ export const useEnhancedAuthInitialization = ({
               localStorage.setItem('auth_method', 'supabase_user');
               
               try {
-                console.log('🔍 Checking Beehiiv tier for cached session...');
+                console.log('🔍 Checking user source and tier for cached session...');
                 
-                // Check beehiiv_subscribers table directly for faster and more reliable tier detection
+                // Check user source and tier from beehiiv_subscribers table
                 const { data: subscriberData, error: subscriberError } = await supabase
                   .from('beehiiv_subscribers')
-                  .select('subscription_tier')
+                  .select('subscription_tier, metadata')
                   .eq('email', session.user.email)
                   .maybeSingle();
                 
                 if (subscriberError) {
                   console.warn('⚠️ Error checking beehiiv_subscribers for cached session:', subscriberError);
-                } else if (subscriberData && subscriberData.subscription_tier !== 'free') {
-                  subscriptionTier = subscriberData.subscription_tier as 'free' | 'premium';
-                  console.log(`✅ Direct cached session Beehiiv tier: ${subscriberData.subscription_tier}`);
+                } else if (subscriberData) {
+                  const userSource = (subscriberData.metadata as any)?.source;
+                  
+                  if (userSource === 'admin_created') {
+                    // Local admin-created user - use tier directly from database
+                    subscriptionTier = subscriberData.subscription_tier as 'free' | 'premium';
+                    console.log(`✅ Cached admin-created user tier: ${subscriberData.subscription_tier}`);
+                  } else {
+                    // External user - verify via beehiiv API for security
+                    console.log('🌐 Cached external user detected - verifying via Beehiiv API...');
+                    try {
+                      const { data: syncData } = await supabase.functions.invoke('beehiiv-user-sync', {
+                        body: { email: session.user.email }
+                      });
+                      
+                      if (syncData?.success && syncData.tier && syncData.tier !== 'free') {
+                        subscriptionTier = syncData.tier as 'free' | 'premium';
+                        console.log(`✅ Cached Beehiiv API tier: ${syncData.tier}`);
+                      } else {
+                        console.log('ℹ️ No premium subscription for cached session, using free');
+                      }
+                    } catch (apiError) {
+                      console.warn('⚠️ Cached Beehiiv API verification failed, using local tier:', apiError);
+                      subscriptionTier = subscriberData.subscription_tier as 'free' | 'premium';
+                    }
+                  }
                 } else {
-                  console.log('ℹ️ No premium subscription for cached session, using free');
+                  console.log('ℹ️ No cached subscriber record found, using free');
                 }
               } catch (error) {
-                console.warn('⚠️ Beehiiv tier check failed for cached session:', error);
+                console.warn('⚠️ Cached user tier check failed:', error);
               }
             }
             

@@ -1,4 +1,4 @@
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.53.0'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -6,123 +6,126 @@ const corsHeaders = {
 }
 
 interface BeehiivSegment {
-  id: string
-  name: string
-  description: string
-  status: string
-  created: number
-  updated: number
+  id: string;
+  name: string;
+  description: string;
 }
 
 interface BeehiivSubscriber {
-  id: string
-  email: string
-  status: 'active' | 'inactive' | 'pending'
-  subscription_tier: 'free' | 'premium'
-  created: number
-  stripe_customer_id?: string
+  id: string;
+  email: string;
+  status: string;
+  created: number;
+  subscription_tier?: string;
 }
 
 interface VerificationResult {
-  success: boolean
-  verified: boolean
-  tier: 'free' | 'premium'
-  segments: string[]
-  error?: string
+  success: boolean;
+  verified: boolean;
+  tier: 'free' | 'premium';
+  segments: string[];
+  error?: string;
 }
 
 Deno.serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders })
+    return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const supabase = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    )
+    // Initialize Supabase client
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+    const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
+    // Get Beehiiv credentials
+    const beehiivApiKey = Deno.env.get('BEEHIIV_API_KEY')
+    if (!beehiivApiKey) {
+      console.error('❌ BEEHIIV_API_KEY not found in environment variables')
+      return new Response(
+        JSON.stringify({ success: false, error: 'API configuration missing' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
+      )
+    }
+
+    // Parse request body
     const { email } = await req.json()
-
+    
     if (!email) {
       return new Response(
-        JSON.stringify({ error: 'Email is required' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        JSON.stringify({ success: false, error: 'Email is required' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
       )
     }
 
-    const beehiivApiKey = Deno.env.get('BEEHIIV_API_KEY')
-    const beehiivPubId = Deno.env.get('BEEHIIV_PUBLICATION_ID')
+    console.log(`🔍 Verifying user subscription in Beehiiv for: ${email}`)
 
-    if (!beehiivApiKey || !beehiivPubId) {
-      console.error('Missing Beehiiv credentials')
-      return new Response(
-        JSON.stringify({ error: 'Missing Beehiiv API credentials' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      )
-    }
-
-    console.log(`🔍 Starting segment-based verification for: ${email}`)
-
-    // Step 1: Fetch all segments
-    const segmentsResponse = await fetch(
-      `https://api.beehiiv.com/v2/publications/${beehiivPubId}/segments`,
-      {
-        headers: {
-          'Authorization': `Bearer ${beehiivApiKey}`,
-          'Content-Type': 'application/json',
-        },
+    // First, get all segments from Beehiiv
+    const segmentsResponse = await fetch('https://api.beehiiv.com/v2/publications/pub_a1bb80bb-bd2e-4b34-98ee-dd09b06c1be5/segments', {
+      headers: {
+        'Authorization': `Bearer ${beehiivApiKey}`,
+        'Content-Type': 'application/json'
       }
-    )
+    })
 
     if (!segmentsResponse.ok) {
-      throw new Error(`Failed to fetch segments: ${segmentsResponse.status}`)
+      const errorText = await segmentsResponse.text()
+      console.error('❌ Failed to fetch segments:', errorText)
+      return new Response(
+        JSON.stringify({ 
+          success: false, 
+          verified: false, 
+          tier: 'free' as const,
+          segments: [],
+          error: 'Failed to fetch segments from Beehiiv' 
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
+      )
     }
 
     const segmentsData = await segmentsResponse.json()
     const segments: BeehiivSegment[] = segmentsData.data || []
+    
+    console.log(`📊 Found ${segments.length} segments in Beehiiv`)
 
-    console.log(`📊 Found ${segments.length} segments`)
+    let userVerified = false
+    let userTier: 'free' | 'premium' = 'free'
+    let userSegments: string[] = []
 
-    // Step 2: Check each segment for the user's email
-    const userSegments: string[] = []
-    let isPremium = false
-
+    // Check each segment for the user
     for (const segment of segments) {
-      if (segment.status !== 'active') continue
-
-      console.log(`🔍 Checking segment: ${segment.name}`)
-
       try {
-        const segmentSubscribersResponse = await fetch(
-          `https://api.beehiiv.com/v2/publications/${beehiivPubId}/segments/${segment.id}/subscriptions`,
-          {
-            headers: {
-              'Authorization': `Bearer ${beehiivApiKey}`,
-              'Content-Type': 'application/json',
-            },
+        console.log(`🔍 Checking segment: ${segment.name}`)
+        
+        const subscribersResponse = await fetch(`https://api.beehiiv.com/v2/publications/pub_a1bb80bb-bd2e-4b34-98ee-dd09b06c1be5/segments/${segment.id}/subscribers`, {
+          headers: {
+            'Authorization': `Bearer ${beehiivApiKey}`,
+            'Content-Type': 'application/json'
           }
-        )
+        })
 
-        if (!segmentSubscribersResponse.ok) {
-          console.warn(`⚠️ Failed to fetch subscribers for segment ${segment.name}: ${segmentSubscribersResponse.status}`)
+        if (!subscribersResponse.ok) {
+          console.warn(`⚠️ Failed to fetch subscribers for segment ${segment.name}`)
           continue
         }
 
-        const segmentData = await segmentSubscribersResponse.json()
-        const subscribers: BeehiivSubscriber[] = segmentData.data || []
-
+        const subscribersData = await subscribersResponse.json()
+        const subscribers: BeehiivSubscriber[] = subscribersData.data || []
+        
         // Check if user is in this segment
-        const userInSegment = subscribers.some(sub => sub.email.toLowerCase() === email.toLowerCase())
-
+        const userInSegment = subscribers.find(sub => sub.email.toLowerCase() === email.toLowerCase())
+        
         if (userInSegment) {
-          userSegments.push(segment.name)
           console.log(`✅ User found in segment: ${segment.name}`)
-
-          // Check if this is the premium segment
-          if (segment.name.toLowerCase().includes('premium')) {
-            isPremium = true
+          userVerified = true
+          userSegments.push(segment.name)
+          
+          // Check if this is a premium segment (contains "premium", "paid", or similar keywords)
+          const segmentName = segment.name.toLowerCase()
+          if (segmentName.includes('premium') || segmentName.includes('paid') || segmentName.includes('subscriber')) {
+            userTier = 'premium'
+            console.log(`💎 Premium tier detected from segment: ${segment.name}`)
           }
         }
       } catch (error) {
@@ -131,56 +134,48 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Step 3: Determine tier and verification status
-    const verified = userSegments.length > 0
-    const tier = isPremium ? 'premium' : 'free'
-
-    console.log(`🎯 Verification result - Email: ${email}, Verified: ${verified}, Tier: ${tier}, Segments: ${userSegments.join(', ')}`)
-
-    // Step 4: Log verification (no personal data stored)
-    await supabase.from('authentication_audit_log').insert({
-      user_email: email,
-      auth_method: 'beehiiv_segment_check',
-      action_type: 'segment_verification',
-      metadata: {
-        verified,
-        tier,
-        segments_count: userSegments.length,
-        segments: userSegments,
-        verification_timestamp: new Date().toISOString()
-      }
-    })
-
     const result: VerificationResult = {
       success: true,
-      verified,
-      tier,
+      verified: userVerified,
+      tier: userTier,
       segments: userSegments
     }
 
-    if (!verified) {
-      result.error = 'No newsletter subscription found in any segment'
+    // Log the verification result to Supabase
+    try {
+      await supabase.from('authentication_audit_log').insert({
+        user_email: email,
+        auth_method: 'beehiiv_verification',
+        action_type: 'tier_verification',
+        metadata: {
+          verification_result: result,
+          segments_checked: segments.length,
+          verified_segments: userSegments
+        }
+      })
+    } catch (auditError) {
+      console.error('⚠️ Failed to log audit entry:', auditError)
     }
+
+    console.log(`📋 Verification complete for ${email}:`, result)
 
     return new Response(
       JSON.stringify(result),
-      { 
-        status: verified ? 200 : 404, 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-      }
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
 
   } catch (error) {
-    console.error('❌ Beehiiv segment verification error:', error)
+    console.error('❌ Beehiiv user sync error:', error)
+    
     return new Response(
       JSON.stringify({ 
         success: false, 
         verified: false, 
-        tier: 'free', 
+        tier: 'free' as const,
         segments: [],
         error: 'Internal server error' 
       }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
     )
   }
 })
