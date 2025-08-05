@@ -16,9 +16,9 @@ serve(async (req) => {
     console.log('🚀 admin-user-create function started')
     
     // Log environment variables (without exposing sensitive data)
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')
-    const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
-    const anonKey = Deno.env.get('SUPABASE_ANON_KEY')
+    const supabaseUrl = 'https://wrvvlmevpvcenauglcyz.supabase.co'
+    const serviceRoleKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndydnZsbWV2cHZjZW5hdWdsY3l6Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0OTg1Mzk1MCwiZXhwIjoyMDY1NDI5OTUwfQ.H_srIeAcaWEtM3a2u9-dxLLmpU7mmHOHqrHCvWOwlEg'
+    const anonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndydnZsbWV2cHZjZW5hdWdsY3l6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk4NTM5NTAsImV4cCI6MjA2NTQyOTk1MH0.iR1E5RqVrH7OsDdIqDvMWsc5d2jK9Qg9Ck-2lpi3E2g'
     
     console.log('🔧 Environment check:', {
       hasSupabaseUrl: !!supabaseUrl,
@@ -67,8 +67,8 @@ serve(async (req) => {
     
     // Create an anon client to verify the token
     const anonClient = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? ''
+      supabaseUrl,
+      anonKey
     )
     
     // Verify the token
