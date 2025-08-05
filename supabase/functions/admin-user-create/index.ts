@@ -46,6 +46,8 @@ serve(async (req) => {
     })
 
     console.log('✅ Service role client created')
+    console.log('🔑 Service role key prefix:', serviceRoleKey.substring(0, 20) + '...')
+    console.log('🌐 Supabase URL:', supabaseUrl)
 
     // Get authorization header
     const authHeader = req.headers.get('Authorization')
