@@ -35,36 +35,31 @@ serve(async (req) => {
       )
     }
 
-    // Get user session and set up authenticated client
+    // Get user session using service role to verify admin status
     const token = authHeader.replace('Bearer ', '')
-    const supabase = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
-      {
-        global: {
-          headers: {
-            Authorization: authHeader
-          }
-        }
-      }
-    )
-
-    const { data: { user }, error: userError } = await supabase.auth.getUser(token)
+    
+    // Use service role client to verify the user and admin status
+    const { data: { user }, error: userError } = await supabaseAdmin.auth.getUser(token)
 
     if (userError || !user) {
       console.error('User verification failed:', userError)
       return new Response(
-        JSON.stringify({ error: 'Invalid authorization token' }),
+        JSON.stringify({ error: `Failed to create user: ${userError?.message || 'Invalid authorization token'}` }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
 
-    // Check if the requesting user is an admin using the authenticated client
-    const { data: adminCheck, error: adminCheckError } = await supabase.rpc('is_current_user_admin')
+    // Check if the requesting user is an admin
+    const { data: adminUsers, error: adminCheckError } = await supabaseAdmin
+      .from('admin_users')
+      .select('role, is_active')
+      .eq('email', user.email)
+      .eq('is_active', true)
+      .single()
 
-    console.log('Admin check result:', { adminCheck, adminCheckError, userEmail: user.email })
+    console.log('Admin check result:', { adminUsers, adminCheckError, userEmail: user.email })
 
-    if (adminCheckError || !adminCheck) {
+    if (adminCheckError || !adminUsers) {
       console.error('Admin check failed:', adminCheckError)
       return new Response(
         JSON.stringify({ error: 'Insufficient permissions - admin access required' }),
