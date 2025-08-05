@@ -178,7 +178,7 @@ export function FeedbackModal({ isOpen, onClose }: FeedbackModalProps) {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-lg bg-slate-900 border-slate-700 text-white">
+      <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto my-8 bg-slate-900 border-slate-700 text-white">
         <DialogHeader className="pb-4">
           <DialogTitle className="flex items-center gap-2 text-white text-lg">
             <MessageSquare className="w-5 h-5 text-blue-400" />
