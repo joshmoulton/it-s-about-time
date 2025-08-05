@@ -86,19 +86,26 @@ export const useEnhancedAuthInitialization = ({
               
               try {
                 console.log('🔍 Checking Beehiiv tier for non-admin user...');
-                const { data: syncData } = await supabase.functions.invoke('beehiiv-user-sync', {
-                  body: { email: session.user.email }
-                });
                 
-                if (syncData?.success && syncData.tier && syncData.tier !== 'free') {
-                  subscriptionTier = syncData.tier as 'free' | 'premium';
-                  console.log(`✅ Beehiiv tier found: ${syncData.tier}`);
+                // Check beehiiv_subscribers table directly for faster and more reliable tier detection
+                const { data: subscriberData, error: subscriberError } = await supabase
+                  .from('beehiiv_subscribers')
+                  .select('subscription_tier')
+                  .eq('email', session.user.email)
+                  .maybeSingle();
+                
+                if (subscriberError) {
+                  console.warn('⚠️ Error checking beehiiv_subscribers:', subscriberError);
+                  subscriptionTier = 'free';
+                } else if (subscriberData && subscriberData.subscription_tier !== 'free') {
+                  subscriptionTier = subscriberData.subscription_tier as 'free' | 'premium';
+                  console.log(`✅ Direct Beehiiv tier found: ${subscriberData.subscription_tier}`);
                 } else {
                   subscriptionTier = 'free';
                   console.log('ℹ️ No premium Beehiiv subscription found, using free tier');
                 }
               } catch (error) {
-                console.warn('⚠️ Beehiiv sync failed, defaulting to free:', error);
+                console.warn('⚠️ Beehiiv tier check failed, defaulting to free:', error);
                 subscriptionTier = 'free';
               }
             }
@@ -188,18 +195,24 @@ export const useEnhancedAuthInitialization = ({
               
               try {
                 console.log('🔍 Checking Beehiiv tier for cached session...');
-                const { data: syncData } = await supabase.functions.invoke('beehiiv-user-sync', {
-                  body: { email: session.user.email }
-                });
                 
-                if (syncData?.success && syncData.tier && syncData.tier !== 'free') {
-                  subscriptionTier = syncData.tier as 'free' | 'premium';
-                  console.log(`✅ Cached session Beehiiv tier: ${syncData.tier}`);
+                // Check beehiiv_subscribers table directly for faster and more reliable tier detection
+                const { data: subscriberData, error: subscriberError } = await supabase
+                  .from('beehiiv_subscribers')
+                  .select('subscription_tier')
+                  .eq('email', session.user.email)
+                  .maybeSingle();
+                
+                if (subscriberError) {
+                  console.warn('⚠️ Error checking beehiiv_subscribers for cached session:', subscriberError);
+                } else if (subscriberData && subscriberData.subscription_tier !== 'free') {
+                  subscriptionTier = subscriberData.subscription_tier as 'free' | 'premium';
+                  console.log(`✅ Direct cached session Beehiiv tier: ${subscriberData.subscription_tier}`);
                 } else {
                   console.log('ℹ️ No premium subscription for cached session, using free');
                 }
               } catch (error) {
-                console.warn('⚠️ Beehiiv sync failed for cached session:', error);
+                console.warn('⚠️ Beehiiv tier check failed for cached session:', error);
               }
             }
             
