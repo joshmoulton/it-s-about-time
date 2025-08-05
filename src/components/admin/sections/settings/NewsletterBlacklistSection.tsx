@@ -7,7 +7,8 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
-import { Ban, Plus, Trash2, Calendar } from 'lucide-react';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { Ban, Plus, Trash2, Calendar, ChevronDown, ChevronRight } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { formatDistanceToNow } from 'date-fns';
@@ -25,6 +26,7 @@ interface BlacklistedNewsletter {
 export function NewsletterBlacklistSection() {
   const [blacklistedNewsletters, setBlacklistedNewsletters] = useState<BlacklistedNewsletter[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isOpen, setIsOpen] = useState(false);
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [formData, setFormData] = useState({
@@ -123,97 +125,121 @@ export function NewsletterBlacklistSection() {
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <div>
-            <CardTitle className="flex items-center gap-2">
-              <Ban className="h-5 w-5" />
-              Newsletter Blacklist
-            </CardTitle>
+    <Collapsible open={isOpen} onOpenChange={setIsOpen}>
+      <Card>
+        <CollapsibleTrigger asChild>
+          <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2">
+                  <Ban className="h-5 w-5" />
+                  <CardTitle>Newsletter Blacklist</CardTitle>
+                  {isOpen ? (
+                    <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                  ) : (
+                    <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                  )}
+                </div>
+                {!isOpen && blacklistedNewsletters.length > 0 && (
+                  <Badge variant="secondary" className="ml-2">
+                    {blacklistedNewsletters.length} blacklisted
+                  </Badge>
+                )}
+              </div>
+              <Button 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowAddDialog(true);
+                }} 
+                size="sm" 
+                className="gap-2"
+              >
+                <Plus className="h-4 w-4" />
+                Add to Blacklist
+              </Button>
+            </div>
             <CardDescription>
               Prevent specific newsletters from syncing from BeehiIV
             </CardDescription>
-          </div>
-          <Button onClick={() => setShowAddDialog(true)} size="sm" className="gap-2">
-            <Plus className="h-4 w-4" />
-            Add to Blacklist
-          </Button>
-        </div>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-4">
-          {isLoading ? (
-            <div className="text-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2"></div>
-              <p className="text-muted-foreground">Loading blacklisted newsletters...</p>
-            </div>
-          ) : blacklistedNewsletters.length === 0 ? (
-            <div className="text-center py-8">
-              <Ban className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <p className="text-muted-foreground">No newsletters are currently blacklisted</p>
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Title</TableHead>
-                    <TableHead>BeehiIV Post ID</TableHead>
-                    <TableHead>Reason</TableHead>
-                    <TableHead>Blacklisted By</TableHead>
-                    <TableHead>Date</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {blacklistedNewsletters.map((newsletter) => (
-                    <TableRow key={newsletter.id}>
-                      <TableCell className="font-medium">{newsletter.title}</TableCell>
-                      <TableCell>
-                        <Badge variant="outline" className="font-mono text-xs">
-                          {newsletter.beehiiv_post_id}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="max-w-xs">
-                        <div className="truncate" title={newsletter.reason}>
-                          {newsletter.reason || 'No reason provided'}
-                        </div>
-                      </TableCell>
-                      <TableCell>{newsletter.blacklisted_by}</TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                          <Calendar className="h-3 w-3" />
-                          {formatDistanceToNow(new Date(newsletter.blacklisted_at), { addSuffix: true })}
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => setDeleteId(newsletter.id)}
-                          className="text-destructive hover:text-destructive"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          )}
+          </CardHeader>
+        </CollapsibleTrigger>
+        
+        <CollapsibleContent>
+          <CardContent>
+            <div className="space-y-4">
+              {isLoading ? (
+                <div className="text-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2"></div>
+                  <p className="text-muted-foreground">Loading blacklisted newsletters...</p>
+                </div>
+              ) : blacklistedNewsletters.length === 0 ? (
+                <div className="text-center py-8">
+                  <Ban className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                  <p className="text-muted-foreground">No newsletters are currently blacklisted</p>
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Title</TableHead>
+                        <TableHead>BeehiIV Post ID</TableHead>
+                        <TableHead>Reason</TableHead>
+                        <TableHead>Blacklisted By</TableHead>
+                        <TableHead>Date</TableHead>
+                        <TableHead className="text-right">Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {blacklistedNewsletters.map((newsletter) => (
+                        <TableRow key={newsletter.id}>
+                          <TableCell className="font-medium">{newsletter.title}</TableCell>
+                          <TableCell>
+                            <Badge variant="outline" className="font-mono text-xs">
+                              {newsletter.beehiiv_post_id}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="max-w-xs">
+                            <div className="truncate" title={newsletter.reason}>
+                              {newsletter.reason || 'No reason provided'}
+                            </div>
+                          </TableCell>
+                          <TableCell>{newsletter.blacklisted_by}</TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                              <Calendar className="h-3 w-3" />
+                              {formatDistanceToNow(new Date(newsletter.blacklisted_at), { addSuffix: true })}
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => setDeleteId(newsletter.id)}
+                              className="text-destructive hover:text-destructive"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
 
-          <div className="bg-muted p-4 rounded-lg">
-            <h4 className="font-medium mb-2">How it works:</h4>
-            <ul className="text-sm text-muted-foreground space-y-1">
-              <li>• Blacklisted newsletters will be completely skipped during sync</li>
-              <li>• The sync function checks the blacklist before processing each newsletter</li>
-              <li>• Blacklisted newsletters won't appear even if they're updated in BeehiIV</li>
-              <li>• You can remove newsletters from the blacklist to allow them to sync again</li>
-            </ul>
-          </div>
-        </div>
+              <div className="bg-muted p-4 rounded-lg">
+                <h4 className="font-medium mb-2">How it works:</h4>
+                <ul className="text-sm text-muted-foreground space-y-1">
+                  <li>• Blacklisted newsletters will be completely skipped during sync</li>
+                  <li>• The sync function checks the blacklist before processing each newsletter</li>
+                  <li>• Blacklisted newsletters won't appear even if they're updated in BeehiIV</li>
+                  <li>• You can remove newsletters from the blacklist to allow them to sync again</li>
+                </ul>
+              </div>
+            </div>
+          </CardContent>
+        </CollapsibleContent>
 
         {/* Add to Blacklist Dialog */}
         <AlertDialog open={showAddDialog} onOpenChange={setShowAddDialog}>
@@ -284,7 +310,7 @@ export function NewsletterBlacklistSection() {
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
-      </CardContent>
-    </Card>
+      </Card>
+    </Collapsible>
   );
 }
