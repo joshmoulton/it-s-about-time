@@ -41,7 +41,7 @@ export function AddLocalAdminForm({ onCancel, onSuccess }: AddLocalAdminFormProp
       }
 
       // Call the edge function to create the admin user
-      const { data, error } = await supabase.functions.invoke('create-admin-user', {
+      const { data, error } = await supabase.functions.invoke('admin-user-create', {
         body: {
           email: email.toLowerCase().trim(),
           password,
