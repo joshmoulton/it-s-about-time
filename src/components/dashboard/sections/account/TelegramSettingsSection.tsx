@@ -196,7 +196,7 @@ export function TelegramSettingsSection() {
                 value={chatId}
                 onChange={(e) => setChatId(e.target.value)}
                 type="number"
-                className="h-11 text-foreground"
+                className="h-11 text-foreground [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
               />
               <p className="text-sm text-muted-foreground">
                 Your unique Telegram Chat ID (obtained after messaging the bot)
