@@ -40,7 +40,7 @@ export const useEnhancedAuthState = () => {
     setIsLoading(false);
   }, []);
 
-  const refreshCurrentUser = useCallback(async () => {
+  const refreshCurrentUser = async () => {
     if (!currentUser) return;
     
     try {
@@ -48,14 +48,17 @@ export const useEnhancedAuthState = () => {
       const { supabase } = await import('@/integrations/supabase/client');
       
       if (currentUser.user_type === 'whop_user') {
-        // For Whop users, refresh from whop_authenticated_users
+        // For Whop users, refresh from whop_authenticated_users with optimized query
         const { data, error } = await supabase
           .from('whop_authenticated_users')
-          .select('*')
+          .select('subscription_tier, updated_at')
           .eq('user_email', currentUser.email)
           .single();
         
-        if (error) throw error;
+        if (error) {
+          console.warn('Failed to refresh Whop user data:', error);
+          return;
+        }
         
         if (data) {
           const refreshedUserData = {
@@ -66,14 +69,14 @@ export const useEnhancedAuthState = () => {
           setCurrentUser(refreshedUserData);
         }
       } else {
-        // For Supabase admin users, just keep current data
-        // Profile data is managed separately via user_profiles table
-        console.log('Supabase admin user - no refresh needed from subscriber tables');
+        // For Supabase admin users, profile data is managed separately via user_profiles table
+        // No need to refresh from subscriber tables frequently
+        console.log('Supabase admin user - using cached data to improve performance');
       }
     } catch (error) {
       console.error('Failed to refresh current user:', error);
     }
-  }, [currentUser, setCurrentUser]);
+  };
 
   return {
     isLoading,
