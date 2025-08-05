@@ -337,7 +337,7 @@ export function FeedbackManagement() {
           console.log('🚪 Dialog closing...');
           setSelectedFeedback(null);
         }}>
-          <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto bg-background border shadow-lg z-50">
+          <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">{' '}
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
                 {CategoryIcon(selectedFeedback.category)}
