@@ -1,4 +1,6 @@
 import { useEffect, useState } from 'react';
+import weeklyWizdomLogo from '@/assets/weekly-wizdom-logo.png';
+import weeklyWizdomText from '@/assets/weekly-wizdom-text.png';
 
 interface LoadingScreenProps {
   onLoadingComplete: () => void;
@@ -54,7 +56,7 @@ const LoadingScreen = ({ onLoadingComplete }: LoadingScreenProps) => {
       <div className="flex flex-col items-center justify-center space-y-4 relative z-10">
         {/* Main Logo */}
         <img 
-          src="/lovable-uploads/92103cfe-defa-4004-b1bb-7d6498f567ed.png" 
+          src={weeklyWizdomLogo} 
           alt="Weekly Wizdom" 
           className={`w-48 h-auto transition-all duration-700 ease-out ${
             showLogo && !isFadingOut ? 'opacity-100 scale-100' : 'opacity-0 scale-95'
@@ -63,7 +65,7 @@ const LoadingScreen = ({ onLoadingComplete }: LoadingScreenProps) => {
         
         {/* Text Logo */}
         <img 
-          src="/lovable-uploads/760c309c-e0cf-4e84-96b7-5cedf426aa74.png" 
+          src={weeklyWizdomText} 
           alt="Weekly Wizdom Text" 
           className={`w-64 h-auto transition-all duration-700 ease-out delay-150 ${
             showText && !isFadingOut ? 'opacity-100 scale-100' : 'opacity-0 scale-95'
