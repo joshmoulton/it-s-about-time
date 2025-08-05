@@ -196,7 +196,7 @@ export function TelegramSettingsSection() {
                 value={chatId}
                 onChange={(e) => setChatId(e.target.value)}
                 type="number"
-                className="h-11"
+                className="h-11 text-foreground"
               />
               <p className="text-sm text-muted-foreground">
                 Your unique Telegram Chat ID (obtained after messaging the bot)
@@ -210,7 +210,7 @@ export function TelegramSettingsSection() {
                 placeholder="@iamjoshmoulton"
                 value={telegramUsername}
                 onChange={(e) => setTelegramUsername(e.target.value)}
-                className="h-11"
+                className="h-11 text-foreground"
               />
               <p className="text-sm text-muted-foreground">
                 Your Telegram username (less reliable than Chat ID)
