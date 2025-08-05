@@ -26,7 +26,7 @@ serve(async (req) => {
       }
     )
 
-    // Verify the requesting user is an admin
+    // Since JWT verification is disabled, we need to manually verify the admin user
     const authHeader = req.headers.get('Authorization')
     if (!authHeader) {
       return new Response(
@@ -35,21 +35,27 @@ serve(async (req) => {
       )
     }
 
-    // Get user session using service role to verify admin status
+    // Extract the token and verify it manually using service role
     const token = authHeader.replace('Bearer ', '')
     
-    // Use service role client to verify the user and admin status
-    const { data: { user }, error: userError } = await supabaseAdmin.auth.getUser(token)
-
-    if (userError || !user) {
-      console.error('User verification failed:', userError)
+    // Create a client to verify the JWT token
+    const authClient = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_ANON_KEY') ?? ''
+    )
+    
+    // Verify the token by setting it in the client
+    const { data: { user }, error: tokenError } = await authClient.auth.getUser(token)
+    
+    if (tokenError || !user) {
+      console.error('Token verification failed:', tokenError)
       return new Response(
-        JSON.stringify({ error: `Failed to create user: ${userError?.message || 'Invalid authorization token'}` }),
+        JSON.stringify({ error: 'Invalid authorization token' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
 
-    // Check if the requesting user is an admin
+    // Check if the requesting user is an admin using service role
     const { data: adminUsers, error: adminCheckError } = await supabaseAdmin
       .from('admin_users')
       .select('role, is_active')
