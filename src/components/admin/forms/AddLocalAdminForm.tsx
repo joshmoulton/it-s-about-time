@@ -153,7 +153,7 @@ export function AddLocalAdminForm({ onCancel, onSuccess }: AddLocalAdminFormProp
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="z-50 bg-background border shadow-lg">
                   <SelectItem value="premium_user">Premium User</SelectItem>
                   <SelectItem value="analyst">Analyst</SelectItem>
                   <SelectItem value="editor">Editor</SelectItem>
