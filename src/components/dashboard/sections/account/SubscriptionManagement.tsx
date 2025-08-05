@@ -56,7 +56,7 @@ export function SubscriptionManagement({ subscriber }: SubscriptionManagementPro
   };
 
   return (
-    <Card>
+    <Card className="border border-brand-navy/20 bg-brand-navy/5 shadow-lg">
       <CardHeader>
         <CardTitle>Current Subscription</CardTitle>
         <CardDescription>
