@@ -304,7 +304,7 @@ export const ClientSideTradingProfile = () => {
 
   if (isLoading || !profile) {
     return (
-      <Card>
+      <Card className="border border-brand-navy/20 bg-brand-navy/5 shadow-lg">
         <CardHeader>
           <CardTitle>Trading Profile</CardTitle>
           <CardDescription>Loading your trading preferences...</CardDescription>
@@ -330,7 +330,7 @@ export const ClientSideTradingProfile = () => {
 
   return (
     <>
-      <Card>
+      <Card className="border border-brand-navy/20 bg-brand-navy/5 shadow-lg">
         <CardHeader>
           <CardTitle className="flex items-center justify-between">
             Complete Your Trading Profile
