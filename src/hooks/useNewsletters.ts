@@ -40,7 +40,8 @@ export const useNewsletters = (limit?: number, sortBy: 'newest' | 'oldest' | 'ti
       let query = supabase
         .from('newsletters')
         .select('*')
-        .eq('status', 'published');
+        .eq('status', 'published')
+        .eq('metadata->>content_type', 'newsletter');
 
       // Order by the best available date field, handling nulls properly
       if (sortBy === 'newest') {
