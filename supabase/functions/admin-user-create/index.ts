@@ -15,17 +15,35 @@ serve(async (req) => {
   try {
     console.log('🚀 admin-user-create function started')
     
+    // Log environment variables (without exposing sensitive data)
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')
+    const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
+    const anonKey = Deno.env.get('SUPABASE_ANON_KEY')
+    
+    console.log('🔧 Environment check:', {
+      hasSupabaseUrl: !!supabaseUrl,
+      supabaseUrlLength: supabaseUrl?.length || 0,
+      hasServiceRoleKey: !!serviceRoleKey,
+      serviceRoleKeyLength: serviceRoleKey?.length || 0,
+      hasAnonKey: !!anonKey,
+      anonKeyLength: anonKey?.length || 0
+    })
+    
+    if (!supabaseUrl || !serviceRoleKey) {
+      console.error('❌ Missing required environment variables')
+      return new Response(
+        JSON.stringify({ error: 'Server configuration error: missing environment variables' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+    
     // Create Supabase client with service role for admin operations
-    const supabaseAdmin = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
-      {
-        auth: {
-          autoRefreshToken: false,
-          persistSession: false
-        }
+    const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey, {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false
       }
-    )
+    })
 
     console.log('✅ Service role client created')
 
