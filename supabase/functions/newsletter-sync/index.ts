@@ -98,6 +98,54 @@ async function fetchSingleBeehiivPost(
   return await response.json();
 }
 
+// Helper function to check if content is actually a newsletter (not article/one-off content)
+function isActualNewsletter(post: any): boolean {
+  const title = (post.title || '').toLowerCase();
+  const subtitle = (post.subtitle || '').toLowerCase();
+  
+  // Newsletter indicators (positive signals)
+  const newsletterIndicators = [
+    'newsletter', 'weekly', 'monthly', 'issue', 'edition', 'wizdom', 'market insights',
+    'crypto signals', 'trading signals', 'market update', 'market analysis'
+  ];
+  
+  // Article indicators (negative signals) - these are typically one-off articles
+  const articleIndicators = [
+    'market recap', 'monthly report', 'quarterly report', 'annual report',
+    'guide to', 'how to', 'beginner', 'tutorial', 'tips for', 'what is',
+    'analysis of', 'review of', 'breakdown of'
+  ];
+  
+  // Check for article indicators first (these override newsletter indicators)
+  const hasArticleIndicators = articleIndicators.some(indicator => 
+    title.includes(indicator) || subtitle.includes(indicator)
+  );
+  
+  if (hasArticleIndicators) {
+    return false;
+  }
+  
+  // Check for newsletter indicators
+  const hasNewsletterIndicators = newsletterIndicators.some(indicator => 
+    title.includes(indicator) || subtitle.includes(indicator)
+  );
+  
+  // If it has newsletter indicators, it's a newsletter
+  if (hasNewsletterIndicators) {
+    return true;
+  }
+  
+  // If it doesn't match specific patterns, assume it's a newsletter if it's part of regular content
+  // Check if it looks like part of a regular newsletter series (not one-off content)
+  const looksLikeRegularContent = !title.includes('report') && 
+                                  !title.includes('guide') && 
+                                  !title.includes('tutorial') &&
+                                  !subtitle.includes('special') &&
+                                  !subtitle.includes('one-time');
+  
+  return looksLikeRegularContent;
+}
+
 // Helper function to fetch recent posts from Beehiiv with tier detection
 async function fetchBeehiivPostsRecent(
   beehiivApiKey: string,
@@ -127,7 +175,7 @@ async function fetchBeehiivPostsRecent(
   }
 
   const data = await response.json();
-  console.log(`📊 BeehiIV API returned ${data.data?.length || 0} newsletters (newest first)`);
+  console.log(`📊 BeehiIV API returned ${data.data?.length || 0} posts (newest first)`);
   
   return data;
 }
@@ -235,6 +283,13 @@ serve(async (req) => {
 
       for (const post of allPosts) {
         try {
+          // First, check if this is actually a newsletter and not an article
+          if (!isActualNewsletter(post)) {
+            console.log(`📄 Skipping article (not newsletter): ${post.title}`);
+            skippedCount++;
+            continue;
+          }
+
           // Check if newsletter is blacklisted
           const { data: blacklisted } = await supabase
             .from('newsletter_blacklist')
@@ -265,17 +320,6 @@ serve(async (req) => {
           
           console.log(`📊 Newsletter "${post.title}" detected as ${actualTier} tier`);
 
-          // Classify content type using our database function
-          const { data: contentType } = await supabase.rpc(
-            'classify_newsletter_content_type',
-            {
-              p_title: post.title || '',
-              p_excerpt: post.subtitle || '',
-              p_html_content: htmlContent || '',
-              p_plain_content: plainContent || ''
-            }
-          );
-
           const newsletterData = {
             title: post.title || 'Untitled',
             content: shortContent || post.content_preview,
@@ -290,7 +334,7 @@ serve(async (req) => {
             web_url: post.web_url,
             thumbnail_url: post.thumbnail_url,
             required_tier: actualTier,
-            metadata: { content_type: contentType || 'article' },
+            metadata: { content_type: 'newsletter' }, // Always newsletter since we filter articles out
             updated_at: new Date().toISOString()
           };
 
