@@ -84,9 +84,9 @@ export default function Newsletters() {
   return (
     <div className="min-h-screen w-full bg-slate-950 text-white">
       {/* Header */}
-      <div className="px-8 py-6 border-b border-slate-800 flex-shrink-0 bg-gradient-to-r from-slate-950 to-slate-900">
-        <div className="flex items-center justify-between">
-          <div className="space-y-2">
+      <div className="px-4 sm:px-6 lg:px-8 py-6 border-b border-slate-800 flex-shrink-0 bg-gradient-to-r from-slate-950 to-slate-900">
+        <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
+          <div className="space-y-2 w-full lg:w-auto">
             <div className="flex items-center gap-3">
               <Button
                 variant="ghost"
@@ -99,25 +99,25 @@ export default function Newsletters() {
               </Button>
             </div>
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 bg-cyan-500/20 rounded-xl flex items-center justify-center">
+              <div className="w-12 h-12 bg-cyan-500/20 rounded-xl flex items-center justify-center flex-shrink-0">
                 <Mail className="h-6 w-6 text-cyan-400" />
               </div>
-              <div>
-                <h1 className="text-3xl font-bold text-white mb-1">Newsletter Archive</h1>
-                <p className="text-slate-300">Weekly market insights and analysis</p>
+              <div className="min-w-0">
+                <h1 className="text-2xl sm:text-3xl font-bold text-white mb-1">Newsletter Archive</h1>
+                <p className="text-slate-300 text-sm sm:text-base">Weekly market insights and analysis</p>
               </div>
             </div>
           </div>
           
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-4 w-full lg:w-auto justify-between lg:justify-end">
             <div className="hidden sm:flex items-center gap-3">
               <div className="text-center">
-                <div className="text-2xl font-bold text-cyan-400">{newsletters?.length || 0}</div>
+                <div className="text-xl lg:text-2xl font-bold text-cyan-400">{newsletters?.length || 0}</div>
                 <div className="text-xs text-slate-400">Total</div>
               </div>
             </div>
             
-            <Badge className="bg-green-500/10 text-green-400 border-green-500/20 px-4 py-2">
+            <Badge className="bg-green-500/10 text-green-400 border-green-500/20 px-3 py-1.5 flex-shrink-0">
               <Mail className="w-3 h-3 mr-2" />
               Archive
             </Badge>
@@ -125,21 +125,21 @@ export default function Newsletters() {
         </div>
 
         {/* Search and Actions Bar */}
-        <div className="flex items-center justify-between mt-6 pt-4 border-t border-slate-700">
-          <div className="flex items-center gap-4">
-            <div className="relative">
+        <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 mt-6 pt-4 border-t border-slate-700">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 w-full lg:w-auto">
+            <div className="relative w-full sm:w-auto">
               <Search className="h-4 w-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" />
               <Input 
                 placeholder="Search newsletters..." 
-                className="pl-10 w-64 bg-slate-800 border-slate-700 text-white placeholder:text-slate-400"
+                className="pl-10 w-full sm:w-64 bg-slate-800 border-slate-700 text-white placeholder:text-slate-400"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
-            <div className="flex items-center gap-2">
-              <Filter className="h-4 w-4 text-slate-400" />
+            <div className="flex items-center gap-2 w-full sm:w-auto">
+              <Filter className="h-4 w-4 text-slate-400 flex-shrink-0" />
               <Select value={sortBy} onValueChange={(value: 'newest' | 'oldest' | 'title') => setSortBy(value)}>
-                <SelectTrigger className="w-40 bg-slate-800 border-slate-700 text-white">
+                <SelectTrigger className="w-full sm:w-40 bg-slate-800 border-slate-700 text-white">
                   <SelectValue placeholder="Sort by..." />
                 </SelectTrigger>
                 <SelectContent className="bg-slate-800 border-slate-700">
@@ -152,13 +152,13 @@ export default function Newsletters() {
           </div>
           
           {isAdmin && (
-            <div className="flex items-center gap-2">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full lg:w-auto">
               <Button 
                 variant="ghost" 
                 size="sm" 
                 onClick={handleRefresh} 
                 disabled={isLoading}
-                className="text-white border border-slate-700 hover:bg-slate-800"
+                className="text-white border border-slate-700 hover:bg-slate-800 w-full sm:w-auto"
               >
                 <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
                 Refresh
@@ -168,7 +168,7 @@ export default function Newsletters() {
                 size="sm" 
                 onClick={handleSyncClick}
                 disabled={syncNewsletters.isPending}
-                className="text-white border-slate-700 hover:bg-slate-800"
+                className="text-white border-slate-700 hover:bg-slate-800 w-full sm:w-auto"
               >
                 <Mail className={`h-4 w-4 mr-2 ${syncNewsletters.isPending ? 'animate-pulse' : ''}`} />
                 Sync from beehiiv
@@ -179,7 +179,7 @@ export default function Newsletters() {
       </div>
 
       {/* Content */}
-      <div className="flex-1 overflow-hidden p-8 bg-slate-950">
+      <div className="flex-1 overflow-hidden p-4 sm:p-6 lg:p-8 bg-slate-950">
         <div className="max-w-6xl mx-auto">
           {isLoading ? (
             <div className="flex items-center justify-center h-96">
