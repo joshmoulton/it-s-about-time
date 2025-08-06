@@ -27,6 +27,7 @@ export function SimpleTourExitDialog({
     <AlertDialog open={isOpen}>
       <AlertDialogContent className="sm:max-w-md z-[10001] fixed">
         <AlertDialogHeader>
+          <AlertDialogTitle>Tutorial Preferences</AlertDialogTitle>
           <AlertDialogDescription>
             Would you like to see this tutorial again next time, or disable it completely?
           </AlertDialogDescription>
