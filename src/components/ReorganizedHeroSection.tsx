@@ -38,11 +38,8 @@ const ReorganizedHeroSection = ({
               <h1 className="text-xl xs:text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-[3.5rem] 2xl:text-[4.75rem] leading-[1.2] font-medium text-foreground font-merriweather drop-shadow-lg max-w-5xl px-2 sm:px-0">
                 <span className="text-foreground drop-shadow-md">
                   Join the #1 Newsletter & Community for{' '}
-                  <span className="relative inline-block">
-                    <span className="invisible text-brand-primary font-bold">Crypto&nbsp;&nbsp;</span>
-                    <span className="absolute inset-0">
-                      <CyclingText words={cyclingWords} className="text-brand-primary font-bold" interval={2500} />
-                    </span>
+                  <span className="relative inline-block min-w-[120px] text-left">
+                    <CyclingText words={cyclingWords} className="text-brand-primary font-bold" interval={2500} />
                   </span>
                 </span>
               </h1>
