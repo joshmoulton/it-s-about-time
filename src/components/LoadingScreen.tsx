@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
-import weeklyWizdomLogo from '@/assets/weekly-wizdom-logo.png';
-import weeklyWizdomText from '@/assets/weekly-wizdom-text.png';
+import { Sparkles } from 'lucide-react';
 
 interface LoadingScreenProps {
   onLoadingComplete: () => void;
@@ -49,28 +48,36 @@ const LoadingScreen = ({ onLoadingComplete }: LoadingScreenProps) => {
 
   return (
     <div 
-      className={`fixed inset-0 bg-primary z-[9999] flex items-center justify-center transition-opacity duration-700 ${
+      className={`fixed inset-0 bg-gradient-to-br from-blue-500 to-blue-600 z-[9999] flex items-center justify-center transition-opacity duration-700 ${
         isFadingOut ? 'opacity-0' : 'opacity-100'
       }`}
     >
-      <div className="flex flex-col items-center justify-center space-y-4 relative z-10">
+      {/* Sparkle decorations */}
+      <div className="absolute inset-0 overflow-hidden">
+        <Sparkles className="absolute top-1/4 left-1/4 text-white/30 w-6 h-6 animate-pulse" />
+        <Sparkles className="absolute top-3/4 right-1/4 text-white/20 w-4 h-4 animate-pulse delay-500" />
+        <Sparkles className="absolute top-1/2 right-1/3 text-white/25 w-5 h-5 animate-pulse delay-1000" />
+        <Sparkles className="absolute bottom-1/3 left-1/3 text-white/30 w-4 h-4 animate-pulse delay-700" />
+      </div>
+
+      <div className="flex flex-col items-center justify-center space-y-6 relative z-10">
         {/* Main Logo */}
         <img 
-          src={weeklyWizdomLogo} 
+          src="https://wrvvlmevpvcenauglcyz.supabase.co/storage/v1/object/public/assets//Property%201=Default%20(1).png"
           alt="Weekly Wizdom" 
-          className={`w-48 h-auto transition-all duration-700 ease-out ${
+          className={`w-32 h-32 transition-all duration-700 ease-out ${
             showLogo && !isFadingOut ? 'opacity-100 scale-100' : 'opacity-0 scale-95'
           }`}
         />
         
-        {/* Text Logo */}
-        <img 
-          src={weeklyWizdomText} 
-          alt="Weekly Wizdom Text" 
-          className={`w-64 h-auto transition-all duration-700 ease-out delay-150 ${
+        {/* Text */}
+        <h1 
+          className={`text-white text-3xl font-bold tracking-wide transition-all duration-700 ease-out delay-150 ${
             showText && !isFadingOut ? 'opacity-100 scale-100' : 'opacity-0 scale-95'
           }`}
-        />
+        >
+          Weekly Wizdom
+        </h1>
       </div>
     </div>
   );
