@@ -30,7 +30,7 @@ export const useTourPreferences = (userEmail: string | null) => {
     const loadPromise = (async (): Promise<boolean> => {
       try {
         // First check localStorage for quick access
-        const saved = localStorage.getItem('tour-disabled');
+        const saved = localStorage.getItem(`tour-disabled-${email}`);
         if (saved !== null) {
           const isDisabled = saved === 'true';
           // Cache the result
@@ -140,7 +140,7 @@ export const useTourPreferences = (userEmail: string | null) => {
 
     // Save to localStorage for immediate persistence
     try {
-      localStorage.setItem('tour-disabled', 'true');
+      localStorage.setItem(`tour-disabled-${userEmail}`, 'true');
     } catch (e) {
       console.warn('Failed to save tour preference to localStorage:', e);
     }
@@ -160,7 +160,7 @@ export const useTourPreferences = (userEmail: string | null) => {
           // Rollback on error
           setIsTourDisabled(false);
           tourPreferencesCache.delete(userEmail);
-          localStorage.removeItem('tour-disabled');
+          localStorage.removeItem(`tour-disabled-${userEmail}`);
         }
       });
   };
@@ -179,7 +179,7 @@ export const useTourPreferences = (userEmail: string | null) => {
 
     // Save to localStorage for immediate persistence
     try {
-      localStorage.removeItem('tour-disabled');
+      localStorage.removeItem(`tour-disabled-${userEmail}`);
     } catch (e) {
       console.warn('Failed to clear tour preference from localStorage:', e);
     }
@@ -202,7 +202,7 @@ export const useTourPreferences = (userEmail: string | null) => {
             disabled: true,
             timestamp: Date.now()
           });
-          localStorage.setItem('tour-disabled', 'true');
+          localStorage.setItem(`tour-disabled-${userEmail}`, 'true');
         }
       });
   };

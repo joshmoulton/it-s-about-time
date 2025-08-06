@@ -59,8 +59,8 @@ export function TopNavigation({
             className="h-8 px-2 sm:h-9 sm:px-4 bg-white/5 border-white/10 text-white hover:bg-white/10 hover:border-white/20 transition-all duration-200 font-medium text-xs sm:text-sm rounded-lg shadow-sm" 
           />
           
-          {/* Admin Panel Access - Distinct orange styling */}
-          {isAdmin && (
+          {/* Admin Panel Access - Hidden per user request */}
+          {false && isAdmin && (
             <Link to="/admin" className="hidden sm:block">
               <Button 
                 variant="outline" 
