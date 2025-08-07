@@ -2929,6 +2929,69 @@ export type Database = {
         }
         Relationships: []
       }
+      unified_user_identities: {
+        Row: {
+          admin_role: string | null
+          admin_user_id: string | null
+          auth_user_id: string | null
+          beehiiv_subscriber_id: string | null
+          beehiiv_subscription_tier:
+            | Database["public"]["Enums"]["subscription_tier"]
+            | null
+          created_at: string | null
+          effective_role: string | null
+          effective_tier:
+            | Database["public"]["Enums"]["subscription_tier"]
+            | null
+          email: string
+          id: string
+          is_beehiiv_subscriber: boolean | null
+          is_local_admin: boolean | null
+          primary_source: string
+          updated_at: string | null
+        }
+        Insert: {
+          admin_role?: string | null
+          admin_user_id?: string | null
+          auth_user_id?: string | null
+          beehiiv_subscriber_id?: string | null
+          beehiiv_subscription_tier?:
+            | Database["public"]["Enums"]["subscription_tier"]
+            | null
+          created_at?: string | null
+          effective_role?: string | null
+          effective_tier?:
+            | Database["public"]["Enums"]["subscription_tier"]
+            | null
+          email: string
+          id?: string
+          is_beehiiv_subscriber?: boolean | null
+          is_local_admin?: boolean | null
+          primary_source?: string
+          updated_at?: string | null
+        }
+        Update: {
+          admin_role?: string | null
+          admin_user_id?: string | null
+          auth_user_id?: string | null
+          beehiiv_subscriber_id?: string | null
+          beehiiv_subscription_tier?:
+            | Database["public"]["Enums"]["subscription_tier"]
+            | null
+          created_at?: string | null
+          effective_role?: string | null
+          effective_tier?:
+            | Database["public"]["Enums"]["subscription_tier"]
+            | null
+          email?: string
+          id?: string
+          is_beehiiv_subscriber?: boolean | null
+          is_local_admin?: boolean | null
+          primary_source?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       user_beehiiv_links: {
         Row: {
           beehiiv_subscriber_id: string | null
@@ -3752,8 +3815,20 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: Database["public"]["Enums"]["subscription_tier"]
       }
+      get_effective_user_role: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
+      get_effective_user_tier: {
+        Args: Record<PropertyKey, never>
+        Returns: Database["public"]["Enums"]["subscription_tier"]
+      }
       get_jwt_email: {
         Args: Record<PropertyKey, never>
+        Returns: string
+      }
+      get_or_create_unified_identity: {
+        Args: { p_email: string; p_auth_user_id?: string }
         Returns: string
       }
       get_security_dashboard: {
@@ -4037,6 +4112,10 @@ export type Database = {
       sync_subscribers_from_sources: {
         Args: Record<PropertyKey, never>
         Returns: Json
+      }
+      sync_unified_identity: {
+        Args: { p_email: string }
+        Returns: undefined
       }
       sync_whop_admin_status: {
         Args: { p_email: string; p_role?: string }
