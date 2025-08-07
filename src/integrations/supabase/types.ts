@@ -3713,6 +3713,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: number
       }
+      cleanup_user_sessions_for_email: {
+        Args: { p_email: string }
+        Returns: Json
+      }
       clear_admin_tier_override: {
         Args: Record<PropertyKey, never>
         Returns: undefined
