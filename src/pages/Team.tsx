@@ -2,6 +2,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ExternalLink } from "lucide-react";
+import { Link } from "react-router-dom";
 import Footer from "@/components/Footer";
 
 const Team = () => {
@@ -41,7 +42,7 @@ const Team = () => {
             className="h-12"
           />
           <Button asChild variant="outline">
-            <a href="/">Back to Home</a>
+            <Link to="/">Back to Home</Link>
           </Button>
         </div>
       </nav>
