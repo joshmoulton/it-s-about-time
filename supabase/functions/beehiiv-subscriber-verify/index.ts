@@ -52,9 +52,9 @@ async function verifyBeehiivSubscriber(email: string): Promise<BeehiivResponse> 
     const beehiivApiKey = Deno.env.get('BEEHIIV_API_KEY');
     const publicationId = 'pub_e08d5f43-7f7c-4c24-b546-f301ccd42a77'; // Weekly Wizdom publication ID
     
-    if (!beehiivApiKey) {
-      console.error('BEEHIIV_API_KEY not configured');
-      return { success: false, verified: false, tier: 'free', error: 'API configuration error' };
+    if (!beehiivApiKey || beehiivApiKey.length < 10) {
+      console.error('BEEHIIV_API_KEY missing or invalid');
+      return { success: false, verified: false, tier: 'free', error: 'Authentication service temporarily unavailable' };
     }
 
     console.log(`🔍 Verifying Beehiiv subscriber: ${email}`);
@@ -149,9 +149,10 @@ Deno.serve(async (req) => {
   try {
     const { email } = await req.json();
 
-    if (!email) {
+    // Enhanced input validation and sanitization
+    if (!email || typeof email !== 'string' || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       return new Response(
-        JSON.stringify({ success: false, error: 'Email is required' }),
+        JSON.stringify({ success: false, error: 'Valid email is required' }),
         { 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
           status: 400 

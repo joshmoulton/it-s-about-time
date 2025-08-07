@@ -300,9 +300,10 @@ Deno.serve(async (req) => {
   try {
     const { email, action = 'verify' } = await req.json();
 
-    if (!email) {
+    // Enhanced input validation and sanitization
+    if (!email || typeof email !== 'string' || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       return new Response(
-        JSON.stringify({ success: false, error: 'Email is required' }),
+        JSON.stringify({ success: false, error: 'Valid email is required' }),
         { 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
           status: 400 
