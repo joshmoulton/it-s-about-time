@@ -61,15 +61,9 @@ export function useTourManagement() {
   };
 
   const shouldShowOnboarding = () => {
-    // Don't show tour if we don't have user context yet (during loading)
-    if (currentUser === undefined) {
-      console.log('🎯 User still loading, deferring tour decision');
-      return false;
-    }
-    
-    const result = shouldShowTour();
-    console.log('🤔 Should show onboarding for user:', currentUser?.email || 'anonymous', '- Result:', result, 'tour disabled:', isTourDisabled);
-    return result;
+    // Tour is completely disabled
+    console.log('🚫 Tour is disabled globally');
+    return false;
   };
 
   const forceRestartTour = (type: TourType = 'dashboard') => {
