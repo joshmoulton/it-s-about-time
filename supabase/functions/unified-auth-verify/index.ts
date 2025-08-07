@@ -172,10 +172,12 @@ async function createSecureSession(email: string, tier: string, source: string, 
 
     if (sessionError) {
       console.error('❌ Error creating user session:', sessionError);
+      console.log(`❌ Failed to create secure session for ${email}`);
       return false;
     }
 
     console.log(`✅ Session created successfully:`, sessionResult);
+    console.log(`🔐 Created secure session for ${email} with token ${sessionToken.substring(0, 8)}...`);
     return true;
   } catch (error) {
     console.error('❌ Session creation error:', error);
