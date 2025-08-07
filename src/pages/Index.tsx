@@ -6,7 +6,7 @@ import { ArrowRight } from "lucide-react";
 import AuthOptionsModal from "@/components/AuthOptionsModal";
 import PremiumPricingModal from "@/components/PremiumPricingModal";
 import ReorganizedHeroSection from "@/components/ReorganizedHeroSection";
-import LoadingScreen from "@/components/LoadingScreen";
+
 import FeaturesRowSection from "@/components/FeaturesRowSection";
 import { SEOManager, generateStructuredData } from "@/components/SEOManager";
 import { useHashNavigation } from "@/hooks/useHashNavigation";
@@ -25,15 +25,6 @@ const Index = () => {
   const { subscriber, isAuthenticated } = useEnhancedAuth();
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [premiumModalOpen, setPremiumModalOpen] = useState(false);
-  const [showLoading, setShowLoading] = useState(true);
-
-  // Skip loading screen if user is already on the page (prevent repeated loading)
-  useEffect(() => {
-    const hasSeenLoading = sessionStorage.getItem('hasSeenLoading');
-    if (hasSeenLoading) {
-      setShowLoading(false);
-    }
-  }, []);
 
   // Initialize hash navigation
   useHashNavigation();
@@ -55,7 +46,7 @@ const Index = () => {
       structuredData={homepageStructuredData}
     />
 
-    {showLoading && <LoadingScreen onLoadingComplete={() => setShowLoading(false)} />}
+    
     <div className="min-h-screen bg-background relative overflow-x-hidden" style={{
       minHeight: '100vh',
       WebkitOverflowScrolling: 'touch'
