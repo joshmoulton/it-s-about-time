@@ -127,7 +127,7 @@ export function TelegramNotifications({ subscriber }: TelegramNotificationsProps
           Telegram Notifications
         </CardTitle>
         <CardDescription>
-          Receive degen call alerts and updates via Telegram bot
+          Get your Chat ID to enable future live alerts and degen call notifications via our Telegram bot. For direct analyst message subscriptions, interact with the bot directly.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
@@ -141,9 +141,9 @@ export function TelegramNotifications({ subscriber }: TelegramNotificationsProps
               <Button 
                 variant="link" 
                 className="h-auto p-0 text-blue-600"
-                onClick={() => window.open('https://t.me/newsletteralertbot', '_blank')}
+                onClick={() => window.open('https://t.me/weeklywizdomaibot', '_blank')}
               >
-                @newsletteralertbot
+                @weeklywizdomaibot
                 <ExternalLink className="h-3 w-3 ml-1" />
               </Button>
               {' '}on Telegram and send any message (like "hello"). This is required for the bot to be able to send you notifications.
@@ -154,7 +154,7 @@ export function TelegramNotifications({ subscriber }: TelegramNotificationsProps
         <div className="border-t pt-4 mb-4">
           <h4 className="font-medium mb-3">How to get your Chat ID (after messaging the bot):</h4>
           <ol className="text-sm text-muted-foreground space-y-1 list-decimal list-inside">
-            <li>First, make sure you've messaged @newsletteralertbot</li>
+            <li>First, make sure you've messaged @weeklywizdomaibot</li>
             <li>Then message @getmyid_bot and send /start</li>
             <li>Copy the Chat ID and paste it below</li>
           </ol>
@@ -209,7 +209,7 @@ export function TelegramNotifications({ subscriber }: TelegramNotificationsProps
                 Enable Telegram Notifications
               </Label>
               <p className="text-sm text-muted-foreground">
-                Receive alerts via Telegram bot
+                Enable Chat ID registration for future live alerts and widgets
               </p>
             </div>
             <Switch
