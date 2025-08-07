@@ -4,10 +4,14 @@ import App from './App.tsx'
 import './index.css'
 import { initializeBrowserOptimizations, monitorPerformance } from './utils/browserOptimization'
 import { initProductionSecurity } from './utils/productionSecurity'
+import { optimizeForMobile } from './utils/mobileOptimization'
 import { logger } from './utils/secureLogger'
 
 // Initialize browser optimizations before rendering
 initializeBrowserOptimizations();
+
+// Initialize mobile optimizations
+optimizeForMobile();
 
 // Initialize production security measures
 initProductionSecurity();

@@ -1,5 +1,4 @@
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap') layer(fonts);
 @import './styles/admin-responsive.css';
 @import './styles/brand-utilities.css';
 @import './styles/browser-compatibility.css';
@@ -383,32 +382,33 @@
     perspective: 1000px;
   }
   
+  /* Mobile-first performance optimizations */
+  .mobile-optimized {
+    contain: layout style paint;
+    content-visibility: auto;
+  }
+  
+  .reduce-motion {
+    animation: none !important;
+    transition: none !important;
+  }
+  
   /* Cross-browser mobile optimizations */
   @media (max-width: 768px) {
-    .animate-fade-in-up {
-      animation: none;
-      opacity: 1;
-      transform: translateY(0);
+    /* Disable animations on mobile for better performance */
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
     }
     
-    .animate-gradient-shift {
-      animation: none;
-    }
-    
-    .animate-button-glow {
-      animation: none;
-    }
-    
-    .animate-shine {
-      animation: none;
-    }
-    
-    .animate-wiz-shine {
-      animation: none;
-    }
-    
-    .logo-marquee {
-      animation: none;
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+      }
     }
     
     /* Enhanced mobile scrolling for all browsers */
@@ -416,6 +416,7 @@
       scroll-behavior: smooth;
       -webkit-text-size-adjust: 100%;
       -ms-text-size-adjust: 100%;
+      font-size: 16px; /* Prevent zoom on inputs */
     }
     
     body {
@@ -430,12 +431,15 @@
       overflow-y: auto;
       /* Ensure background is properly applied on mobile */
       background-color: hsl(var(--background)) !important;
+      /* Mobile performance optimizations */
+      contain: layout style paint;
     }
     
     /* Ensure main container has proper background */
     #root {
       background-color: hsl(var(--background)) !important;
       min-height: 100vh;
+      contain: layout style;
     }
     
     /* Fix viewport issues on mobile */
@@ -453,10 +457,13 @@
       -moz-user-select: none;
       -ms-user-select: none;
       user-select: none;
+      /* Performance optimizations */
+      -webkit-transform: translateZ(0);
+      transform: translateZ(0);
     }
     
     /* Re-enable selection for text content */
-    p, span, div[contenteditable], input, textarea {
+    p, span, div[contenteditable], input, textarea, h1, h2, h3, h4, h5, h6 {
       -webkit-user-select: text;
       -khtml-user-select: text;
       -moz-user-select: text;
@@ -465,17 +472,42 @@
     }
     
     /* Prevent zoom on input focus - all mobile browsers */
-    input, select, textarea {
+    input, select, textarea, button {
       font-size: 16px !important;
       -webkit-appearance: none;
       -moz-appearance: none;
       appearance: none;
+      /* Performance optimization */
+      will-change: auto;
     }
     
     /* iOS specific fixes */
-    input[type="text"], input[type="email"], input[type="password"] {
+    input[type="text"], input[type="email"], input[type="password"], input[type="search"] {
       -webkit-border-radius: 0;
       border-radius: 0;
+      -webkit-appearance: none;
+    }
+    
+    /* Optimize images for mobile */
+    img {
+      max-width: 100%;
+      height: auto;
+      image-rendering: optimizeQuality;
+      -webkit-backface-visibility: hidden;
+      backface-visibility: hidden;
+    }
+    
+    /* Button touch targets */
+    button, a, [role="button"] {
+      min-height: 44px;
+      min-width: 44px;
+      touch-action: manipulation;
+    }
+    
+    /* Lazy loading optimization */
+    [loading="lazy"] {
+      content-visibility: auto;
+      contain-intrinsic-size: 0 200px;
     }
   }
   
