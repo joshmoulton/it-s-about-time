@@ -35,14 +35,14 @@ export function SimpleTourExitDialog({
 
   return (
     <AlertDialog open={isOpen}>
-      <AlertDialogContent className="sm:max-w-md z-[10001]">
+      <AlertDialogContent className="sm:max-w-md z-[10001] fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-background border border-border shadow-lg">
         <AlertDialogHeader>
-          <AlertDialogTitle>Tutorial Preferences</AlertDialogTitle>
-          <AlertDialogDescription>
+          <AlertDialogTitle className="text-lg font-semibold text-foreground">Tutorial Preferences</AlertDialogTitle>
+          <AlertDialogDescription className="text-sm text-muted-foreground">
             Would you like to see this tutorial again next time, or disable it completely?
           </AlertDialogDescription>
         </AlertDialogHeader>
-        <AlertDialogFooter className="flex gap-2">
+        <AlertDialogFooter className="flex gap-2 pt-4">
           <AlertDialogCancel 
             onClick={handleShowLater}
             className="flex-1 bg-background text-foreground border-border hover:bg-accent hover:text-accent-foreground"
