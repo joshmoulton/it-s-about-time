@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { EnhancedAuthProvider } from "@/contexts/EnhancedAuthContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { DeveloperProvider, DeveloperToggle } from "@/components/dev/DeveloperToggle";
+import { AccessibilityProvider } from "@/components/AccessibilityProvider";
 import Index from "./pages/Index";
 import Dashboard from "./pages/Dashboard";
 
@@ -32,13 +33,15 @@ const App = () => {
       <TooltipProvider>
         <BrowserRouter>
           <ThemeProvider>
-            <Toaster />
-            <Sonner />
-            <DeveloperProvider>
-              <EnhancedAuthProvider>
+            <AccessibilityProvider>
+              <Toaster />
+              <Sonner />
+              <DeveloperProvider>
+                <EnhancedAuthProvider>
                 <DeveloperToggle />
-                <Routes>
-                <Route path="/" element={<Index />} />
+                <main id="main-content">
+                  <Routes>
+                    <Route path="/" element={<Index />} />
                 <Route path="/login" element={<Login />} />
 <Route path="/auth/whop/callback" element={<WhopCallback />} />
                 <Route path="/auth/verify" element={<AuthVerify />} />
@@ -114,9 +117,11 @@ const App = () => {
                      </ProtectedRoute>
                    }
                  />
-                </Routes>
-              </EnhancedAuthProvider>
-            </DeveloperProvider>
+                  </Routes>
+                </main>
+                </EnhancedAuthProvider>
+              </DeveloperProvider>
+            </AccessibilityProvider>
           </ThemeProvider>
         </BrowserRouter>
       </TooltipProvider>

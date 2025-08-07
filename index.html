@@ -21,17 +21,15 @@
     <meta name="twitter:description" content="Join the #1 cross-asset Newsletter & Community. Get notified as soon as our analysts share new ideas, get market analysis and updates every week, and track everything in our proprietary dashboard." />
     <meta name="twitter:image" content="/lovable-uploads/41a57ccc-0a24-4abd-89b1-3c41c3cc3d08.png" />
     
-    <!-- Aggressive Performance Optimizations -->
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link rel="dns-prefetch" href="https://js.whop.com" />
-    <link rel="preconnect" href="https://js.whop.com" crossorigin />
-    <link rel="dns-prefetch" href="https://wrvvlmevpvcenauglcyz.supabase.co" />
+    <!-- Performance Optimizations - Critical Path First -->
     <link rel="preconnect" href="https://wrvvlmevpvcenauglcyz.supabase.co" crossorigin />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
+    <link rel="dns-prefetch" href="https://js.whop.com" />
     
-    <!-- Critical Resource Hints -->
-    <link rel="dns-prefetch" href="//cdn.jsdelivr.net" />
-    <link rel="dns-prefetch" href="//unpkg.com" />
+    <!-- Cache Control Headers -->
+    <meta http-equiv="Cache-Control" content="public, max-age=31536000, immutable" />
+    <meta http-equiv="Expires" content="Thu, 31 Dec 2025 23:59:59 GMT" />
     
     <!-- Preload critical resources with highest priority -->
     <link rel="preload" href="/lovable-uploads/97f86327-e463-4091-8474-4f835ee7556f.png" as="image" fetchpriority="high" />
@@ -62,9 +60,9 @@
       @keyframes spin { to { transform: rotate(360deg); } }
     </style>
     
-    <!-- Optimized Google Fonts with font-display swap -->
-    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Merriweather:wght@400;700&family=Montserrat:wght@400;500;600&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'" />
-    <noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Merriweather:wght@400;700&family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet" /></noscript>
+    <!-- Critical Font Loading - Optimized for Mobile -->
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&display=swap&subset=latin" as="style" onload="this.onload=null;this.rel='stylesheet'" />
+    <noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&display=swap&subset=latin" rel="stylesheet" /></noscript>
 
     <!-- Enhanced CSP Configuration for Lovable preview compatibility -->
     <meta http-equiv="Content-Security-Policy" content="
@@ -94,17 +92,15 @@
   <body>
     <div id="root"></div>
     <!-- Enhanced script loading for performance -->
-    <script type="module" src="/src/main.tsx" defer></script>
+    <script type="module" src="/src/main.tsx" async></script>
     
     <!-- Performance optimization script -->
     <script>
       // Immediate performance optimizations
       (function() {
-        // Critical font loading with minimal weights
+        // Critical font loading with minimal weights only
         if ('fonts' in document) {
           document.fonts.load('400 1em Inter');
-          document.fonts.load('400 1em Merriweather');
-          document.fonts.load('400 1em Montserrat');
         }
         
         // Prefetch DNS for critical domains
