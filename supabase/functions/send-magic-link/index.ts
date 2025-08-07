@@ -117,7 +117,7 @@ serve(async (req) => {
     }
 
     // Create custom magic link URL that points to your app
-    const redirectUrl = `https://www.weeklywizdom.app/auth/verify?token=${customToken}&email=${encodeURIComponent(email)}`;
+    const redirectUrl = `https://www.weeklywizdom.com/auth/verify?token=${customToken}&email=${encodeURIComponent(email)}`;
 
     // Render email template with welcome message for new users
     const emailHtml = await renderAsync(
@@ -125,7 +125,7 @@ serve(async (req) => {
         supabase_url: '', // Not needed for custom flow
         token: customToken,
         token_hash: customToken,
-        redirect_to: 'https://www.weeklywizdom.app/dashboard',
+        redirect_to: 'https://www.weeklywizdom.com/dashboard',
         email_action_type: 'magiclink',
         user_email: email,
         magic_link_url: redirectUrl,
