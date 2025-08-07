@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { createSafeInnerHTML } from '@/utils/htmlSanitizer';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -508,7 +509,7 @@ export function NotificationTemplates() {
             <div className="space-y-4">
               <div className="p-4 border rounded-lg bg-muted">
                 {previewTemplate.channel === 'email' ? (
-                  <div dangerouslySetInnerHTML={{ __html: renderPreview(previewTemplate) }} />
+                  <div dangerouslySetInnerHTML={createSafeInnerHTML(renderPreview(previewTemplate), 'notification')} />
                 ) : (
                   <pre className="whitespace-pre-wrap text-sm">{renderPreview(previewTemplate)}</pre>
                 )}

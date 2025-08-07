@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { createSafeInnerHTML } from '@/utils/htmlSanitizer';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -215,7 +216,7 @@ export default function NewsletterReader() {
               <div className="prose prose-lg max-w-none dark:prose-invert">
                 {newsletter.html_content ? (
                   <div 
-                    dangerouslySetInnerHTML={{ __html: newsletter.html_content }}
+                    dangerouslySetInnerHTML={createSafeInnerHTML(newsletter.html_content, 'newsletter')}
                     className="newsletter-content [&>*]:mb-4 [&>h1]:text-2xl [&>h1]:font-bold [&>h1]:mt-8 [&>h1]:mb-4 [&>h2]:text-xl [&>h2]:font-semibold [&>h2]:mt-6 [&>h2]:mb-3 [&>h3]:text-lg [&>h3]:font-medium [&>h3]:mt-4 [&>h3]:mb-2 [&>p]:mb-4 [&>ul]:ml-6 [&>ul]:mb-4 [&>ol]:ml-6 [&>ol]:mb-4 [&>li]:mb-2 [&>blockquote]:border-l-4 [&>blockquote]:border-primary [&>blockquote]:pl-4 [&>blockquote]:italic [&>blockquote]:my-4 [&>img]:rounded-lg [&>img]:my-6 [&>img]:w-full [&>img]:h-auto [&>a]:text-primary [&>a]:underline [&>a]:hover:text-primary/80 [&>table]:w-full [&>table]:border-collapse [&>th]:border [&>th]:p-2 [&>th]:bg-muted [&>td]:border [&>td]:p-2"
                   />
                 ) : newsletter.plain_content ? (

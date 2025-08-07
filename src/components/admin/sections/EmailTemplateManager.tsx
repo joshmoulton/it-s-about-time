@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createSafeInnerHTML } from '@/utils/htmlSanitizer';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -491,7 +492,7 @@ export function EmailTemplateManager() {
                     <div 
                       className="mx-auto border rounded"
                       style={{ width: getPreviewWidth() }}
-                      dangerouslySetInnerHTML={{ __html: renderPreview(selectedTemplate) }}
+                      dangerouslySetInnerHTML={createSafeInnerHTML(renderPreview(selectedTemplate), 'email')}
                     />
                   </div>
                 </CardContent>
@@ -550,7 +551,7 @@ export function EmailTemplateManager() {
                     <div 
                       className="mx-auto bg-white rounded shadow"
                       style={{ width: getPreviewWidth() }}
-                      dangerouslySetInnerHTML={{ __html: renderPreview(selectedTemplate) }}
+                      dangerouslySetInnerHTML={createSafeInnerHTML(renderPreview(selectedTemplate), 'email')}
                     />
                   </div>
                 </CardContent>
