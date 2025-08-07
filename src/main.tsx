@@ -7,11 +7,11 @@ import { initProductionSecurity } from './utils/productionSecurity'
 import { optimizeForMobile } from './utils/mobileOptimization'
 import { logger } from './utils/secureLogger'
 
-// Initialize browser optimizations before rendering
-initializeBrowserOptimizations();
-
-// Initialize mobile optimizations
+// Initialize mobile optimizations immediately for performance
 optimizeForMobile();
+
+// Initialize browser optimizations
+initializeBrowserOptimizations();
 
 // Initialize production security measures
 initProductionSecurity();
@@ -22,4 +22,11 @@ if (import.meta.env.DEV) {
   monitorPerformance();
 }
 
-createRoot(document.getElementById("root")!).render(<App />);
+// Enhanced mobile performance
+const container = document.getElementById("root");
+if (!container) throw new Error('Root element not found');
+
+// Create root with standard options
+const root = createRoot(container);
+
+root.render(<App />);

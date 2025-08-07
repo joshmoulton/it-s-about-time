@@ -21,7 +21,7 @@
     <meta name="twitter:description" content="Join the #1 cross-asset Newsletter & Community. Get notified as soon as our analysts share new ideas, get market analysis and updates every week, and track everything in our proprietary dashboard." />
     <meta name="twitter:image" content="/lovable-uploads/41a57ccc-0a24-4abd-89b1-3c41c3cc3d08.png" />
     
-    <!-- Performance Optimizations -->
+    <!-- Advanced Performance Optimizations -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link rel="dns-prefetch" href="https://js.whop.com" />
@@ -29,9 +29,12 @@
     <link rel="dns-prefetch" href="https://wrvvlmevpvcenauglcyz.supabase.co" />
     <link rel="preconnect" href="https://wrvvlmevpvcenauglcyz.supabase.co" crossorigin />
     
-    <!-- Optimized Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Merriweather:ital,wght@0,300;0,400;0,700;0,900;1,300;1,400;1,700;1,900&family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet" media="print" onload="this.media='all'" />
-    <noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Merriweather:ital,wght@0,300;0,400;0,700;0,900;1,300;1,400;1,700;1,900&family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet" /></noscript>
+    <!-- Preload critical hero image -->
+    <link rel="preload" href="/lovable-uploads/97f86327-e463-4091-8474-4f835ee7556f.png" as="image" fetchpriority="high" />
+    
+    <!-- Optimized Google Fonts with critical font preload -->
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Merriweather:ital,wght@0,300;0,400;0,700;0,900;1,300;1,400;1,700;1,900&family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'" />
+    <noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Merriweather:ital,wght@0,300;0,400;0,700;0,900;1,300;1,400;1,700;1,900&font&family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet" /></noscript>
 
     <!-- Enhanced CSP Configuration for Lovable preview compatibility -->
     <meta http-equiv="Content-Security-Policy" content="
@@ -60,13 +63,27 @@
   </head>
   <body>
     <div id="root"></div>
+    <!-- Enhanced script loading for performance -->
     <script type="module" src="/src/main.tsx" defer></script>
     
-    <!-- Font loading optimization script -->
+    <!-- Critical font preloading -->
     <script>
+      // Preload critical fonts immediately
       if ('fonts' in document) {
-        document.fonts.load('400 1em Inter');
-        document.fonts.load('400 1em Merriweather');
+        Promise.all([
+          document.fonts.load('400 1em Inter'),
+          document.fonts.load('400 1em Merriweather'),
+          document.fonts.load('500 1em Montserrat')
+        ]).then(() => {
+          console.log('Critical fonts loaded');
+        });
+      }
+      
+      // Service Worker registration for caching
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js').catch(() => {});
+        });
       }
     </script>
   </body>

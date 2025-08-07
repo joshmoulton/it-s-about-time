@@ -393,15 +393,17 @@
     transition: none !important;
   }
   
-  /* Cross-browser mobile optimizations */
+  
+  /* Enhanced mobile performance optimizations */
   @media (max-width: 768px) {
-    /* Disable animations on mobile for better performance */
+    /* Critical performance: reduce animations on mobile */
     *, *::before, *::after {
-      animation-duration: 0.01ms !important;
+      animation-duration: 0.1s !important;
       animation-iteration-count: 1 !important;
-      transition-duration: 0.01ms !important;
+      transition-duration: 0.1s !important;
     }
     
+    /* For users who prefer reduced motion */
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after {
         animation-duration: 0.01ms !important;
@@ -411,41 +413,47 @@
       }
     }
     
-    /* Enhanced mobile scrolling for all browsers */
+    /* Critical mobile layout optimizations */
     html {
-      scroll-behavior: smooth;
+      scroll-behavior: auto; /* Disable smooth scroll on mobile for performance */
       -webkit-text-size-adjust: 100%;
       -ms-text-size-adjust: 100%;
       font-size: 16px; /* Prevent zoom on inputs */
+      /* Hardware acceleration */
+      -webkit-transform: translateZ(0);
+      transform: translateZ(0);
+      /* Critical performance */
+      contain: layout style;
     }
     
     body {
       -webkit-overflow-scrolling: touch;
-      /* Disable pull-to-refresh on mobile */
+      /* Disable pull-to-refresh */
       overscroll-behavior-y: contain;
-      /* Enable proper scrolling on mobile */
+      /* Layout containment for performance */
+      contain: layout style paint;
+      /* Proper mobile positioning */
       position: relative;
       width: 100%;
       min-height: 100vh;
       overflow-x: hidden;
       overflow-y: auto;
-      /* Ensure background is properly applied on mobile */
+      /* Critical background consistency */
       background-color: hsl(var(--background)) !important;
-      /* Mobile performance optimizations */
-      contain: layout style paint;
+      /* Hardware acceleration */
+      -webkit-transform: translateZ(0);
+      transform: translateZ(0);
+      backface-visibility: hidden;
     }
     
-    /* Ensure main container has proper background */
+    /* Critical root optimizations */
     #root {
       background-color: hsl(var(--background)) !important;
       min-height: 100vh;
-      contain: layout style;
-    }
-    
-    /* Fix viewport issues on mobile */
-    html {
-      height: 100%;
-      background-color: hsl(var(--background)) !important;
+      contain: layout style paint;
+      /* Hardware acceleration */
+      -webkit-transform: translateZ(0);
+      transform: translateZ(0);
     }
     
     /* Enhanced touch improvements for all mobile browsers */
