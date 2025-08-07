@@ -3108,6 +3108,7 @@ export type Database = {
           session_token: string
           source: string
           tier: string
+          unified_identity_id: string | null
           updated_at: string
           user_id: string | null
         }
@@ -3118,6 +3119,7 @@ export type Database = {
           session_token: string
           source?: string
           tier?: string
+          unified_identity_id?: string | null
           updated_at?: string
           user_id?: string | null
         }
@@ -3128,10 +3130,19 @@ export type Database = {
           session_token?: string
           source?: string
           tier?: string
+          unified_identity_id?: string | null
           updated_at?: string
           user_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "user_sessions_unified_identity_id_fkey"
+            columns: ["unified_identity_id"]
+            isOneToOne: false
+            referencedRelation: "unified_user_identities"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_trading_profiles: {
         Row: {
@@ -3731,6 +3742,16 @@ export type Database = {
       create_topic_from_keywords: {
         Args: { keywords: string[]; first_message_time?: string }
         Returns: string
+      }
+      create_unified_session: {
+        Args: {
+          p_email: string
+          p_session_token: string
+          p_tier?: Database["public"]["Enums"]["subscription_tier"]
+          p_source?: string
+          p_expires_at?: string
+        }
+        Returns: Json
       }
       debug_current_auth_state: {
         Args: Record<PropertyKey, never>

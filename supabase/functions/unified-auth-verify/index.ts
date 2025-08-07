@@ -105,14 +105,14 @@ function generateSessionToken(): string {
   return crypto.randomUUID() + '-' + Date.now().toString(36);
 }
 
-// Create or get auth user and create secure session
+// Create or get auth user and create secure session using unified identity system
 async function createSecureSession(email: string, tier: string, source: string, sessionToken: string): Promise<boolean> {
   try {
+    console.log(`🔄 Creating/getting auth user for ${email}`);
+    
     let userId: string | null = null;
     
     // Try to create user, but if user already exists, get their ID
-    console.log(`🔄 Creating/getting auth user for ${email}`);
-    
     const { data: newUser, error: authError } = await supabase.auth.admin.createUser({
       email: email,
       email_confirm: true,
@@ -161,39 +161,21 @@ async function createSecureSession(email: string, tier: string, source: string, 
     // Session expires in 24 hours
     const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
 
-    const { error } = await supabase
-      .from('user_sessions')
-      .upsert({
-        user_id: userId,
-        session_token: sessionToken,
-        tier,
-        source,
-        expires_at: expiresAt.toISOString(),
-        updated_at: new Date().toISOString()
-      }, {
-        onConflict: 'user_id'
-      });
-
-    if (error) {
-      console.error('❌ Error creating user session:', error);
-      return false;
-    }
-
-    // Create an actual Supabase session for the user
-    const { data: sessionData, error: sessionError } = await supabase.auth.admin.generateLink({
-      type: 'magiclink',
-      email: email,
-      options: {
-        redirectTo: `https://www.weeklywizdom.com/dashboard`
-      }
+    // Use the new unified session creation function that handles conflicts properly
+    const { data: sessionResult, error: sessionError } = await supabase.rpc('create_unified_session', {
+      p_email: email,
+      p_session_token: sessionToken,
+      p_tier: tier,
+      p_source: source,
+      p_expires_at: expiresAt.toISOString()
     });
 
     if (sessionError) {
-      console.error('❌ Failed to generate auth session:', sessionError);
+      console.error('❌ Error creating user session:', sessionError);
       return false;
     }
 
-    console.log(`✅ Session created successfully for user ${userId}`);
+    console.log(`✅ Session created successfully:`, sessionResult);
     return true;
   } catch (error) {
     console.error('❌ Session creation error:', error);
