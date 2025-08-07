@@ -3792,6 +3792,10 @@ export type Database = {
           count: number
         }[]
       }
+      force_refresh_user_tier: {
+        Args: { user_email: string }
+        Returns: Json
+      }
       force_stop_all_sync_jobs: {
         Args: Record<PropertyKey, never>
         Returns: Json
