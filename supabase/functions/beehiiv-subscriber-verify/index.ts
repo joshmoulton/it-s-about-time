@@ -50,23 +50,18 @@ function mapTagsToTier(tags: string[]): 'free' | 'paid' | 'premium' {
 async function verifyBeehiivSubscriber(email: string): Promise<BeehiivResponse> {
   try {
     const beehiivApiKey = Deno.env.get('BEEHIIV_API_KEY');
-    const publicationId = Deno.env.get('BEEHIIV_PUBLICATION_ID');
+    const publicationId = 'pub_e08d5f43-7f7c-4c24-b546-f301ccd42a77'; // Weekly Wizdom publication ID
     
     if (!beehiivApiKey) {
       console.error('BEEHIIV_API_KEY not configured');
       return { success: false, verified: false, tier: 'free', error: 'API configuration error' };
     }
 
-    if (!publicationId) {
-      console.error('BEEHIIV_PUBLICATION_ID not configured');
-      return { success: false, verified: false, tier: 'free', error: 'Publication ID not configured' };
-    }
-
     console.log(`🔍 Verifying Beehiiv subscriber: ${email}`);
 
-    // Use the correct API endpoint format from documentation
+    // Use the direct subscription tier API endpoint
     const url = `https://api.beehiiv.com/v2/publications/${publicationId}/subscriptions/by_email/${encodeURIComponent(email)}`;
-    console.log(`📡 Making API request to: ${url.replace(beehiivApiKey, 'REDACTED')}`);
+    console.log(`📡 Making API request to: ${url}`);
 
     const response = await fetch(url, {
       method: 'GET',
@@ -100,25 +95,19 @@ async function verifyBeehiivSubscriber(email: string): Promise<BeehiivResponse> 
     const subscription = data.data;
     const isActive = subscription.status === 'active';
     
-    // Use the correct API fields: subscription_tier and subscription_premium_tier_names
+    // Use the direct subscription_tier field from the API response
     let tier: 'free' | 'paid' | 'premium' = 'free';
     
-    if (subscription.subscription_tier === 'premium' || 
-        (subscription.subscription_premium_tier_names && subscription.subscription_premium_tier_names.length > 0)) {
+    if (subscription.subscription_tier === 'premium') {
       tier = 'premium';
-    } else if (subscription.subscription_tier === 'paid') {
-      tier = 'paid';
+    } else if (subscription.subscription_tier === 'free') {
+      tier = 'free';
+    } else {
+      // Default to free for any other values
+      tier = 'free';
     }
     
-    // Keep tags for backward compatibility (though they don't exist in this API response)
-    const tags = subscription.tags || [];
-    
-    // If direct tier detection fails, fall back to tag-based detection
-    if (tier === 'free' && tags.length > 0) {
-      tier = mapTagsToTier(tags);
-    }
-
-    console.log(`✅ Beehiiv verification complete - Email: ${email}, Active: ${isActive}, Tier: ${tier}, Direct API Tier: ${subscription.subscription_tier}, Premium Tiers: ${JSON.stringify(subscription.subscription_premium_tier_names)}`);
+    console.log(`✅ Beehiiv verification complete - Email: ${email}, Active: ${isActive}, Tier: ${tier}, API Tier: ${subscription.subscription_tier}`);
 
     // Log the verification for audit purposes
     await supabase.from('authentication_audit_log').insert({
@@ -128,9 +117,7 @@ async function verifyBeehiivSubscriber(email: string): Promise<BeehiivResponse> 
       metadata: {
         verified: isActive,
         tier,
-        subscription_tier: subscription.subscription_tier,
-        premium_tier_names: subscription.subscription_premium_tier_names,
-        tags,
+        api_subscription_tier: subscription.subscription_tier,
         timestamp: new Date().toISOString()
       }
     });
@@ -139,7 +126,7 @@ async function verifyBeehiivSubscriber(email: string): Promise<BeehiivResponse> 
       success: true,
       verified: isActive,
       tier: tier,
-      tags: tags
+      tags: [] // No longer using tags
     };
 
   } catch (error) {

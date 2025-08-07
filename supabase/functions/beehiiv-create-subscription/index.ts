@@ -1,133 +1,180 @@
-import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+}
+
+// Initialize Supabase client
+const supabase = createClient(
+  Deno.env.get('SUPABASE_URL') ?? '',
+  Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+)
 
 interface CreateSubscriptionRequest {
   email: string;
-  first_name?: string;
-  last_name?: string;
   utm_source?: string;
   utm_medium?: string;
   utm_campaign?: string;
-  referring_site?: string;
 }
 
-serve(async (req) => {
+interface BeehiivCreateResponse {
+  success: boolean;
+  subscription_id?: string;
+  tier: 'free' | 'paid' | 'premium';
+  error?: string;
+}
+
+async function createBeehiivSubscription(request: CreateSubscriptionRequest): Promise<BeehiivCreateResponse> {
+  try {
+    const beehiivApiKey = Deno.env.get('BEEHIIV_API_KEY');
+    const publicationId = 'pub_e08d5f43-7f7c-4c24-b546-f301ccd42a77'; // Weekly Wizdom publication ID
+    
+    if (!beehiivApiKey) {
+      console.error('BEEHIIV_API_KEY not configured');
+      return { success: false, tier: 'free', error: 'API configuration error' };
+    }
+
+    console.log(`📝 Creating Beehiiv subscription for: ${request.email}`);
+
+    // Create subscription via Beehiiv API
+    const url = `https://api.beehiiv.com/v2/publications/${publicationId}/subscriptions`;
+    
+    const subscriptionData = {
+      email: request.email.toLowerCase().trim(),
+      reactivate_existing: true,
+      send_welcome_email: true,
+      utm_source: request.utm_source || 'Weekly Wizdom App',
+      utm_medium: request.utm_medium || 'app_signup',
+      utm_campaign: request.utm_campaign || 'free_tier_auto_enrollment'
+    };
+
+    console.log(`📡 Making subscription request to: ${url}`);
+
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${beehiivApiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(subscriptionData)
+    });
+
+    console.log(`📡 Subscription API Response Status: ${response.status} ${response.statusText}`);
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`❌ Beehiiv subscription API error: ${response.status} ${response.statusText}`, errorText);
+      
+      // If user already exists, that's okay - treat as success
+      if (response.status === 400 && errorText.includes('already exists')) {
+        console.log(`✅ User already exists in Beehiiv: ${request.email}`);
+        return { success: true, tier: 'free', subscription_id: 'existing' };
+      }
+      
+      return { success: false, tier: 'free', error: `Subscription API error: ${response.status}` };
+    }
+
+    const data = await response.json();
+    console.log(`✅ Beehiiv subscription created for ${request.email}:`, JSON.stringify(data, null, 2));
+
+    // Extract subscription ID from response
+    const subscriptionId = data.data?.id;
+    
+    // All new subscriptions start as free tier
+    const tier = 'free';
+
+    // Store the subscription locally for caching
+    await supabase.from('beehiiv_subscribers').upsert({
+      email: request.email.toLowerCase().trim(),
+      subscription_tier: tier,
+      status: 'active',
+      metadata: {
+        source: 'auto_enrollment',
+        beehiiv_subscription_id: subscriptionId,
+        utm_source: request.utm_source,
+        utm_medium: request.utm_medium,
+        utm_campaign: request.utm_campaign,
+        created_at: new Date().toISOString()
+      },
+      updated_at: new Date().toISOString()
+    }, {
+      onConflict: 'email'
+    });
+
+    // Log the subscription creation for audit purposes
+    await supabase.from('authentication_audit_log').insert({
+      user_email: request.email,
+      auth_method: 'beehiiv_create',
+      action_type: 'create_subscription',
+      metadata: {
+        tier,
+        beehiiv_subscription_id: subscriptionId,
+        utm_source: request.utm_source,
+        utm_medium: request.utm_medium,
+        utm_campaign: request.utm_campaign,
+        timestamp: new Date().toISOString()
+      }
+    });
+
+    console.log(`✅ Successfully created and stored subscription for ${request.email} with tier ${tier}`);
+
+    return {
+      success: true,
+      subscription_id: subscriptionId,
+      tier: tier
+    };
+
+  } catch (error) {
+    console.error('Beehiiv subscription creation error:', error);
+    return { 
+      success: false, 
+      tier: 'free', 
+      error: 'Subscription creation failed' 
+    };
+  }
+}
+
+Deno.serve(async (req) => {
+  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const supabase = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    );
+    const request: CreateSubscriptionRequest = await req.json();
 
-    const { email, first_name, last_name, utm_source, utm_medium, utm_campaign, referring_site }: CreateSubscriptionRequest = await req.json();
-
-    if (!email) {
+    if (!request.email) {
       return new Response(
-        JSON.stringify({ error: 'Email is required' }),
+        JSON.stringify({ success: false, error: 'Email is required' }),
         { 
-          status: 400, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 400 
         }
       );
     }
 
-    const beehiivApiKey = Deno.env.get('BEEHIIV_API_KEY');
-    if (!beehiivApiKey) {
-      console.error('BEEHIIV_API_KEY not configured');
-      return new Response(
-        JSON.stringify({ error: 'Beehiiv API key not configured' }),
-        { 
-          status: 500, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        }
-      );
-    }
-
-    // Create subscription in Beehiiv
-    const customFields = [];
-    if (first_name) customFields.push({ name: 'First Name', value: first_name });
-    if (last_name) customFields.push({ name: 'Last Name', value: last_name });
-
-    const subscriptionData = {
-      email: email.toLowerCase().trim(),
-      reactivate_existing: true,
-      send_welcome_email: false,
-      utm_source: utm_source || 'Weekly Wizdom App',
-      utm_medium: utm_medium || 'signup',
-      utm_campaign: utm_campaign || 'free_signup',
-      referring_site: referring_site || 'app.weeklywizdom.com',
-      custom_fields: customFields
-    };
-
-    console.log('Creating Beehiiv subscription for:', email);
-    
-    const beehiivResponse = await fetch(
-      'https://api.beehiiv.com/v2/publications/pub_e08d5f43-7f7c-4c24-b546-f301ccd42a77/subscriptions',
-      {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${beehiivApiKey}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(subscriptionData),
-      }
-    );
-
-    const beehiivResult = await beehiivResponse.json();
-    
-    if (!beehiivResponse.ok) {
-      console.error('Beehiiv API error:', beehiivResult);
-      
-      // If user already exists, that's okay
-      if (beehiivResult.error?.message?.includes('already exists') || 
-          beehiivResult.error?.message?.includes('duplicate')) {
-        console.log('User already exists in Beehiiv, continuing...');
-      } else {
-        return new Response(
-          JSON.stringify({ 
-            error: 'Failed to create Beehiiv subscription',
-            details: beehiivResult.error?.message || 'Unknown error'
-          }),
-          { 
-            status: 400, 
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-          }
-        );
-      }
-    }
-
-    console.log('Successfully created Beehiiv subscription for:', email);
+    const result = await createBeehiivSubscription(request);
 
     return new Response(
-      JSON.stringify({ 
-        success: true, 
-        message: 'Subscriber created successfully',
-        beehiiv_data: beehiivResponse.ok ? beehiivResult.data : null
-      }),
+      JSON.stringify(result),
       { 
-        status: 200, 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 200 
       }
     );
 
   } catch (error) {
-    console.error('Error in beehiiv-create-subscription:', error);
+    console.error('Request processing error:', error);
     return new Response(
       JSON.stringify({ 
-        error: 'Internal server error',
-        details: error.message
+        success: false, 
+        tier: 'free', 
+        error: 'Internal server error' 
       }),
       { 
-        status: 500, 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 500 
       }
     );
   }

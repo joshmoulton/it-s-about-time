@@ -35,7 +35,7 @@ function getHighestTier(tiers: Array<'free' | 'paid' | 'premium'>): 'free' | 'pa
   return 'free';
 }
 
-// Verify with Beehiiv using segment-based checking
+// Verify with Beehiiv using direct subscription tier API
 async function verifyBeehiiv(email: string): Promise<{ verified: boolean; tier: 'free' | 'paid' | 'premium'; segments: string[] }> {
   try {
     const { data, error } = await supabase.functions.invoke('beehiiv-subscriber-verify', {
@@ -50,7 +50,7 @@ async function verifyBeehiiv(email: string): Promise<{ verified: boolean; tier: 
     return {
       verified: data.verified,
       tier: data.tier,
-      segments: data.segments || []
+      segments: [] // No longer using segments, rely on direct subscription_tier
     };
   } catch (error) {
     console.error('Beehiiv verification error:', error);
@@ -181,40 +181,21 @@ async function unifiedVerification(email: string): Promise<VerificationResult> {
   try {
     console.log(`🔍 Starting unified verification for: ${email}`);
 
-    // Run both verifications in parallel
-    const [beehiivResult, whopResult] = await Promise.all([
-      verifyBeehiiv(email),
-      verifyWhop(email)
-    ]);
+    // Only verify with Beehiiv (no more Whop dependency)
+    const beehiivResult = await verifyBeehiiv(email);
 
-    console.log(`🔍 Verification results - Beehiiv: ${JSON.stringify(beehiivResult)}, Whop: ${JSON.stringify(whopResult)}`);
+    console.log(`🔍 Beehiiv verification result: ${JSON.stringify(beehiivResult)}`);
 
     // Determine verification status and source
     const beehiivActive = beehiivResult.verified;
-    const whopActive = whopResult.verified;
     
-    let source: 'beehiiv' | 'whop' | 'both' | 'none' = 'none';
-    let verified = false;
+    let source: 'beehiiv' | 'whop' | 'both' | 'none' = beehiivActive ? 'beehiiv' : 'none';
+    let verified = beehiivActive;
     
-    if (beehiivActive && whopActive) {
-      source = 'both';
-      verified = true;
-    } else if (beehiivActive) {
-      source = 'beehiiv';
-      verified = true;
-    } else if (whopActive) {
-      source = 'whop';
-      verified = true;
-    }
+    // Use Beehiiv tier directly
+    const finalTier = beehiivActive ? beehiivResult.tier : 'free';
 
-    // Determine final tier (highest available)
-    const tiers: Array<'free' | 'paid' | 'premium'> = [];
-    if (beehiivActive) tiers.push(beehiivResult.tier);
-    if (whopActive) tiers.push(whopResult.tier);
-    
-    const finalTier = tiers.length > 0 ? getHighestTier(tiers) : 'free';
-
-    // **CRITICAL FIX**: Store successful verification results locally and create session
+    // Store successful verification results locally and create session
     let subscriberId: string | null = null;
     
     if (verified && beehiivActive) {
@@ -225,9 +206,9 @@ async function unifiedVerification(email: string): Promise<VerificationResult> {
           subscription_tier: beehiivResult.tier,
           status: 'active',
           metadata: {
-            source: 'external_verification',
-            segments: beehiivResult.segments,
-            verified_at: new Date().toISOString()
+            source: 'beehiiv_api_verification',
+            verified_at: new Date().toISOString(),
+            api_tier: beehiivResult.tier
           },
           updated_at: new Date().toISOString()
         }, {
@@ -246,53 +227,11 @@ async function unifiedVerification(email: string): Promise<VerificationResult> {
       }
     }
 
-    // For Whop users, get existing subscriber ID or create a new record
-    if (verified && whopActive && !subscriberId) {
-      try {
-        // First try to find existing subscriber
-        const { data: existingUser } = await supabase
-          .from('beehiiv_subscribers')
-          .select('id')
-          .eq('email', email)
-          .single();
-        
-        if (existingUser) {
-          subscriberId = existingUser.id;
-          console.log(`🔍 Found existing subscriber ID for Whop user ${email}: ${subscriberId}`);
-        } else {
-          // Create new subscriber record for Whop user
-          const { data: newSubscriber, error: createError } = await supabase
-            .from('beehiiv_subscribers')
-            .insert({
-              email: email,
-              subscription_tier: whopResult.tier,
-              status: 'active',
-              metadata: {
-                source: 'whop_verification',
-                verified_at: new Date().toISOString()
-              },
-              updated_at: new Date().toISOString()
-            })
-            .select('id')
-            .single();
-          
-          if (createError) {
-            console.error(`❌ Failed to create subscriber record for Whop user ${email}:`, createError);
-          } else {
-            subscriberId = newSubscriber.id;
-            console.log(`💾 Created new subscriber record for Whop user ${email} with ID: ${subscriberId}`);
-          }
-        }
-      } catch (error) {
-        console.error(`Error handling subscriber record for Whop user ${email}:`, error);
-      }
-    }
-
     const metadata = {
       beehiiv_active: beehiivActive,
-      whop_active: whopActive,
+      whop_active: false, // No longer checking Whop
       beehiiv_tier: beehiivResult.tier,
-      whop_tier: whopResult.tier,
+      whop_tier: 'free', // No longer relevant
       beehiiv_segments: beehiivResult.segments,
       verification_timestamp: new Date().toISOString()
     };

@@ -2,7 +2,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Mail, Zap, ArrowRight, X } from 'lucide-react';
-import { OptimizedWhopButton } from '../OptimizedWhopButton';
+
 
 interface WelcomeViewProps {
   onModeChange: (mode: string) => void;
@@ -42,27 +42,11 @@ export const WelcomeView: React.FC<WelcomeViewProps> = ({
           Get access to Weekly Wizdom
         </h2>
         <p className="text-gray-600">
-          Premium crypto insights and trading signals
+          Access your Weekly Wizdom subscription and premium content
         </p>
       </div>
 
-      {/* Primary CTA - Whop OAuth */}
-      <div className="mb-4">
-        <OptimizedWhopButton 
-          onSuccess={onWhopSuccess}
-          disabled={isLoading}
-          debugMode={false}
-        />
-      </div>
-
-      {/* OR Divider */}
-      <div className="flex items-center my-6">
-        <div className="flex-1 border-t border-gray-200"></div>
-        <span className="px-4 text-sm text-gray-500 bg-white">OR</span>
-        <div className="flex-1 border-t border-gray-200"></div>
-      </div>
-
-      {/* Secondary CTA - Magic Link */}
+      {/* Primary CTA - Magic Link */}
       <div className="mb-6">
         <Button
           onClick={() => onModeChange('magic')}

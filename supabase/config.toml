@@ -1,7 +1,21 @@
 project_id = "wrvvlmevpvcenauglcyz"
 
-[functions.create-admin-user]
+[auth]
+# Route all auth emails through our custom Resend function
+hook_auth_emails_url = "https://wrvvlmevpvcenauglcyz.supabase.co/functions/v1/auth-emails"
+hook_auth_emails_enabled = true
+
+[functions.auth-emails]
 verify_jwt = false
 
-[functions.admin-user-create]
+[functions.beehiiv-subscriber-verify]
+verify_jwt = false
+
+[functions.beehiiv-create-subscription]
+verify_jwt = false
+
+[functions.unified-auth-verify]
+verify_jwt = false
+
+[functions.send-magic-link]
 verify_jwt = false
