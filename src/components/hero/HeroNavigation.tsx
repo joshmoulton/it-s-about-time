@@ -50,7 +50,7 @@ const HeroNavigation = ({
           onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
         >
           <LazyImage
-            src="/lovable-uploads/b359f6b6-2c28-4add-a1d1-57e677ecbb04.png"
+            src="https://wrvvlmevpvcenauglcyz.supabase.co/storage/v1/object/public/assets/Property%201=Black%20(3).png"
             alt="Weekly Wizdom Logo" 
             className="h-6 xs:h-7 sm:h-6 lg:h-8 w-auto drop-shadow-md"
             fallback="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48dGV4dCB4PSI1MCUiIHk9IjUwJSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1zaXplPSIxOCIgZm9udC13ZWlnaHQ9ImJvbGQiIGZpbGw9IiMzMzU1RkYiPldXPC90ZXh0Pjwvc3ZnPg=="
