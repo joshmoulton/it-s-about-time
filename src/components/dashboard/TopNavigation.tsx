@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { LazyImage } from '@/components/ui/LazyImage';
-import { Settings, Crown, Home } from 'lucide-react';
+import { Settings, Crown } from 'lucide-react';
 import { TierBadge } from './navigation/TierBadge';
 import { ProfileDropdown } from './navigation/ProfileDropdown';
 import { FeedbackButton } from '@/components/feedback/FeedbackButton';
@@ -40,7 +40,7 @@ export function TopNavigation({
     <header className="sticky top-0 z-50 w-full backdrop-blur border-0" style={{ backgroundColor: 'hsl(220 65% 9%)' }} data-tour="main-navigation">
       <div className="container flex h-12 sm:h-14 md:h-16 items-center justify-between px-3 sm:px-4 lg:px-6">
         {/* Logo */}
-        <Link to="/dashboard" className="flex items-center gap-2 hover:opacity-80 transition-opacity min-w-0">
+        <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity min-w-0">
           <LazyImage
             src="/lovable-uploads/a8eaa39b-22e5-4a3c-a288-fe43b8619eab.png" 
             alt="Weekly Wizdom" 
@@ -52,17 +52,6 @@ export function TopNavigation({
         {/* Right side actions */}
         <div className="flex items-center gap-3 sm:gap-4 md:gap-6 min-w-0" data-tour="navigation-menu">
           
-          {/* Home Button */}
-          <Link to="/" className="hidden sm:block">
-            <Button 
-              variant="outline" 
-              size="sm" 
-              className="h-9 px-4 bg-white/5 border-white/10 text-white hover:bg-white/10 hover:border-white/20 transition-all duration-200 font-medium text-sm rounded-lg shadow-sm"
-            >
-              <Home className="h-4 w-4 mr-2" />
-              <span className="hidden md:inline">Home</span>
-            </Button>
-          </Link>
           
           {/* Feedback Button - Always visible, responsive sizing */}
           <FeedbackButton 
