@@ -46,8 +46,8 @@ export function SubscriptionManagement({ subscriber }: SubscriptionManagementPro
   };
 
   const handleManageSubscription = () => {
-    // Redirect to Whop help page for billing and subscriptions
-    window.open('https://help.whop.com/en/collections/11258983-billing-subscriptions', '_blank');
+    // Redirect to Whop.com for subscription management
+    window.open('https://whop.com', '_blank');
   };
 
   const handleUpgrade = () => {
