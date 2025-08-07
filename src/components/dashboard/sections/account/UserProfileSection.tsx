@@ -241,9 +241,10 @@ export function UserProfileSection() {
                 </>
               )}
             </Button>
-            <p className="text-sm text-muted-foreground">
-              JPG, PNG or GIF (max. 5MB)
-            </p>
+            <div className="text-sm text-muted-foreground space-y-1">
+              <p>JPG, PNG or GIF (max. 5MB)</p>
+              <p>Ideal size: 400x400px or larger</p>
+            </div>
           </div>
         </div>
 
