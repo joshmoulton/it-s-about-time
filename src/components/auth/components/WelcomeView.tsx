@@ -54,9 +54,12 @@ export const WelcomeView: React.FC<WelcomeViewProps> = ({
           className="w-full h-12 bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl font-medium transition-colors"
         >
           <Mail className="w-5 h-5 mr-3" />
-          Continue with Email
+          Get Access Link (Recommended)
           <ArrowRight className="w-4 h-4 ml-2" />
         </Button>
+        <p className="text-xs text-center text-gray-500 mt-2">
+          💡 Automatically verifies your Beehiiv subscription status
+        </p>
       </div>
 
       {/* Tertiary CTAs - Sign In & Create Account */}
@@ -64,14 +67,16 @@ export const WelcomeView: React.FC<WelcomeViewProps> = ({
         <Button
           onClick={() => onModeChange('signin')}
           disabled={isLoading}
-          className="flex-1 h-10 bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg font-medium text-sm transition-colors"
+          variant="outline"
+          className="flex-1 h-10 rounded-lg font-medium text-sm transition-colors"
         >
           Sign In
         </Button>
         <Button
           onClick={() => onModeChange('signup')}
           disabled={isLoading}
-          className="flex-1 h-10 bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg font-medium text-sm transition-colors"
+          variant="outline"
+          className="flex-1 h-10 rounded-lg font-medium text-sm transition-colors"
         >
           Create Account
         </Button>
