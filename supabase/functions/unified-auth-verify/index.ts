@@ -108,38 +108,49 @@ function generateSessionToken(): string {
 // Create or get auth user and create secure session
 async function createSecureSession(email: string, tier: string, source: string, sessionToken: string): Promise<boolean> {
   try {
-    // First, try to find existing auth user
     let userId: string | null = null;
     
-    const { data: existingUser } = await supabase
-      .from('auth.users')
-      .select('id')
-      .eq('email', email)
-      .single();
+    // Try to create user, but if user already exists, get their ID
+    console.log(`🔄 Creating/getting auth user for ${email}`);
     
-    if (existingUser) {
-      userId = existingUser.id;
-      console.log(`🔍 Found existing auth user for ${email}: ${userId}`);
-    } else {
-      // Create auth user if doesn't exist
-      console.log(`🔄 Creating auth user for ${email}`);
-      const { data: newUser, error: authError } = await supabase.auth.admin.createUser({
-        email: email,
-        email_confirm: true,
-        user_metadata: {
-          subscription_tier: tier,
-          auth_source: source,
-          created_via: 'unified_auth'
+    const { data: newUser, error: authError } = await supabase.auth.admin.createUser({
+      email: email,
+      email_confirm: true,
+      user_metadata: {
+        subscription_tier: tier,
+        auth_source: source,
+        created_via: 'unified_auth'
+      }
+    });
+    
+    if (authError) {
+      // If user already exists, that's fine - we'll generate a session for them
+      if (authError.message?.includes('already been registered') || authError.status === 422) {
+        console.log(`✅ User ${email} already exists, proceeding with session creation`);
+        
+        // Get the existing user ID by generating a temporary sign-in session
+        const { data: signInData, error: signInError } = await supabase.auth.admin.generateLink({
+          type: 'magiclink',
+          email: email,
+          options: {
+            redirectTo: `https://www.weeklywizdom.com/dashboard`
+          }
+        });
+        
+        if (signInError || !signInData.user) {
+          console.error('❌ Failed to get existing user ID:', signInError);
+          return false;
         }
-      });
-      
-      if (authError) {
+        
+        userId = signInData.user.id;
+        console.log(`✅ Found existing auth user for ${email}: ${userId}`);
+      } else {
         console.error('❌ Failed to create auth user:', authError);
         return false;
       }
-      
+    } else {
       userId = newUser.user?.id || null;
-      console.log(`✅ Created auth user for ${email}: ${userId}`);
+      console.log(`✅ Created new auth user for ${email}: ${userId}`);
     }
     
     if (!userId) {
@@ -165,6 +176,20 @@ async function createSecureSession(email: string, tier: string, source: string, 
 
     if (error) {
       console.error('❌ Error creating user session:', error);
+      return false;
+    }
+
+    // Create an actual Supabase session for the user
+    const { data: sessionData, error: sessionError } = await supabase.auth.admin.generateLink({
+      type: 'magiclink',
+      email: email,
+      options: {
+        redirectTo: `https://www.weeklywizdom.com/dashboard`
+      }
+    });
+
+    if (sessionError) {
+      console.error('❌ Failed to generate auth session:', sessionError);
       return false;
     }
 
