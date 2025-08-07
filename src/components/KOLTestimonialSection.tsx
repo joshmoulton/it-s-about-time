@@ -61,10 +61,10 @@ const KOLTestimonialSection = ({
 
                 {/* Content - Mobile Optimized */}
                 <div className="lg:col-span-7">
-                  {/* Mobile Layout: Compact horizontal design */}
+                  {/* Mobile Layout: Fixed to prevent overlap */}
                   <div className="lg:hidden">
                     {/* Quote positioned above profile for better flow */}
-                    <blockquote className="font-montserrat text-base sm:text-lg font-medium text-foreground leading-relaxed mb-4">
+                    <blockquote className="font-montserrat text-base sm:text-lg font-medium text-foreground leading-relaxed mb-6 relative z-10">
                       "{data.quote}"
                       {isMonkey && <>
                           {" "}
@@ -72,22 +72,27 @@ const KOLTestimonialSection = ({
                         </>}
                     </blockquote>
 
-                    {/* Profile section - horizontal layout */}
-                    <div className="flex items-center gap-3 bg-gradient-to-r from-brand-primary/5 to-transparent p-3 rounded-lg">
-                      {/* Profile Image - Mobile */}
-                      <div className="w-14 h-14 rounded-lg overflow-hidden border-2 border-brand-primary/20 shadow-md flex-shrink-0">
-                        <img src={data.image} alt={data.name} className="w-full h-full object-cover" style={{
-                          objectPosition: data.objectPosition
-                        }} />
+                    {/* Profile section - horizontal layout with proper spacing */}
+                    <div className="flex items-start gap-4 bg-gradient-to-r from-brand-primary/5 to-transparent p-4 rounded-lg relative z-10">
+                      {/* Profile Image - Mobile with fixed dimensions */}
+                      <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-lg overflow-hidden border-2 border-brand-primary/20 shadow-md flex-shrink-0">
+                        <img 
+                          src={data.image} 
+                          alt={data.name} 
+                          className="w-full h-full object-cover" 
+                          style={{
+                            objectPosition: data.objectPosition
+                          }} 
+                        />
                       </div>
                       
-                      {/* Profile Info - Compact */}
-                      <div className="flex-1 min-w-0">
-                        <h3 className="font-montserrat text-base font-semibold text-brand-primary truncate">{data.name}</h3>
-                        <p className="font-montserrat text-muted-foreground text-xs leading-tight line-clamp-2">{data.mobileTitle || data.title}</p>
-                        <div className="flex items-center gap-2 mt-1">
-                          <span className="font-montserrat text-brand-primary text-xs">{data.handle}</span>
-                          <span className="font-montserrat text-muted-foreground text-xs">{data.followers}</span>
+                      {/* Profile Info - Improved spacing and line breaks */}
+                      <div className="flex-1 min-w-0 overflow-hidden">
+                        <h3 className="font-montserrat text-base sm:text-lg font-semibold text-brand-primary mb-1 break-words">{data.name}</h3>
+                        <p className="font-montserrat text-muted-foreground text-xs sm:text-sm leading-relaxed mb-2 break-words">{data.mobileTitle || data.title}</p>
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
+                          <span className="font-montserrat text-brand-primary text-xs sm:text-sm break-all">{data.handle}</span>
+                          <span className="font-montserrat text-muted-foreground text-xs sm:text-sm">{data.followers}</span>
                         </div>
                       </div>
                     </div>
