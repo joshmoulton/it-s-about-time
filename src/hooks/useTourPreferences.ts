@@ -31,8 +31,10 @@ export const useTourPreferences = (userEmail: string | null) => {
       try {
         // First check localStorage for quick access
         const saved = localStorage.getItem(`tour-disabled-${email}`);
+        console.log('📱 Checking localStorage for tour preference:', saved);
         if (saved !== null) {
           const isDisabled = saved === 'true';
+          console.log('✅ Found localStorage preference:', isDisabled);
           // Cache the result
           tourPreferencesCache.set(email, {
             disabled: isDisabled,
@@ -42,6 +44,7 @@ export const useTourPreferences = (userEmail: string | null) => {
         }
 
         // Query database with optimized query
+        console.log('🔍 Checking database for tour preference...');
         const { data: profile, error } = await supabase
           .from('user_profiles')
           .select('tour_disabled')
@@ -56,6 +59,7 @@ export const useTourPreferences = (userEmail: string | null) => {
         let isDisabled = false;
         if (profile) {
           isDisabled = profile.tour_disabled;
+          console.log('📊 Database tour preference:', isDisabled);
         } else {
           // Create profile with default tour setting (don't wait for completion)
           supabase
@@ -129,6 +133,8 @@ export const useTourPreferences = (userEmail: string | null) => {
   const disableTour = async () => {
     if (!userEmail) return;
 
+    console.log('🚫 Disabling tour for user:', userEmail);
+
     // Update state immediately for better UX
     setIsTourDisabled(true);
     
@@ -141,6 +147,7 @@ export const useTourPreferences = (userEmail: string | null) => {
     // Save to localStorage for immediate persistence
     try {
       localStorage.setItem(`tour-disabled-${userEmail}`, 'true');
+      console.log('✅ Tour disabled preference saved to localStorage');
     } catch (e) {
       console.warn('Failed to save tour preference to localStorage:', e);
     }
@@ -154,13 +161,15 @@ export const useTourPreferences = (userEmail: string | null) => {
       }, {
         onConflict: 'user_email'
       })
-      .then(({ error }) => {
+      .then(({ error, data }) => {
         if (error) {
-          console.warn('Error saving tour preference:', error);
+          console.error('❌ Error saving tour preference to database:', error);
           // Rollback on error
           setIsTourDisabled(false);
           tourPreferencesCache.delete(userEmail);
           localStorage.removeItem(`tour-disabled-${userEmail}`);
+        } else {
+          console.log('✅ Tour disabled preference saved to database:', data);
         }
       });
   };

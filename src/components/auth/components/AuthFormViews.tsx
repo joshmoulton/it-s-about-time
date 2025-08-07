@@ -35,7 +35,13 @@ const MagicLinkView = memo<AuthFormViewsProps>(({
         <Button
           variant="outline"
           size="sm"
-          onClick={() => onModeChange('welcome')}
+          onClick={() => {
+            if (onClose) {
+              onClose(); // This will trigger handleBackToHome
+            } else {
+              onModeChange('welcome');
+            }
+          }}
           className="text-gray-600 hover:text-black hover:bg-gray-50 border-gray-300 p-2"
         >
           <ArrowLeft className="h-4 w-4" />
