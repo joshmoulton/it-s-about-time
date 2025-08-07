@@ -342,7 +342,7 @@ export const EnhancedLoginForm: React.FC<EnhancedLoginFormProps> = ({ onSuccess 
         <CardContent>
           <Tabs defaultValue="beehiiv" className="space-y-4">
             <TabsList className="grid w-full grid-cols-4">
-              <TabsTrigger value="beehiiv">Newsletter</TabsTrigger>
+              <TabsTrigger value="beehiiv">Subscriber Login</TabsTrigger>
               <TabsTrigger value="password">Admin</TabsTrigger>
               <TabsTrigger value="signup">Sign Up</TabsTrigger>
               <TabsTrigger value="whop">Premium</TabsTrigger>
