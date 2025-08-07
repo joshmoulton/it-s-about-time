@@ -6,20 +6,47 @@ import { ArrowRight } from "lucide-react";
 import AuthOptionsModal from "@/components/AuthOptionsModal";
 import PremiumPricingModal from "@/components/PremiumPricingModal";
 import ReorganizedHeroSection from "@/components/ReorganizedHeroSection";
-
 import FeaturesRowSection from "@/components/FeaturesRowSection";
 import { SEOManager, generateStructuredData } from "@/components/SEOManager";
 import { useHashNavigation } from "@/hooks/useHashNavigation";
 import { navigateToSection } from "@/utils/hashNavigation";
 
-// Lazy load components below the fold
-const KOLTestimonialSection = lazy(() => import("@/components/KOLTestimonialSection"));
-const AboutSection = lazy(() => import("@/components/AboutSection"));
-const TestimonialsSection = lazy(() => import("@/components/TestimonialsSection"));
-const PricingSection = lazy(() => import("@/components/PricingSection"));
-const FAQSection = lazy(() => import("@/components/FAQSection"));
-const ContactSection = lazy(() => import("@/components/ContactSection"));
-const Footer = lazy(() => import("@/components/Footer"));
+// Lazy load components below the fold with optimized loading
+const KOLTestimonialSection = lazy(() => 
+  import("@/components/KOLTestimonialSection").then(module => ({ 
+    default: module.default 
+  }))
+);
+const AboutSection = lazy(() => 
+  import("@/components/AboutSection").then(module => ({ 
+    default: module.default 
+  }))
+);
+const TestimonialsSection = lazy(() => 
+  import("@/components/TestimonialsSection").then(module => ({ 
+    default: module.default 
+  }))
+);
+const PricingSection = lazy(() => 
+  import("@/components/PricingSection").then(module => ({ 
+    default: module.default 
+  }))
+);
+const FAQSection = lazy(() => 
+  import("@/components/FAQSection").then(module => ({ 
+    default: module.default 
+  }))
+);
+const ContactSection = lazy(() => 
+  import("@/components/ContactSection").then(module => ({ 
+    default: module.default 
+  }))
+);
+const Footer = lazy(() => 
+  import("@/components/Footer").then(module => ({ 
+    default: module.default 
+  }))
+);
 
 const Index = () => {
   const { subscriber, isAuthenticated } = useEnhancedAuth();
@@ -66,7 +93,7 @@ const Index = () => {
       </div>
       
       {/* 4. KOL Testimonial */}
-      <Suspense fallback={<div className="h-32 animate-pulse bg-muted/20" />}>
+      <Suspense fallback={<div className="h-32 bg-muted/20" />}>
         <KOLTestimonialSection />
       </Suspense>
 
@@ -82,19 +109,19 @@ const Index = () => {
       </section>
 
       {/* 5. Video Testimonials */}
-      <Suspense fallback={<div className="h-40 animate-pulse bg-muted/20" />}>
+      <Suspense fallback={<div className="h-40 bg-muted/20" />}>
         <TestimonialsSection />
       </Suspense>
 
       {/* 6. About Section - What is Weekly Wizdom */}
       <div id="about">
-        <Suspense fallback={<div className="h-48 animate-pulse bg-muted/20" />}>
+        <Suspense fallback={<div className="h-48 bg-muted/20" />}>
           <AboutSection />
         </Suspense>
       </div>
 
       {/* 7. Custom KOL Testimonial */}
-      <Suspense fallback={<div className="h-32 animate-pulse bg-muted/20" />}>
+      <Suspense fallback={<div className="h-32 bg-muted/20" />}>
         <KOLTestimonialSection variant="custom" />
       </Suspense>
 
@@ -105,32 +132,32 @@ const Index = () => {
       
       {/* 9. Premium Section */}
       <div id="pricing">
-        <Suspense fallback={<div className="h-64 animate-pulse bg-muted/20" />}>
+        <Suspense fallback={<div className="h-64 bg-muted/20" />}>
           <PricingSection />
         </Suspense>
       </div>
 
       {/* 10. Third KOL Testimonial */}
-      <Suspense fallback={<div className="h-32 animate-pulse bg-muted/20" />}>
+      <Suspense fallback={<div className="h-32 bg-muted/20" />}>
         <KOLTestimonialSection variant="monkey" />
       </Suspense>
 
       {/* 11. FAQ Section */}
       <div id="faq">
-        <Suspense fallback={<div className="h-40 animate-pulse bg-muted/20" />}>
+        <Suspense fallback={<div className="h-40 bg-muted/20" />}>
           <FAQSection />
         </Suspense>
       </div>
 
       {/* 12. Contact Section */}
       <div id="contact">
-        <Suspense fallback={<div className="h-32 animate-pulse bg-muted/20" />}>
+        <Suspense fallback={<div className="h-32 bg-muted/20" />}>
           <ContactSection />
         </Suspense>
       </div>
       
       {/* 13. Footer */}
-      <Suspense fallback={<div className="h-24 animate-pulse bg-muted/20" />}>
+      <Suspense fallback={<div className="h-24 bg-muted/20" />}>
         <Footer />
       </Suspense>
     </div>

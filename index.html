@@ -21,14 +21,17 @@
     <meta name="twitter:description" content="Join the #1 cross-asset Newsletter & Community. Get notified as soon as our analysts share new ideas, get market analysis and updates every week, and track everything in our proprietary dashboard." />
     <meta name="twitter:image" content="/lovable-uploads/41a57ccc-0a24-4abd-89b1-3c41c3cc3d08.png" />
     
-    <!-- Google Fonts -->
+    <!-- Performance Optimizations -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Merriweather:ital,wght@0,300;0,400;0,700;0,900;1,300;1,400;1,700;1,900&family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet" />
-    
-    <!-- Whop Preconnect for Performance -->
     <link rel="dns-prefetch" href="https://js.whop.com" />
     <link rel="preconnect" href="https://js.whop.com" crossorigin />
+    <link rel="dns-prefetch" href="https://wrvvlmevpvcenauglcyz.supabase.co" />
+    <link rel="preconnect" href="https://wrvvlmevpvcenauglcyz.supabase.co" crossorigin />
+    
+    <!-- Optimized Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Merriweather:ital,wght@0,300;0,400;0,700;0,900;1,300;1,400;1,700;1,900&family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet" media="print" onload="this.media='all'" />
+    <noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Merriweather:ital,wght@0,300;0,400;0,700;0,900;1,300;1,400;1,700;1,900&family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet" /></noscript>
 
     <!-- Enhanced CSP Configuration for Lovable preview compatibility -->
     <meta http-equiv="Content-Security-Policy" content="
@@ -57,6 +60,14 @@
   </head>
   <body>
     <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
+    <script type="module" src="/src/main.tsx" defer></script>
+    
+    <!-- Font loading optimization script -->
+    <script>
+      if ('fonts' in document) {
+        document.fonts.load('400 1em Inter');
+        document.fonts.load('400 1em Merriweather');
+      }
+    </script>
   </body>
 </html>
