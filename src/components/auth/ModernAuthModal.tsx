@@ -1,5 +1,5 @@
 
-import React, { useState, useCallback, memo, Suspense } from 'react';
+import React, { useState, useCallback, memo, Suspense, useRef } from 'react';
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { useEnhancedAuth } from '@/contexts/EnhancedAuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -26,6 +26,10 @@ export const ModernAuthModal: React.FC<ModernAuthModalProps> = memo(({ open, onO
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | React.ReactNode>('');
+  
+  // Refs to prevent duplicate submissions
+  const isSubmittingRef = useRef(false);
+  const lastSubmitTimeRef = useRef(0);
 
   const resetForm = useCallback(() => {
     setEmail('');
@@ -62,24 +66,39 @@ export const ModernAuthModal: React.FC<ModernAuthModalProps> = memo(({ open, onO
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Prevent double submissions with debouncing
+    const now = Date.now();
+    const timeSinceLastSubmit = now - lastSubmitTimeRef.current;
+    
+    if (isSubmittingRef.current || timeSinceLastSubmit < 2000) {
+      console.log('⏳ Preventing duplicate submission');
+      return;
+    }
+    
     if (!email.trim()) {
       setError('Please enter your email address');
       return;
     }
 
+    isSubmittingRef.current = true;
+    lastSubmitTimeRef.current = now;
     setIsLoading(true);
     setError('');
     
     try {
       if (mode === 'magic') {
+        console.log('🔄 Sending magic link for:', email.toLowerCase().trim());
+        
         const { data, error } = await supabase.functions.invoke('send-magic-link', {
           body: { email: email.toLowerCase().trim() }
         });
         
         if (error || !data?.success) {
           const errorMessage = data?.error || error?.message || 'Failed to send access link';
+          console.error('❌ Magic link error:', errorMessage);
           setError(errorMessage);
         } else {
+          console.log('✅ Magic link sent successfully');
           if (data.is_new_user) {
             setError(
               <div className="text-green-600">
@@ -151,9 +170,11 @@ export const ModernAuthModal: React.FC<ModernAuthModalProps> = memo(({ open, onO
         }
       }
     } catch (error) {
+      console.error('❌ Auth submission error:', error);
       setError('An error occurred. Please try again.');
     } finally {
       setIsLoading(false);
+      isSubmittingRef.current = false;
     }
   };
 
