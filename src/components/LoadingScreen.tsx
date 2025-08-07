@@ -12,6 +12,53 @@ const LoadingScreen = ({ onLoadingComplete }: LoadingScreenProps) => {
   const [showText, setShowText] = useState(false);
   const [logoLoaded, setLogoLoaded] = useState(false);
   const [logoError, setLogoError] = useState(false);
+  const [currentLogoSrc, setCurrentLogoSrc] = useState('');
+
+  // Logo sources in order of preference
+  const logoSources = [
+    'https://wrvvlmevpvcenauglcyz.supabase.co/storage/v1/object/public/assets/Property%201%3DDefault%20%281%29.png',
+    'https://wrvvlmevpvcenauglcyz.supabase.co/storage/v1/object/public/assets/logo.jpg'
+  ];
+
+  // Preload logo images
+  useEffect(() => {
+    console.log('🔄 Preloading logo images...');
+    
+    const preloadImage = (src: string): Promise<string> => {
+      return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.onload = () => {
+          console.log(`✅ Successfully preloaded: ${src}`);
+          resolve(src);
+        };
+        img.onerror = () => {
+          console.warn(`❌ Failed to preload: ${src}`);
+          reject(src);
+        };
+        img.src = src;
+      });
+    };
+
+    // Try to preload the first working logo
+    const loadFirstAvailableLogo = async () => {
+      for (const src of logoSources) {
+        try {
+          await preloadImage(src);
+          console.log(`🎯 Using logo source: ${src}`);
+          setCurrentLogoSrc(src);
+          setLogoLoaded(true);
+          return;
+        } catch (error) {
+          console.warn(`⚠️ Logo source failed: ${src}`);
+        }
+      }
+      
+      console.error('❌ All logo sources failed to load');
+      setLogoError(true);
+    };
+
+    loadFirstAvailableLogo();
+  }, []);
 
   useEffect(() => {
     console.log('🎨 Loading screen state:', { logoLoaded, logoError, showLogo, showText, isVisible });
@@ -78,21 +125,30 @@ const LoadingScreen = ({ onLoadingComplete }: LoadingScreenProps) => {
 
       <div className="flex flex-col items-center justify-center space-y-6 relative z-10">
         {/* Main Logo */}
-        <img 
-          src="https://wrvvlmevpvcenauglcyz.supabase.co/storage/v1/object/public/assets/Property%201=Default%20(1).png"
-          alt="Weekly Wizdom" 
-          className={`w-32 h-32 transition-all duration-700 ease-out ${
+        {currentLogoSrc && (
+          <img 
+            src={currentLogoSrc}
+            alt="Weekly Wizdom" 
+            className={`w-32 h-32 transition-all duration-700 ease-out ${
+              showLogo && !isFadingOut ? 'opacity-100 scale-100' : 'opacity-0 scale-95'
+            }`}
+            onLoad={() => {
+              console.log(`🖼️ Logo displayed successfully from: ${currentLogoSrc}`);
+            }}
+            onError={(e) => {
+              console.error(`❌ Logo display failed for: ${currentLogoSrc}`, e);
+            }}
+          />
+        )}
+        
+        {/* Fallback logo placeholder if all sources fail */}
+        {logoError && !currentLogoSrc && (
+          <div className={`w-32 h-32 bg-white/10 rounded-xl flex items-center justify-center transition-all duration-700 ease-out ${
             showLogo && !isFadingOut ? 'opacity-100 scale-100' : 'opacity-0 scale-95'
-          }`}
-          onLoad={() => {
-            console.log('🖼️ Logo loaded successfully');
-            setLogoLoaded(true);
-          }}
-          onError={(e) => {
-            console.error('❌ Logo failed to load:', e);
-            setLogoError(true);
-          }}
-        />
+          }`}>
+            <span className="text-white text-4xl font-bold">WW</span>
+          </div>
+        )}
         
         {/* Text */}
         <h1 
