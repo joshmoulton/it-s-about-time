@@ -17,7 +17,7 @@ const DashboardHeader = ({ onViewDashboard }: DashboardHeaderProps) => {
           <div className={`bg-white rounded-sm ${isMobile ? 'w-4 h-4' : 'w-5 h-5'}`}></div>
         </div>
         <img 
-          src="/lovable-uploads/566bd7e2-5b9d-40e6-90b4-3e3022ecd43d.png" 
+          src="https://wrvvlmevpvcenauglcyz.supabase.co/storage/v1/object/public/assets/Property%201=White%20(2).png" 
           alt="Weekly Wizdom" 
           className={`${isMobile ? 'h-7' : 'h-10'} w-auto`}
         />
