@@ -17,11 +17,73 @@ export const useEnhancedAuthActions = ({
   setIsLoading
 }: UseEnhancedAuthActionsProps) => {
   const navigate = useNavigate();
-  // Enhanced login function
-  const login = useCallback(async (email: string): Promise<{ success: boolean; error?: string }> => {
-    console.warn('Legacy login called - use EnhancedLoginForm instead');
-    return { success: false, error: 'Please use the enhanced login form' };
-  }, []);
+  
+  // Enhanced login function that always verifies Beehiiv subscription
+  const login = useCallback(async (email: string): Promise<{ 
+    success: boolean; 
+    error?: string; 
+    requiresPasswordSetup?: boolean;
+    userTier?: string;
+  }> => {
+    setIsLoading(true);
+    
+    try {
+      // First, verify with Beehiiv to get current subscription status
+      const { data: verificationResult, error: verifyError } = await supabase.functions.invoke(
+        'unified-auth-verify',
+        { body: { email } }
+      );
+
+      if (verifyError) {
+        throw new Error('Failed to verify subscription status');
+      }
+
+      if (!verificationResult?.verified) {
+        throw new Error('No active subscription found for this email');
+      }
+
+      // Check if user needs password setup
+      const { data: subscriber, error: subscriberError } = await supabase
+        .from('beehiiv_subscribers')
+        .select('requires_password_setup, subscription_tier')
+        .eq('email', email)
+        .single();
+
+      if (subscriberError) {
+        console.error('Error checking subscriber:', subscriberError);
+      }
+
+      const requiresPasswordSetup = subscriber?.requires_password_setup ?? false;
+      const userTier = verificationResult.tier || subscriber?.subscription_tier || 'free';
+
+      // Set the current user
+      const userData: CurrentUser = {
+        id: crypto.randomUUID(),
+        email,
+        subscription_tier: userTier as any,
+        user_type: 'unified_user'
+      };
+
+      setCurrentUser(userData);
+
+      console.log(`✅ Login successful for ${email}, tier: ${userTier}, requires password setup: ${requiresPasswordSetup}`);
+
+      return { 
+        success: true, 
+        requiresPasswordSetup,
+        userTier
+      };
+
+    } catch (error: any) {
+      console.error('❌ Login failed:', error);
+      return { 
+        success: false, 
+        error: error.message || 'Login failed' 
+      };
+    } finally {
+      setIsLoading(false);
+    }
+  }, [setCurrentUser, setIsLoading]);
 
   // Enhanced logout with cache clearing
   const logout = useCallback(async () => {

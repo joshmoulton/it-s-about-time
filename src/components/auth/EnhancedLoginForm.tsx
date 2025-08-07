@@ -10,6 +10,7 @@ import { DeviceManagementModal } from './DeviceManagementModal';
 import { RememberMeOption } from './RememberMeOption';
 import { PasswordLoginForm } from './forms/PasswordLoginForm';
 import { PasswordSetupForm } from './forms/PasswordSetupForm';
+import { PasswordSetupRequiredModal } from './PasswordSetupRequiredModal';
 import { WhopLoginTab } from './forms/WhopLoginTab';
 import { LoginCardHeader } from './forms/LoginCardHeader';
 import { MagicLinkForm } from './forms/MagicLinkForm';
@@ -25,7 +26,9 @@ export const EnhancedLoginForm: React.FC<EnhancedLoginFormProps> = ({ onSuccess 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [showPasswordSetup, setShowPasswordSetup] = useState(false);
+  const [showPasswordSetupModal, setShowPasswordSetupModal] = useState(false);
   const [setupEmail, setSetupEmail] = useState('');
+  const [setupUserTier, setSetupUserTier] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
   const [showDeviceManagement, setShowDeviceManagement] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
@@ -128,6 +131,98 @@ export const EnhancedLoginForm: React.FC<EnhancedLoginFormProps> = ({ onSuccess 
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleBeehiivLogin = async (data: { email: string }) => {
+    setIsLoading(true);
+    setError('');
+    
+    try {
+      console.log(`🔍 Checking Beehiiv subscription for: ${data.email}`);
+      
+      // Verify with Beehiiv API first
+      const { data: verificationResult, error: verifyError } = await supabase.functions.invoke(
+        'unified-auth-verify',
+        { body: { email: data.email.toLowerCase().trim() } }
+      );
+
+      if (verifyError || !verificationResult?.verified) {
+        setError('No active subscription found for this email. Please check your email address or subscribe to Weekly Wizdom first.');
+        return;
+      }
+
+      // Check if password setup is required
+      const { data: subscriber, error: subscriberError } = await supabase
+        .from('beehiiv_subscribers')
+        .select('requires_password_setup, subscription_tier')
+        .eq('email', data.email.toLowerCase().trim())
+        .single();
+
+      if (subscriberError) {
+        console.error('Error checking subscriber:', subscriberError);
+      }
+
+      const requiresPasswordSetup = subscriber?.requires_password_setup ?? false;
+      const userTier = verificationResult.tier || subscriber?.subscription_tier || 'free';
+
+      if (requiresPasswordSetup) {
+        // Show password setup modal
+        setSetupEmail(data.email.toLowerCase().trim());
+        setSetupUserTier(userTier);
+        setShowPasswordSetupModal(true);
+        return;
+      }
+
+      // User exists and password is set up, proceed with regular authentication flow
+      const userData = {
+        id: crypto.randomUUID(),
+        email: data.email.toLowerCase().trim(),
+        subscription_tier: userTier,
+        user_type: 'unified_user',
+        status: 'active'
+      };
+
+      console.log(`✅ Beehiiv login successful for ${data.email}, tier: ${userTier}`);
+      onSuccess(userData, 'beehiiv');
+
+    } catch (error: any) {
+      console.error('❌ Beehiiv login error:', error);
+      setError(error.message || 'Login failed. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handlePasswordSetupComplete = () => {
+    setShowPasswordSetupModal(false);
+    
+    // After password setup, proceed with login
+    const userData = {
+      id: crypto.randomUUID(),
+      email: setupEmail,
+      subscription_tier: setupUserTier,
+      user_type: 'unified_user',
+      status: 'active'
+    };
+
+    console.log(`✅ Password setup complete, logging in user: ${setupEmail}`);
+    onSuccess(userData, 'beehiiv');
+  };
+
+  const handlePasswordSetupSkip = () => {
+    setShowPasswordSetupModal(false);
+    
+    // Proceed with login without password setup
+    const userData = {
+      id: crypto.randomUUID(),
+      email: setupEmail,
+      subscription_tier: setupUserTier,
+      user_type: 'unified_user',
+      status: 'active'
+    };
+
+    console.log(`✅ Password setup skipped, logging in user: ${setupEmail}`);
+    onSuccess(userData, 'beehiiv');
   };
 
   const handleMagicLink = async (data: { email: string }) => {
@@ -245,12 +340,33 @@ export const EnhancedLoginForm: React.FC<EnhancedLoginFormProps> = ({ onSuccess 
       <Card className="w-full max-w-md mx-auto">
         <LoginCardHeader onDeviceManagement={() => setShowDeviceManagement(true)} />
         <CardContent>
-          <Tabs defaultValue="password" className="space-y-4">
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="password">Sign In</TabsTrigger>
+          <Tabs defaultValue="beehiiv" className="space-y-4">
+            <TabsList className="grid w-full grid-cols-4">
+              <TabsTrigger value="beehiiv">Newsletter</TabsTrigger>
+              <TabsTrigger value="password">Admin</TabsTrigger>
               <TabsTrigger value="signup">Sign Up</TabsTrigger>
-              <TabsTrigger value="whop">Premium (Whop)</TabsTrigger>
+              <TabsTrigger value="whop">Premium</TabsTrigger>
             </TabsList>
+
+            <TabsContent value="beehiiv" className="space-y-4">
+              <div className="text-sm text-muted-foreground text-center mb-4">
+                <p>Newsletter subscribers: Sign in with your email</p>
+              </div>
+              
+              <MagicLinkForm
+                onSubmit={handleBeehiivLogin}
+                isLoading={isLoading}
+                error=""
+                buttonText="Check Subscription"
+              />
+              
+              {error && (
+                <Alert className="border-destructive/50 text-destructive dark:border-destructive [&>svg]:text-destructive">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription>{error}</AlertDescription>
+                </Alert>
+              )}
+            </TabsContent>
 
             <TabsContent value="password" className="space-y-4">
               <div className="text-sm text-muted-foreground text-center mb-4">
@@ -335,6 +451,14 @@ export const EnhancedLoginForm: React.FC<EnhancedLoginFormProps> = ({ onSuccess 
       <DeviceManagementModal
         open={showDeviceManagement}
         onOpenChange={setShowDeviceManagement}
+      />
+      
+      <PasswordSetupRequiredModal
+        isOpen={showPasswordSetupModal}
+        userEmail={setupEmail}
+        userTier={setupUserTier}
+        onPasswordSet={handlePasswordSetupComplete}
+        onSkip={handlePasswordSetupSkip}
       />
     </>
   );

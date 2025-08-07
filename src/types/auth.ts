@@ -24,7 +24,7 @@ export interface AuthContextType {
   subscriber: Subscriber | null;
   currentUser: CurrentUser | null;
   isLoading: boolean;
-  login: (email: string) => Promise<{ success: boolean; error?: string }>;
+  login: (email: string) => Promise<{ success: boolean; error?: string; requiresPasswordSetup?: boolean; userTier?: string }>;
   logout: () => Promise<void>;
   isAuthenticated: boolean;
   setAuthenticatedUser?: (user: any, authMethod: string) => void; // Add this for enhanced auth

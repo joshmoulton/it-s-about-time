@@ -9,9 +9,10 @@ interface MagicLinkFormProps {
   onSubmit: (data: { email: string }) => void;
   isLoading: boolean;
   error: string;
+  buttonText?: string;
 }
 
-export const MagicLinkForm: React.FC<MagicLinkFormProps> = ({ onSubmit, isLoading, error }) => {
+export const MagicLinkForm: React.FC<MagicLinkFormProps> = ({ onSubmit, isLoading, error, buttonText = "Send Magic Link" }) => {
   const [email, setEmail] = useState('');
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -41,18 +42,18 @@ export const MagicLinkForm: React.FC<MagicLinkFormProps> = ({ onSubmit, isLoadin
         {isLoading ? (
           <>
             <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-            Sending Magic Link...
+            {buttonText === "Check Subscription" ? "Checking..." : "Sending Magic Link..."}
           </>
         ) : (
           <>
             <Mail className="h-4 w-4 mr-2" />
-            Send Magic Link
+            {buttonText}
           </>
         )}
       </Button>
 
       <div className="text-sm text-muted-foreground text-center">
-        <p>We'll send you a secure link to sign in</p>
+        <p>{buttonText === "Check Subscription" ? "We'll verify your newsletter subscription" : "We'll send you a secure link to sign in"}</p>
       </div>
     </form>
   );
