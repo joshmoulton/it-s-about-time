@@ -1,4 +1,5 @@
 // Enhanced security validation utilities
+import { sanitizeHtml } from './htmlSanitizer';
 
 export const validateEmail = (email: string): boolean => {
   if (!email || typeof email !== 'string') return false;
@@ -17,9 +18,11 @@ export const validateEmail = (email: string): boolean => {
 export const sanitizeInput = (input: string): string => {
   if (!input) return '';
   
-  return input
+  // Use HTML sanitizer for comprehensive cleaning
+  const htmlCleaned = sanitizeHtml(input, 'notification');
+  
+  return htmlCleaned
     .trim()
-    .replace(/[<>'"&]/g, '') // Remove potential XSS characters
     .substring(0, 1000); // Limit length
 };
 

@@ -4064,6 +4064,10 @@ export type Database = {
         Args: { p_email: string; p_role: string }
         Returns: Json
       }
+      validate_email_secure: {
+        Args: { email_input: string }
+        Returns: boolean
+      }
       validate_password_strength: {
         Args: { password: string }
         Returns: boolean
