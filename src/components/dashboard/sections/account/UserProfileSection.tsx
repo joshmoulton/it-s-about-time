@@ -35,13 +35,18 @@ export function UserProfileSection() {
     if (!currentUser) return;
 
     try {
-      const { data, error } = await supabase
-        .from('user_profiles')
-        .select('*')
-        .or(`user_id.eq.${currentUser.id},whop_email.eq.${currentUser.email}`)
-        .single();
+      // Build a more flexible query for different user types
+      let query = supabase.from('user_profiles').select('*');
+      
+      if (currentUser.id) {
+        query = query.or(`user_id.eq.${currentUser.id},whop_email.eq.${currentUser.email},user_email.eq.${currentUser.email}`);
+      } else {
+        query = query.or(`whop_email.eq.${currentUser.email},user_email.eq.${currentUser.email}`);
+      }
 
-      if (error && error.code !== 'PGRST116') {
+      const { data, error } = await query.maybeSingle();
+
+      if (error) {
         console.error('Error loading profile:', error);
         return;
       }
@@ -144,40 +149,49 @@ export function UserProfileSection() {
 
     setIsSaving(true);
     try {
-      const profileData = {
+      const profileData: any = {
         display_name: formData.displayName,
         avatar_url: formData.avatarUrl,
+        user_email: currentUser.email, // Always include email for better lookups
         updated_at: new Date().toISOString()
       };
 
-      // Determine if we're linking by user_id or whop_email
-      const isWhopUser = currentUser.user_type === 'whop_user';
-      const profileKey = isWhopUser ? 'whop_email' : 'user_id';
-      const profileValue = isWhopUser ? currentUser.email : currentUser.id;
+      // For Whop users, use whop_email. For others, use user_id
+      if (currentUser.user_type === 'whop_user') {
+        profileData.whop_email = currentUser.email;
+      } else if (currentUser.id) {
+        profileData.user_id = currentUser.id;
+      }
 
-      const { error } = await supabase
+      console.log('Saving profile data:', profileData);
+
+      const { data, error } = await supabase
         .from('user_profiles')
-        .upsert({
-          ...profileData,
-          [profileKey]: profileValue
-        }, {
-          onConflict: profileKey
-        });
+        .upsert(profileData, {
+          onConflict: currentUser.user_type === 'whop_user' ? 'whop_email' : 'user_id'
+        })
+        .select();
 
       if (error) {
+        console.error('Supabase error:', error);
         throw error;
       }
+
+      console.log('Profile saved successfully:', data);
 
       toast({
         title: "Profile Updated",
         description: "Your profile has been updated successfully."
       });
       setIsEditing(false);
+      
+      // Reload the profile to reflect changes
+      await loadUserProfile();
     } catch (error) {
       console.error('Error saving profile:', error);
       toast({
         title: "Error",
-        description: "Failed to update profile. Please try again.",
+        description: `Failed to update profile: ${error.message || 'Please try again.'}`,
         variant: "destructive"
       });
     } finally {
