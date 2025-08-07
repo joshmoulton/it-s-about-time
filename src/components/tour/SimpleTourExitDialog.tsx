@@ -23,9 +23,19 @@ export function SimpleTourExitDialog({
 }: SimpleTourExitDialogProps) {
   console.log('🎭 SimpleTourExitDialog rendered, isOpen:', isOpen);
 
+  const handleNeverShowAgain = () => {
+    console.log('🚫 User clicked "Never Show Again" - disabling tours permanently');
+    onNeverShowAgain();
+  };
+
+  const handleShowLater = () => {
+    console.log('⏰ User clicked "Show Again Later" - keeping tours enabled');
+    onShowLater();
+  };
+
   return (
     <AlertDialog open={isOpen}>
-      <AlertDialogContent className="sm:max-w-md z-[10001] fixed">
+      <AlertDialogContent className="sm:max-w-md z-[10001]">
         <AlertDialogHeader>
           <AlertDialogTitle>Tutorial Preferences</AlertDialogTitle>
           <AlertDialogDescription>
@@ -34,14 +44,14 @@ export function SimpleTourExitDialog({
         </AlertDialogHeader>
         <AlertDialogFooter className="flex gap-2">
           <AlertDialogCancel 
-            onClick={onShowLater}
+            onClick={handleShowLater}
             className="flex-1 bg-background text-foreground border-border hover:bg-accent hover:text-accent-foreground"
           >
             Show Again Later
           </AlertDialogCancel>
           <AlertDialogAction 
-            onClick={onNeverShowAgain}
-            className="flex-1 bg-red-600 hover:bg-red-700"
+            onClick={handleNeverShowAgain}
+            className="flex-1 bg-destructive hover:bg-destructive/90 text-destructive-foreground"
           >
             Never Show Again
           </AlertDialogAction>
