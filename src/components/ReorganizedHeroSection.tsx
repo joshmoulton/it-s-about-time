@@ -5,6 +5,8 @@ import HeroNavigation from "./hero/HeroNavigation";
 import DynamicHeroBackground from "./DynamicHeroBackground";
 import CyclingText from "@/components/ui/cycling-text";
 import { navigateToSection } from "@/utils/hashNavigation";
+import { useEnhancedAuth } from "@/contexts/EnhancedAuthContext";
+import { useNavigate } from "react-router-dom";
 
 interface ReorganizedHeroSectionProps {
   onAuthClick: () => void;
@@ -16,6 +18,8 @@ const ReorganizedHeroSection = ({
   onPremiumClick
 }: ReorganizedHeroSectionProps) => {
   const cyclingWords = ['Crypto', 'Stocks', 'Macro', 'Web3', 'Memes', 'Equities', 'DeFi'];
+  const { isAuthenticated } = useEnhancedAuth();
+  const navigate = useNavigate();
   
   return (
     <section className="relative overflow-hidden bg-background" style={{ 
@@ -51,15 +55,26 @@ const ReorganizedHeroSection = ({
 
               {/* Buttons Section */}
               <div className="flex flex-col gap-3 sm:gap-4 mt-4 sm:mt-6 items-center w-full max-w-sm sm:max-w-none mx-auto px-4 sm:px-0">
-                {/* CTA Button */}
-                <Button 
-                  onClick={() => navigateToSection('pricing')}
-                  size="lg" 
-                  className="font-bold rounded-full transition-all duration-300 font-montserrat bg-brand-primary hover:bg-background hover:text-brand-primary text-white border-2 border-brand-primary w-full sm:w-auto min-w-[280px] xs:min-w-[300px] max-w-[340px] relative overflow-hidden hover:scale-105 hover:translate-y-[-2px] before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-white/20 before:to-transparent before:translate-x-[-100%] before:animate-shimmer-subtle hover:before:opacity-0 drop-shadow-lg touch-manipulation min-h-[48px] xs:min-h-[52px] sm:h-12 md:h-14 px-6 xs:px-7 sm:px-8 text-sm xs:text-base sm:text-base"
-                >
-                  Get Started
-                  <ArrowRight className="ml-2 h-4 w-4 sm:h-4 sm:w-4" />
-                </Button>
+                {/* CTA Button - Different for authenticated vs non-authenticated users */}
+                {isAuthenticated ? (
+                  <Button 
+                    onClick={() => navigate('/dashboard')}
+                    size="lg" 
+                    className="font-bold rounded-full transition-all duration-300 font-montserrat bg-brand-primary hover:bg-background hover:text-brand-primary text-white border-2 border-brand-primary w-full sm:w-auto min-w-[280px] xs:min-w-[300px] max-w-[340px] relative overflow-hidden hover:scale-105 hover:translate-y-[-2px] before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-white/20 before:to-transparent before:translate-x-[-100%] before:animate-shimmer-subtle hover:before:opacity-0 drop-shadow-lg touch-manipulation min-h-[48px] xs:min-h-[52px] sm:h-12 md:h-14 px-6 xs:px-7 sm:px-8 text-sm xs:text-base sm:text-base"
+                  >
+                    Go to Dashboard
+                    <ArrowRight className="ml-2 h-4 w-4 sm:h-4 sm:w-4" />
+                  </Button>
+                ) : (
+                  <Button 
+                    onClick={() => navigateToSection('pricing')}
+                    size="lg" 
+                    className="font-bold rounded-full transition-all duration-300 font-montserrat bg-brand-primary hover:bg-background hover:text-brand-primary text-white border-2 border-brand-primary w-full sm:w-auto min-w-[280px] xs:min-w-[300px] max-w-[340px] relative overflow-hidden hover:scale-105 hover:translate-y-[-2px] before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-white/20 before:to-transparent before:translate-x-[-100%] before:animate-shimmer-subtle hover:before:opacity-0 drop-shadow-lg touch-manipulation min-h-[48px] xs:min-h-[52px] sm:h-12 md:h-14 px-6 xs:px-7 sm:px-8 text-sm xs:text-base sm:text-base"
+                  >
+                    Get Started
+                    <ArrowRight className="ml-2 h-4 w-4 sm:h-4 sm:w-4" />
+                  </Button>
+                )}
                 
                 {/* Social Proof */}
                 <p className="text-sm xs:text-base sm:text-base md:text-lg text-foreground/80 font-medium font-merriweather mt-1 sm:mt-2">

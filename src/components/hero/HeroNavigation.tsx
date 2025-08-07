@@ -144,14 +144,16 @@ const HeroNavigation = ({
             </Button>
           )}
 
-          {/* Get Started CTA Button */}
-          <Button 
-            size="sm" 
-            className="font-medium font-montserrat bg-brand-primary hover:bg-background hover:text-brand-primary text-white border-2 border-brand-primary text-xs sm:text-sm px-3 sm:px-4 h-9 rounded-full relative overflow-hidden transition-all duration-300 hover:scale-105 hover:translate-y-[-2px] before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-white/20 before:to-transparent before:translate-x-[-100%] before:animate-shimmer-subtle hover:before:opacity-0" 
-            onClick={() => navigateToSection('pricing')}
-          >
-            Get Started
-          </Button>
+          {/* Get Started CTA Button - Only show if not authenticated */}
+          {!isAuthenticated && (
+            <Button 
+              size="sm" 
+              className="font-medium font-montserrat bg-brand-primary hover:bg-background hover:text-brand-primary text-white border-2 border-brand-primary text-xs sm:text-sm px-3 sm:px-4 h-9 rounded-full relative overflow-hidden transition-all duration-300 hover:scale-105 hover:translate-y-[-2px] before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-white/20 before:to-transparent before:translate-x-[-100%] before:animate-shimmer-subtle hover:before:opacity-0" 
+              onClick={() => navigateToSection('pricing')}
+            >
+              Get Started
+            </Button>
+          )}
         </div>
       </div>
 

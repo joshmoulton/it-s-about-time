@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { LazyImage } from '@/components/ui/LazyImage';
-import { Settings, Crown } from 'lucide-react';
+import { Settings, Crown, Home } from 'lucide-react';
 import { TierBadge } from './navigation/TierBadge';
 import { ProfileDropdown } from './navigation/ProfileDropdown';
 import { FeedbackButton } from '@/components/feedback/FeedbackButton';
@@ -51,6 +51,18 @@ export function TopNavigation({
 
         {/* Right side actions */}
         <div className="flex items-center gap-3 sm:gap-4 md:gap-6 min-w-0" data-tour="navigation-menu">
+          
+          {/* Home Button */}
+          <Link to="/" className="hidden sm:block">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="h-9 px-4 bg-white/5 border-white/10 text-white hover:bg-white/10 hover:border-white/20 transition-all duration-200 font-medium text-sm rounded-lg shadow-sm"
+            >
+              <Home className="h-4 w-4 mr-2" />
+              <span className="hidden md:inline">Home</span>
+            </Button>
+          </Link>
           
           {/* Feedback Button - Always visible, responsive sizing */}
           <FeedbackButton 
