@@ -11,7 +11,7 @@ import { RememberMeOption } from './RememberMeOption';
 import { PasswordLoginForm } from './forms/PasswordLoginForm';
 import { PasswordSetupForm } from './forms/PasswordSetupForm';
 import { PasswordSetupRequiredModal } from './PasswordSetupRequiredModal';
-import { WhopLoginTab } from './forms/WhopLoginTab';
+
 import { LoginCardHeader } from './forms/LoginCardHeader';
 import { MagicLinkForm } from './forms/MagicLinkForm';
 import { SignUpForm } from './forms/SignUpForm';
@@ -84,24 +84,6 @@ export const EnhancedLoginForm: React.FC<EnhancedLoginFormProps> = ({ onSuccess 
         return;
       }
 
-      // PRIORITY 2: Check if user has Whop purchases
-      console.log('ℹ️ Not a Supabase admin, checking Whop purchases...');
-      try {
-        const { data: whopData, error: whopError } = await supabase.functions.invoke('whop-integration', {
-          body: {
-            action: 'verify_purchase',
-            email: data.email.toLowerCase().trim()
-          }
-        });
-
-        if (!whopError && whopData.success && whopData.hasValidPurchase) {
-          console.log('✅ User has valid Whop purchases, suggesting Whop OAuth...');
-          setError('We found your premium subscription! Please use the "Whop" tab to sign in with your Whop account for full access.');
-          return;
-        }
-      } catch (whopCheckError) {
-        console.error('❌ Error checking Whop purchases:', whopCheckError);
-      }
       
       // If no valid authentication found
       if (authError?.message.includes('Invalid login credentials')) {
@@ -123,7 +105,7 @@ export const EnhancedLoginForm: React.FC<EnhancedLoginFormProps> = ({ onSuccess 
     
     try {
       // Password setup not supported in simplified auth
-      setError('Password setup is not available in this version. Please use magic link or Whop authentication.');
+      setError('Password setup is not available in this version. Please use magic link authentication.');
       setShowPasswordSetup(false);
     } catch (error) {
       console.error('Password setup error:', error);
@@ -230,9 +212,46 @@ export const EnhancedLoginForm: React.FC<EnhancedLoginFormProps> = ({ onSuccess 
     setError('');
     
     try {
+      const email = data.email.toLowerCase().trim();
+      
+      // First, verify user exists in Beehiiv or create a free subscription
+      console.log(`🔍 Checking Beehiiv subscription for magic link: ${email}`);
+      
+      const { data: verificationResult, error: verifyError } = await supabase.functions.invoke(
+        'unified-auth-verify',
+        { body: { email } }
+      );
+
+      if (verifyError || !verificationResult?.verified) {
+        // User doesn't exist in Beehiiv, create free subscription first
+        console.log('🆕 User not found in Beehiiv, creating free subscription...');
+        
+        const { data: beehiivResult, error: beehiivError } = await supabase.functions.invoke('beehiiv-create-subscription', {
+          body: {
+            email,
+            utm_source: 'Weekly Wizdom App',
+            utm_medium: 'magic_link',
+            utm_campaign: 'free_signup',
+            referring_site: window.location.origin
+          }
+        });
+
+        if (beehiivError || !beehiivResult?.success) {
+          if (beehiivResult?.error === 'EMAIL_EXISTS') {
+            // Continue with magic link even if they already exist
+            console.log('ℹ️ User already exists in Beehiiv, proceeding with magic link...');
+          } else {
+            setError('Failed to verify subscription. Please try again.');
+            return;
+          }
+        } else {
+          console.log('✅ Free Beehiiv subscription created, proceeding with magic link...');
+        }
+      }
+      
       // Send magic link via Supabase
       const { error } = await supabase.auth.signInWithOtp({
-        email: data.email.toLowerCase().trim(),
+        email,
         options: {
           emailRedirectTo: `${window.location.origin}/dashboard`
         }
@@ -257,15 +276,48 @@ export const EnhancedLoginForm: React.FC<EnhancedLoginFormProps> = ({ onSuccess 
     setError('');
     
     try {
+      const email = data.email.toLowerCase().trim();
+      
       if (data.accountType === 'premium') {
         // Redirect to Whop for premium account setup
-        setError('For premium accounts, please use the "Whop" tab to sign up through our premium platform.');
+        setError('For premium accounts, please use the "Premium" tab to purchase through our premium platform.');
         return;
       }
       
-      // Create free Supabase account
+      // First, check if user already exists in Beehiiv
+      console.log(`🔍 Checking if user exists in Beehiiv: ${email}`);
+      
+      try {
+        const { data: beehiivResult, error: beehiivError } = await supabase.functions.invoke('beehiiv-create-subscription', {
+          body: {
+            email,
+            utm_source: 'Weekly Wizdom App',
+            utm_medium: 'signup',
+            utm_campaign: 'free_signup',
+            referring_site: window.location.origin
+          }
+        });
+
+        if (beehiivError || (beehiivResult && beehiivResult.error === 'EMAIL_EXISTS')) {
+          setError('This email is already registered. Please sign in instead.');
+          return;
+        }
+
+        if (!beehiivResult || !beehiivResult.success) {
+          setError('Failed to create subscription. Please try again.');
+          return;
+        }
+        
+        console.log('✅ Beehiiv subscription created successfully');
+      } catch (beehiivError) {
+        console.error('❌ Beehiiv subscription creation error:', beehiivError);
+        setError('Failed to create subscription. Please try again.');
+        return;
+      }
+      
+      // Now create Supabase account since Beehiiv subscription was successful
       const { data: authData, error: authError } = await supabase.auth.signUp({
-        email: data.email.toLowerCase().trim(),
+        email,
         password: data.password,
         options: { 
           emailRedirectTo: `${window.location.origin}/login?method=signin`,
@@ -280,24 +332,7 @@ export const EnhancedLoginForm: React.FC<EnhancedLoginFormProps> = ({ onSuccess 
         setError(authError.message || 'Failed to create account');
       } else {
         setError('');
-        alert('Check your email to confirm your free account! Once confirmed, you\'ll have access to our newsletter content.');
-        
-        // Create Beehiiv subscription for new user
-        try {
-          await supabase.functions.invoke('beehiiv-create-subscription', {
-            body: {
-              email: data.email.toLowerCase().trim(),
-              utm_source: 'Weekly Wizdom App',
-              utm_medium: 'signup',
-              utm_campaign: 'free_signup',
-              referring_site: window.location.origin
-            }
-          });
-          console.log('✅ Beehiiv subscription created successfully');
-        } catch (syncError) {
-          console.error('❌ Beehiiv subscription creation error:', syncError);
-          // Don't block the signup process if Beehiiv sync fails
-        }
+        alert('Account created successfully! Check your email to confirm your account. You now have access to our newsletter content.');
       }
     } catch (error) {
       console.error('❌ Sign up error:', error);
@@ -345,7 +380,7 @@ export const EnhancedLoginForm: React.FC<EnhancedLoginFormProps> = ({ onSuccess 
               <TabsTrigger value="beehiiv">Subscriber Login</TabsTrigger>
               <TabsTrigger value="password">Admin</TabsTrigger>
               <TabsTrigger value="signup">Sign Up</TabsTrigger>
-              <TabsTrigger value="whop">Premium</TabsTrigger>
+              <TabsTrigger value="whop">Products</TabsTrigger>
             </TabsList>
 
             <TabsContent value="beehiiv" className="space-y-4">
@@ -409,7 +444,7 @@ export const EnhancedLoginForm: React.FC<EnhancedLoginFormProps> = ({ onSuccess 
             <TabsContent value="signup" className="space-y-4">
               <div className="text-sm text-muted-foreground text-center mb-4">
                 <p>Create a free account for newsletter access</p>
-                <p className="text-xs mt-1">For premium features, use the "Premium (Whop)" tab</p>
+                <p className="text-xs mt-1">For premium features, see the "Products" tab</p>
               </div>
               
               <SignUpForm
@@ -434,15 +469,17 @@ export const EnhancedLoginForm: React.FC<EnhancedLoginFormProps> = ({ onSuccess 
             
             <TabsContent value="whop" className="space-y-4">
               <div className="text-sm text-muted-foreground text-center mb-4">
-                <p>Premium subscribers: Sign in with Whop for full access</p>
+                <p>View premium products and upgrade options</p>
+                <p className="text-xs mt-1">After purchase, use "Subscriber Login" to access premium features</p>
               </div>
-              <WhopLoginTab
-                rememberMe={rememberMe}
-                onRememberMeChange={setRememberMe}
-                onSuccess={handleWhopSuccess}
-                isLoading={isLoading}
-                error={error}
-              />
+              <div className="text-center">
+                <a
+                  href="/pricing"
+                  className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2"
+                >
+                  View Premium Products
+                </a>
+              </div>
             </TabsContent>
           </Tabs>
         </CardContent>

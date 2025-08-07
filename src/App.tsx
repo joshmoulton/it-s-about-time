@@ -26,7 +26,6 @@ import {
   UpgradePage,
   AuthVerify,
   Admin,
-  WhopCallback,
 } from "@/components/LazyComponents";
 
 // Loading fallback component
@@ -55,7 +54,6 @@ const App = () => {
                     <Routes>
                       <Route path="/" element={<Index />} />
                       <Route path="/login" element={<Login />} />
-                      <Route path="/auth/whop/callback" element={<WhopCallback />} />
                       <Route path="/auth/verify" element={<AuthVerify />} />
                       <Route
                         path="/dashboard/*"

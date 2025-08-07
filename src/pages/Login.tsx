@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ModernAuthModal } from '@/components/auth/ModernAuthModal';
-import { WhopDebugPanel } from '@/components/auth/WhopDebugPanel';
+
 
 const Login = () => {
   const [isModalOpen, setIsModalOpen] = useState(true);
@@ -24,7 +24,7 @@ const Login = () => {
         onOpenChange={handleModalClose}
         onExplicitClose={handleBackToHome}
       />
-      <WhopDebugPanel />
+      
     </div>
   );
 };

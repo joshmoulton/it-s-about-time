@@ -3,7 +3,7 @@ import { useEffect, useRef, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { SimplifiedAuth } from '@/utils/simplifiedAuthUtils';
 import { CurrentUser } from '@/types/auth';
-import { getWhopSession, hasValidWhopSession } from '@/utils/whopSessionCache';
+
 
 interface UseEnhancedAuthInitializationProps {
   setCurrentUser: (user: CurrentUser | null) => void;
@@ -343,36 +343,9 @@ export const useEnhancedAuthInitialization = ({
           };
           setCurrentUser(user);
         } else {
-          console.log('ℹ️ No valid enhanced session found, checking for cached Whop auth...');
+          console.log('ℹ️ No valid enhanced session found, checking persistence data...');
           
-          // PRIORITY 3: Check for cached Whop session first
-          if (hasValidWhopSession()) {
-            const cachedSession = getWhopSession();
-            if (cachedSession) {
-              console.log('💾 Found valid cached Whop session for:', cachedSession.user.email);
-              console.log('🔍 Whop cached session has_whop_purchase:', cachedSession.user.has_whop_purchase);
-              
-              // CRITICAL FIX: Use cached purchase status to determine correct tier
-              const isAdmin = false; // Whop users can't be admins for security
-              const subscriptionTier = cachedSession.user.has_whop_purchase ? 'premium' : 'free';
-              const userType = isAdmin ? 'whop_admin' : 'whop_user';
-              
-              console.log('✅ Setting Whop cached user with tier:', subscriptionTier);
-              
-              const whopUser: CurrentUser = {
-                id: cachedSession.user.id,
-                email: cachedSession.user.email,
-                subscription_tier: subscriptionTier as 'free' | 'premium',
-                user_type: userType as 'whop_admin' | 'whop_user'
-              };
-              
-              setCurrentUser(whopUser);
-              localStorage.setItem('auth_method', isAdmin ? 'whop_admin' : 'whop');
-              return;
-            }
-          }
-          
-          // PRIORITY 4: Fallback to persistence data (legacy support)
+          // PRIORITY 3: Fallback to persistence data (legacy support)
           const persistenceData = localStorage.getItem('auth_persistence_data');
           if (persistenceData) {
             try {

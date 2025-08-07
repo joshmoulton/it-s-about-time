@@ -15,7 +15,6 @@ export const ChatHighlights = lazy(() => import('../pages/ChatHighlights'));
 export const UpgradePage = lazy(() => import('../pages/UpgradePage'));
 export const AuthVerify = lazy(() => import('../pages/AuthVerify'));
 export const Admin = lazy(() => import('../pages/Admin'));
-export const WhopCallback = lazy(() => import('../pages/WhopCallback'));
 
 // Dashboard components - lazy loaded (removed due to export issues)
 // These will be loaded directly in their respective components

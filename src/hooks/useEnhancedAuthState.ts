@@ -15,19 +15,14 @@ export const useEnhancedAuthState = () => {
     // Store auth method
     localStorage.setItem('auth_method', authMethod);
     
-    // CRITICAL: Ensure premium Whop users keep their premium tier
-    let finalTier = user.subscription_tier;
-    if (authMethod === 'whop' && !finalTier) {
-      // If no tier specified for Whop user, check has_whop_purchase
-      finalTier = user.has_whop_purchase ? 'premium' : 'free';
-      console.log('🔍 Whop user tier correction - has_whop_purchase:', user.has_whop_purchase, 'Final tier:', finalTier);
-    }
+    // Use the tier from the verified source (Beehiiv)
+    const finalTier = user.subscription_tier || 'free';
     
     const currentUserData = {
       id: user.id,
       email: user.email,
       subscription_tier: finalTier,
-      user_type: authMethod === 'password' || authMethod === 'whop' ? 'whop_user' as const : 'supabase_admin' as const,
+      user_type: authMethod === 'supabase_admin' ? 'supabase_admin' as const : 'unified_user' as const,
       status: user.status,
       created_at: user.created_at,
       updated_at: user.updated_at,
@@ -43,35 +38,31 @@ export const useEnhancedAuthState = () => {
   const refreshCurrentUser = async () => {
     if (!currentUser) return;
     
+    console.log('🔄 Refreshing current user data...');
+    
     try {
       // Import supabase here to avoid circular dependencies
       const { supabase } = await import('@/integrations/supabase/client');
       
-      if (currentUser.user_type === 'whop_user') {
-        // For Whop users, refresh from whop_authenticated_users with optimized query
-        const { data, error } = await supabase
-          .from('whop_authenticated_users')
-          .select('subscription_tier, updated_at')
-          .eq('user_email', currentUser.email)
-          .single();
-        
-        if (error) {
-          console.warn('Failed to refresh Whop user data:', error);
-          return;
-        }
-        
-        if (data) {
+      // Always verify against Beehiiv for current tier
+      if (currentUser.email) {
+        const { data: verificationResult, error: verifyError } = await supabase.functions.invoke(
+          'unified-auth-verify',
+          { body: { email: currentUser.email } }
+        );
+
+        if (!verifyError && verificationResult?.verified) {
+          const updatedTier = verificationResult.tier || 'free';
+          
           const refreshedUserData = {
             ...currentUser,
-            subscription_tier: data.subscription_tier,
-            updated_at: data.updated_at
+            subscription_tier: updatedTier,
+            updated_at: new Date().toISOString()
           };
+          
           setCurrentUser(refreshedUserData);
+          console.log(`✅ User tier refreshed to: ${updatedTier}`);
         }
-      } else {
-        // For Supabase admin users, profile data is managed separately via user_profiles table
-        // No need to refresh from subscriber tables frequently
-        console.log('Supabase admin user - using cached data to improve performance');
       }
     } catch (error) {
       console.error('Failed to refresh current user:', error);
