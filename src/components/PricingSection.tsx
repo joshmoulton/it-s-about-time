@@ -119,7 +119,7 @@ const PricingTier: React.FC<PricingTierProps> = ({
         </div>
       )}
       
-      <EnhancedCard variant="glass" className={`group relative transition-all duration-300 hover:scale-[1.02] hover:shadow-xl h-full ${popular ? 'bg-card border-2 border-brand-primary shadow-2xl text-brand-primary hover:ring-2 hover:ring-brand-primary/20' : 'bg-card border-2 border-border hover:shadow-lg'}`}>
+      <EnhancedCard variant="glass" className={`group relative transition-all duration-300 sm:hover:scale-[1.02] sm:hover:shadow-xl h-full ${popular ? 'bg-card border-2 border-brand-primary shadow-2xl text-brand-primary sm:hover:ring-2 sm:hover:ring-brand-primary/20' : 'bg-card border-2 border-border sm:hover:shadow-lg'}`}>
         <EnhancedCardHeader className="text-center pb-6 relative z-10">
           <EnhancedCardTitle className={`font-montserrat text-2xl font-bold mb-4 ${popular ? 'text-foreground' : 'text-foreground'}`}>
             {title}
@@ -169,7 +169,7 @@ const PricingTier: React.FC<PricingTierProps> = ({
               </div>
               <Button 
                 type="submit" 
-                className={`w-full h-12 font-semibold border-2 transition-all duration-300 hover:scale-105 hover:translate-y-[-2px] touch-manipulation min-h-[44px] ${hasError ? 'bg-gray-400 text-gray-600 border-gray-400 cursor-not-allowed animate-[shake_0.5s_ease-in-out]' : isSuccess ? 'bg-[#06804D] text-white border-[#06804D] cursor-default' : 'bg-brand-primary hover:bg-background hover:text-brand-primary text-white border-brand-primary'}`} 
+                className={`w-full h-12 font-semibold border-2 transition-all duration-300 sm:hover:scale-105 sm:hover:translate-y-[-2px] touch-manipulation min-h-[44px] ${hasError ? 'bg-gray-400 text-gray-600 border-gray-400 cursor-not-allowed animate-[shake_0.5s_ease-in-out]' : isSuccess ? 'bg-[#06804D] text-white border-[#06804D] cursor-default' : 'bg-brand-primary hover:bg-background hover:text-brand-primary text-white border-brand-primary'}`} 
                 size="lg" 
                 disabled={loading || isSuccess}
               >
@@ -178,7 +178,7 @@ const PricingTier: React.FC<PricingTierProps> = ({
             </form>
           ) : (
             <Button 
-              className="w-full h-14 bg-brand-primary hover:bg-background hover:text-brand-primary text-white font-semibold border-2 border-brand-primary transition-all duration-300 hover:scale-105 hover:translate-y-[-2px] touch-manipulation min-h-[44px]" 
+              className="w-full h-14 bg-brand-primary hover:bg-background hover:text-brand-primary text-white font-semibold border-2 border-brand-primary transition-all duration-300 sm:hover:scale-105 sm:hover:translate-y-[-2px] touch-manipulation min-h-[44px]" 
               size="lg" 
               onClick={onButtonClick}
             >
