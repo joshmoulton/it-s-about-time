@@ -14,25 +14,36 @@ const LoadingScreen = ({ onLoadingComplete }: LoadingScreenProps) => {
   const [logoError, setLogoError] = useState(false);
 
   useEffect(() => {
+    console.log('🎨 Loading screen state:', { logoLoaded, logoError, showLogo, showText, isVisible });
+    
     // Only start animations after logo loads or if there's an error
-    if (!logoLoaded && !logoError) return;
+    if (!logoLoaded && !logoError) {
+      console.log('⏳ Waiting for logo to load...');
+      return;
+    }
+
+    console.log('🚀 Starting loading screen animations');
 
     // Fade in main logo first (slower start)
     const logoTimer = setTimeout(() => {
+      console.log('✨ Showing logo');
       setShowLogo(true);
     }, 400);
 
     // Show text logo with more delay after main logo
     const textTimer = setTimeout(() => {
+      console.log('📝 Showing text');
       setShowText(true);
     }, 1000);
     
     // Show loading screen for longer, then start fade out
     const fadeTimer = setTimeout(() => {
+      console.log('🌅 Starting fade out');
       setIsFadingOut(true);
       
     // After fade animation completes, hide loading screen and reveal main content
       setTimeout(() => {
+        console.log('✅ Loading complete');
         setIsVisible(false);
         sessionStorage.setItem('hasSeenLoading', 'true');
         onLoadingComplete();
@@ -73,8 +84,14 @@ const LoadingScreen = ({ onLoadingComplete }: LoadingScreenProps) => {
           className={`w-32 h-32 transition-all duration-700 ease-out ${
             showLogo && !isFadingOut ? 'opacity-100 scale-100' : 'opacity-0 scale-95'
           }`}
-          onLoad={() => setLogoLoaded(true)}
-          onError={() => setLogoError(true)}
+          onLoad={() => {
+            console.log('🖼️ Logo loaded successfully');
+            setLogoLoaded(true);
+          }}
+          onError={(e) => {
+            console.error('❌ Logo failed to load:', e);
+            setLogoError(true);
+          }}
         />
         
         {/* Text */}
