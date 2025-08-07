@@ -13,8 +13,8 @@ const LoadingScreen = ({ onLoadingComplete }: LoadingScreenProps) => {
   const [logoLoaded, setLogoLoaded] = useState(false);
   const [logoError, setLogoError] = useState(false);
 
-  // Try direct logo without spaces in filename - the URL encoding might be causing issues
-  const logoSrc = 'https://wrvvlmevpvcenauglcyz.supabase.co/storage/v1/object/public/assets/logo.png';
+  // Use the correct logo filename that exists in the assets bucket
+  const logoSrc = 'https://wrvvlmevpvcenauglcyz.supabase.co/storage/v1/object/public/assets/logo.jpg';
   
   // Fallback to your original logo if the above doesn't work
   const fallbackLogoSrc = 'https://wrvvlmevpvcenauglcyz.supabase.co/storage/v1/object/public/assets/Property%201=Default%20(1).png';
