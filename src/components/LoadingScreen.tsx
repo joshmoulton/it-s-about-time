@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { Sparkles } from 'lucide-react';
-import logoWhite from '@/assets/logo-white.png';
 
 interface LoadingScreenProps {
   onLoadingComplete: () => void;
@@ -14,20 +13,20 @@ const LoadingScreen = ({ onLoadingComplete }: LoadingScreenProps) => {
   const [logoLoaded, setLogoLoaded] = useState(false);
   const [logoError, setLogoError] = useState(false);
 
-  // Primary logo source - white logo for loading screen
-  const logoSrc = logoWhite;
+  // Primary logo source - your Supabase stored logo
+  const logoSrc = 'https://wrvvlmevpvcenauglcyz.supabase.co/storage/v1/object/public/assets/Property%201=Default%20(1).png';
 
   // Preload logo image
   useEffect(() => {
-    console.log('🔄 Preloading white logo...');
+    console.log('🔄 Preloading Weekly Wizdom logo...');
     
     const img = new Image();
     img.onload = () => {
-      console.log('✅ White logo loaded successfully');
+      console.log('✅ Weekly Wizdom logo loaded successfully');
       setLogoLoaded(true);
     };
     img.onerror = () => {
-      console.error('❌ Failed to load white logo');
+      console.error('❌ Failed to load Weekly Wizdom logo');
       setLogoError(true);
     };
     img.src = logoSrc;
@@ -105,7 +104,7 @@ const LoadingScreen = ({ onLoadingComplete }: LoadingScreenProps) => {
             showLogo && !isFadingOut ? 'opacity-100 scale-100' : 'opacity-0 scale-95'
           }`}
           onLoad={() => {
-            console.log('🖼️ White logo displayed successfully');
+            console.log('🖼️ Weekly Wizdom logo displayed successfully');
           }}
           onError={(e) => {
             console.error('❌ Logo display failed', e);
