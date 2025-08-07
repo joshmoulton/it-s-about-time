@@ -15,6 +15,7 @@ export function LazyImage({
   className, 
   fallback, 
   placeholder = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMSIgaGVpZ2h0PSIxIiB2aWV3Qm94PSIwIDAgMSAxIiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxyZWN0IHdpZHRoPSIxIiBoZWlnaHQ9IjEiIGZpbGw9IiNGM0Y0RjYiLz48L3N2Zz4=',
+  fetchPriority,
   ...props 
 }: LazyImageProps) {
   const [imageSrc, setImageSrc] = useState(placeholder);

@@ -36,7 +36,7 @@
     
     <!-- Preload critical resources with highest priority -->
     <link rel="preload" href="/lovable-uploads/97f86327-e463-4091-8474-4f835ee7556f.png" as="image" fetchpriority="high" />
-    <link rel="modulepreload" href="/src/main.tsx" fetchpriority="high" />
+    
     <link rel="preload" href="/src/index.css" as="style" fetchpriority="high" />
     
     <!-- Critical CSS inlined for immediate render -->
@@ -101,8 +101,7 @@
   <body>
     <div id="root"></div>
     <!-- Enhanced script loading for performance with preloading -->
-    <link rel="modulepreload" href="/src/main.tsx" />
-    <script type="module" src="/src/main.tsx" async></script>
+    <script type="module" src="/src/main.tsx"></script>
     
     <!-- Performance optimization script -->
     <script>
@@ -142,7 +141,6 @@
         
         // Resource hints for better loading
         const resourceHints = [
-          { rel: 'modulepreload', href: '/src/App.tsx' },
           { rel: 'prefetch', href: '/lovable-uploads/a8eaa39b-22e5-4a3c-a288-fe43b8619eab.png', as: 'image' },
           { rel: 'prefetch', href: 'https://i.ytimg.com/vi/uQc5bsEnaTI/maxresdefault.jpg', as: 'image' }
         ];
