@@ -33,31 +33,58 @@
     
     <!-- Preload critical resources with highest priority -->
     <link rel="preload" href="/lovable-uploads/97f86327-e463-4091-8474-4f835ee7556f.png" as="image" fetchpriority="high" />
-    <link rel="preload" href="/src/main.tsx" as="script" fetchpriority="high" />
+    <link rel="modulepreload" href="/src/main.tsx" fetchpriority="high" />
     <link rel="preload" href="/src/index.css" as="style" fetchpriority="high" />
     
-    <!-- Critical CSS inlined -->
+    <!-- Critical CSS inlined for immediate render -->
     <style>
       /* Critical above-the-fold styles */
       html { font-family: system-ui, -apple-system, sans-serif; }
-      body { margin: 0; background: hsl(var(--background)); color: hsl(var(--foreground)); }
-      #root { min-height: 100vh; }
+      body { margin: 0; background: #f5f7fa; color: #081426; line-height: 1.5; }
+      #root { min-height: 100vh; background: #f5f7fa; }
+      
+      /* Loading states */
       .hero-loading { 
         display: flex; 
         align-items: center; 
         justify-content: center; 
         min-height: 100vh; 
-        background: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary-variant)) 100%);
+        background: linear-gradient(135deg, #3355ff 0%, #4c6fff 100%);
       }
       .loading-spinner {
-        width: 2rem;
-        height: 2rem;
+        width: 2rem; height: 2rem;
         border: 2px solid transparent;
         border-top: 2px solid white;
         border-radius: 50%;
         animation: spin 1s linear infinite;
       }
       @keyframes spin { to { transform: rotate(360deg); } }
+      
+      /* Critical layout styles */
+      .container { max-width: 1200px; margin: 0 auto; padding: 0 1rem; }
+      .btn-primary { 
+        background: #3355ff; 
+        color: white; 
+        padding: 0.75rem 2rem; 
+        border-radius: 0.75rem; 
+        text-decoration: none; 
+        display: inline-block;
+        font-weight: 500;
+        transition: background 0.2s;
+      }
+      .btn-primary:hover { background: #2844ff; }
+      
+      /* Hero section critical styles */
+      .hero-gradient {
+        background: linear-gradient(135deg, #3355ff 0%, #4c6fff 100%);
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+      }
+      
+      /* Skip link for accessibility */
+      .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+      .sr-only:focus { position: static; width: auto; height: auto; padding: 0.5rem 1rem; margin: 0; overflow: visible; clip: auto; white-space: normal; }
     </style>
     
     <!-- Critical Font Loading - Optimized for Mobile -->
@@ -91,7 +118,8 @@
   </head>
   <body>
     <div id="root"></div>
-    <!-- Enhanced script loading for performance -->
+    <!-- Enhanced script loading for performance with preloading -->
+    <link rel="modulepreload" href="/src/main.tsx" />
     <script type="module" src="/src/main.tsx" async></script>
     
     <!-- Performance optimization script -->
@@ -103,14 +131,12 @@
           document.fonts.load('400 1em Inter');
         }
         
-        // Prefetch DNS for critical domains
-        const prefetchDomains = [
-          '//fonts.googleapis.com',
-          '//fonts.gstatic.com',
+        // Optimized DNS prefetching for critical domains only
+        const criticalDomains = [
           '//wrvvlmevpvcenauglcyz.supabase.co'
         ];
         
-        prefetchDomains.forEach(domain => {
+        criticalDomains.forEach(domain => {
           const link = document.createElement('link');
           link.rel = 'dns-prefetch';
           link.href = domain;
@@ -134,8 +160,9 @@
         
         // Resource hints for better loading
         const resourceHints = [
-          { rel: 'preload', href: '/src/App.tsx', as: 'script' },
-          { rel: 'prefetch', href: '/lovable-uploads/a8eaa39b-22e5-4a3c-a288-fe43b8619eab.png', as: 'image' }
+          { rel: 'modulepreload', href: '/src/App.tsx' },
+          { rel: 'prefetch', href: '/lovable-uploads/a8eaa39b-22e5-4a3c-a288-fe43b8619eab.png', as: 'image' },
+          { rel: 'prefetch', href: 'https://i.ytimg.com/vi/uQc5bsEnaTI/maxresdefault.jpg', as: 'image' }
         ];
         
         resourceHints.forEach(hint => {

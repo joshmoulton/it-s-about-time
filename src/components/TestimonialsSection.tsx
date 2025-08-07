@@ -1,4 +1,5 @@
-import React from 'react';
+import React from "react";
+import { YouTubeLite } from "./YouTubeLite";
 
 const TestimonialsSection: React.FC = () => {
   return <section className="py-20 bg-background">
@@ -13,10 +14,12 @@ const TestimonialsSection: React.FC = () => {
         <div className="max-w-4xl mx-auto">
           <div className="relative bg-card rounded-2xl shadow-2xl overflow-hidden border border-border">
             
-            {/* YouTube Video Container - Responsive */}
-            <div className="video-container relative w-full pb-[56.25%] h-0 overflow-hidden bg-black">
-              <iframe src="https://www.youtube.com/embed/uQc5bsEnaTI?autoplay=0&rel=0&modestbranding=1&playsinline=1" title="Weekly Wizdom User Testimonial" className="absolute top-0 left-0 w-full h-full" frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowFullScreen />
-            </div>
+            {/* YouTube Video Container - Optimized Lazy Loading */}
+            <YouTubeLite 
+              videoId="uQc5bsEnaTI"
+              title="Weekly Wizdom User Testimonial - See What Our Community Says"
+              className="bg-black rounded-lg"
+            />
           </div>
         </div>
       </div>

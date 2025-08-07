@@ -1,4 +1,5 @@
 
+import { Suspense } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -8,22 +9,32 @@ import { EnhancedAuthProvider } from "@/contexts/EnhancedAuthContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { DeveloperProvider, DeveloperToggle } from "@/components/dev/DeveloperToggle";
 import { AccessibilityProvider } from "@/components/AccessibilityProvider";
-import Index from "./pages/Index";
-import Dashboard from "./pages/Dashboard";
-
-import Newsletters from "./pages/Newsletters";
-import Videos from "./pages/Videos";
-import Articles from "./pages/Articles";
-import SentimentAnalysis from "./pages/SentimentAnalysis";
-import Courses from "./pages/Courses";
-import ChatHighlights from "./pages/ChatHighlights";
-
-import UpgradePage from "./pages/UpgradePage";
-import AuthVerify from "./pages/AuthVerify";
-import Login from "./pages/Login";
-import Admin from "./pages/Admin";
 import ProtectedRoute from "./components/ProtectedRoute";
-import WhopCallback from "./pages/WhopCallback";
+
+// Critical components (loaded immediately)
+import { Index, Login } from "@/components/LazyComponents";
+
+// Lazy loaded components
+import {
+  Dashboard,
+  Newsletters,
+  Videos,
+  Articles,
+  SentimentAnalysis,
+  Courses,
+  ChatHighlights,
+  UpgradePage,
+  AuthVerify,
+  Admin,
+  WhopCallback,
+} from "@/components/LazyComponents";
+
+// Loading fallback component
+const PageLoader = () => (
+  <div className="flex items-center justify-center min-h-screen bg-background">
+    <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+  </div>
+);
 
 const queryClient = new QueryClient();
 
@@ -40,19 +51,20 @@ const App = () => {
                 <EnhancedAuthProvider>
                 <DeveloperToggle />
                 <main id="main-content">
-                  <Routes>
-                    <Route path="/" element={<Index />} />
-                <Route path="/login" element={<Login />} />
-<Route path="/auth/whop/callback" element={<WhopCallback />} />
-                <Route path="/auth/verify" element={<AuthVerify />} />
-                <Route
-                  path="/dashboard/*"
-                  element={
-                    <ProtectedRoute>
-                      <Dashboard />
-                    </ProtectedRoute>
-                  }
-                />
+                  <Suspense fallback={<PageLoader />}>
+                    <Routes>
+                      <Route path="/" element={<Index />} />
+                      <Route path="/login" element={<Login />} />
+                      <Route path="/auth/whop/callback" element={<WhopCallback />} />
+                      <Route path="/auth/verify" element={<AuthVerify />} />
+                      <Route
+                        path="/dashboard/*"
+                        element={
+                          <ProtectedRoute>
+                            <Dashboard />
+                          </ProtectedRoute>
+                        }
+                      />
                 <Route
                   path="/newsletters"
                   element={
@@ -117,7 +129,8 @@ const App = () => {
                      </ProtectedRoute>
                    }
                  />
-                  </Routes>
+                    </Routes>
+                  </Suspense>
                 </main>
                 </EnhancedAuthProvider>
               </DeveloperProvider>
