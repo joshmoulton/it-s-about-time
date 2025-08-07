@@ -112,7 +112,9 @@ export const EnhancedAuthProvider: React.FC<EnhancedAuthProviderProps> = ({ chil
       originalTier: currentUser?.subscription_tier,
       overrideTier,
       isOverrideActive: !!overrideTier,
-      authMethod: localStorage.getItem('auth_method')
+      authMethod: localStorage.getItem('auth_method'),
+      userEmail: currentUser?.email,
+      userType: currentUser?.user_type
     });
 
     return {
