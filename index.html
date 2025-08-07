@@ -21,7 +21,7 @@
     <meta name="twitter:description" content="Join the #1 cross-asset Newsletter & Community. Get notified as soon as our analysts share new ideas, get market analysis and updates every week, and track everything in our proprietary dashboard." />
     <meta name="twitter:image" content="/lovable-uploads/41a57ccc-0a24-4abd-89b1-3c41c3cc3d08.png" />
     
-    <!-- Advanced Performance Optimizations -->
+    <!-- Aggressive Performance Optimizations -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link rel="dns-prefetch" href="https://js.whop.com" />
@@ -29,12 +29,42 @@
     <link rel="dns-prefetch" href="https://wrvvlmevpvcenauglcyz.supabase.co" />
     <link rel="preconnect" href="https://wrvvlmevpvcenauglcyz.supabase.co" crossorigin />
     
-    <!-- Preload critical hero image -->
-    <link rel="preload" href="/lovable-uploads/97f86327-e463-4091-8474-4f835ee7556f.png" as="image" fetchpriority="high" />
+    <!-- Critical Resource Hints -->
+    <link rel="dns-prefetch" href="//cdn.jsdelivr.net" />
+    <link rel="dns-prefetch" href="//unpkg.com" />
     
-    <!-- Optimized Google Fonts with critical font preload -->
-    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Merriweather:ital,wght@0,300;0,400;0,700;0,900;1,300;1,400;1,700;1,900&family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'" />
-    <noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Merriweather:ital,wght@0,300;0,400;0,700;0,900;1,300;1,400;1,700;1,900&font&family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet" /></noscript>
+    <!-- Preload critical resources with highest priority -->
+    <link rel="preload" href="/lovable-uploads/97f86327-e463-4091-8474-4f835ee7556f.png" as="image" fetchpriority="high" />
+    <link rel="preload" href="/src/main.tsx" as="script" fetchpriority="high" />
+    <link rel="preload" href="/src/index.css" as="style" fetchpriority="high" />
+    
+    <!-- Critical CSS inlined -->
+    <style>
+      /* Critical above-the-fold styles */
+      html { font-family: system-ui, -apple-system, sans-serif; }
+      body { margin: 0; background: hsl(var(--background)); color: hsl(var(--foreground)); }
+      #root { min-height: 100vh; }
+      .hero-loading { 
+        display: flex; 
+        align-items: center; 
+        justify-content: center; 
+        min-height: 100vh; 
+        background: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary-variant)) 100%);
+      }
+      .loading-spinner {
+        width: 2rem;
+        height: 2rem;
+        border: 2px solid transparent;
+        border-top: 2px solid white;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+      }
+      @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
+    
+    <!-- Optimized Google Fonts with font-display swap -->
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Merriweather:wght@400;700&family=Montserrat:wght@400;500;600&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'" />
+    <noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Merriweather:wght@400;700&family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet" /></noscript>
 
     <!-- Enhanced CSP Configuration for Lovable preview compatibility -->
     <meta http-equiv="Content-Security-Policy" content="
@@ -66,25 +96,58 @@
     <!-- Enhanced script loading for performance -->
     <script type="module" src="/src/main.tsx" defer></script>
     
-    <!-- Critical font preloading -->
+    <!-- Performance optimization script -->
     <script>
-      // Preload critical fonts immediately
-      if ('fonts' in document) {
-        Promise.all([
-          document.fonts.load('400 1em Inter'),
-          document.fonts.load('400 1em Merriweather'),
-          document.fonts.load('500 1em Montserrat')
-        ]).then(() => {
-          console.log('Critical fonts loaded');
+      // Immediate performance optimizations
+      (function() {
+        // Critical font loading with minimal weights
+        if ('fonts' in document) {
+          document.fonts.load('400 1em Inter');
+          document.fonts.load('400 1em Merriweather');
+          document.fonts.load('400 1em Montserrat');
+        }
+        
+        // Prefetch DNS for critical domains
+        const prefetchDomains = [
+          '//fonts.googleapis.com',
+          '//fonts.gstatic.com',
+          '//wrvvlmevpvcenauglcyz.supabase.co'
+        ];
+        
+        prefetchDomains.forEach(domain => {
+          const link = document.createElement('link');
+          link.rel = 'dns-prefetch';
+          link.href = domain;
+          document.head.appendChild(link);
         });
-      }
-      
-      // Service Worker registration for caching
-      if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-          navigator.serviceWorker.register('/sw.js').catch(() => {});
+        
+        // Service Worker registration with error handling
+        if ('serviceWorker' in navigator && 'caches' in window) {
+          window.addEventListener('load', () => {
+            navigator.serviceWorker.register('/sw.js', { 
+              scope: '/',
+              updateViaCache: 'imports'
+            }).then(registration => {
+              // Force update on reload in dev
+              if (import.meta.env?.DEV && registration.waiting) {
+                registration.waiting.postMessage({type: 'SKIP_WAITING'});
+              }
+            }).catch(() => {});
+          });
+        }
+        
+        // Resource hints for better loading
+        const resourceHints = [
+          { rel: 'preload', href: '/src/App.tsx', as: 'script' },
+          { rel: 'prefetch', href: '/lovable-uploads/a8eaa39b-22e5-4a3c-a288-fe43b8619eab.png', as: 'image' }
+        ];
+        
+        resourceHints.forEach(hint => {
+          const link = document.createElement('link');
+          Object.assign(link, hint);
+          document.head.appendChild(link);
         });
-      }
+      })();
     </script>
   </body>
 </html>

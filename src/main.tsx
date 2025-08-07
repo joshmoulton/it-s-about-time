@@ -1,5 +1,6 @@
 
 import { createRoot } from 'react-dom/client'
+import { startTransition } from 'react'
 import App from './App.tsx'
 import './index.css'
 import { initializeBrowserOptimizations, monitorPerformance } from './utils/browserOptimization'
@@ -7,26 +8,39 @@ import { initProductionSecurity } from './utils/productionSecurity'
 import { optimizeForMobile } from './utils/mobileOptimization'
 import { logger } from './utils/secureLogger'
 
-// Initialize mobile optimizations immediately for performance
-optimizeForMobile();
+// Critical performance setup - run immediately
+const initializeApp = () => {
+  // Initialize mobile optimizations for immediate performance boost
+  optimizeForMobile();
+  
+  // Initialize browser optimizations
+  initializeBrowserOptimizations();
+  
+  // Initialize production security measures
+  initProductionSecurity();
+  
+  // Performance monitoring in development only
+  if (import.meta.env.DEV) {
+    monitorPerformance();
+  }
+  
+  logger.info('🚀 App initialized with performance optimizations');
+};
 
-// Initialize browser optimizations
-initializeBrowserOptimizations();
+// Run initialization immediately
+initializeApp();
 
-// Initialize production security measures
-initProductionSecurity();
-logger.info('🚀 Application initialized with security hardening');
-
-// Monitor performance in development
-if (import.meta.env.DEV) {
-  monitorPerformance();
-}
-
-// Enhanced mobile performance
+// Get root container
 const container = document.getElementById("root");
 if (!container) throw new Error('Root element not found');
 
-// Create root with standard options
-const root = createRoot(container);
+// Create root with performance optimizations
+const root = createRoot(container, {
+  // Enable concurrent features for better performance
+  identifierPrefix: 'ww-'
+});
 
-root.render(<App />);
+// Use startTransition for better perceived performance
+startTransition(() => {
+  root.render(<App />);
+});
