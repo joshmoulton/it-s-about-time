@@ -13,8 +13,11 @@ const LoadingScreen = ({ onLoadingComplete }: LoadingScreenProps) => {
   const [logoLoaded, setLogoLoaded] = useState(false);
   const [logoError, setLogoError] = useState(false);
 
-  // Primary logo source - your Supabase stored logo
-  const logoSrc = 'https://wrvvlmevpvcenauglcyz.supabase.co/storage/v1/object/public/assets/Property%201=Default%20(1).png';
+  // Try direct logo without spaces in filename - the URL encoding might be causing issues
+  const logoSrc = 'https://wrvvlmevpvcenauglcyz.supabase.co/storage/v1/object/public/assets/logo.png';
+  
+  // Fallback to your original logo if the above doesn't work
+  const fallbackLogoSrc = 'https://wrvvlmevpvcenauglcyz.supabase.co/storage/v1/object/public/assets/Property%201=Default%20(1).png';
 
   // Preload logo image
   useEffect(() => {
@@ -22,12 +25,24 @@ const LoadingScreen = ({ onLoadingComplete }: LoadingScreenProps) => {
     
     const img = new Image();
     img.onload = () => {
-      console.log('✅ Weekly Wizdom logo loaded successfully');
+      console.log('✅ Weekly Wizdom logo loaded successfully from:', logoSrc);
       setLogoLoaded(true);
     };
     img.onerror = () => {
-      console.error('❌ Failed to load Weekly Wizdom logo');
-      setLogoError(true);
+      console.error('❌ Failed to load Weekly Wizdom logo from:', logoSrc);
+      console.log('🔄 Trying fallback logo...');
+      
+      // Try fallback logo
+      const fallbackImg = new Image();
+      fallbackImg.onload = () => {
+        console.log('✅ Fallback logo loaded successfully');
+        setLogoLoaded(true);
+      };
+      fallbackImg.onerror = () => {
+        console.error('❌ Both logos failed to load');
+        setLogoError(true);
+      };
+      fallbackImg.src = fallbackLogoSrc;
     };
     img.src = logoSrc;
   }, [logoSrc]);
@@ -98,7 +113,7 @@ const LoadingScreen = ({ onLoadingComplete }: LoadingScreenProps) => {
       <div className="flex flex-col items-center justify-center space-y-6 relative z-10">
         {/* Main Logo */}
         <img 
-          src={logoSrc}
+          src={logoLoaded ? logoSrc : fallbackLogoSrc}
           alt="Weekly Wizdom" 
           className={`w-32 h-32 object-contain transition-all duration-700 ease-out ${
             showLogo && !isFadingOut ? 'opacity-100 scale-100' : 'opacity-0 scale-95'
