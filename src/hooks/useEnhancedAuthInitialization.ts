@@ -53,18 +53,11 @@ export const useEnhancedAuthInitialization = ({
         
         console.log('🔍 Determining user tier before setting state...');
         
-        // Set temporary user immediately for better UX, then enhance with correct tier
-        const tempUser = {
-          id: session.user.id,
-          email: session.user.email,
-          subscription_tier: 'free' as const,
-          user_type: 'supabase_user' as const
-        };
-        setCurrentUser(tempUser);
-        setIsLoading(false);
+        // CRITICAL FIX: Keep loading state until we determine the correct tier
+        // Don't set a temporary user with 'free' tier to avoid showing wrong state
+        setIsLoading(true);
         
-        // CRITICAL FIX: Don't set user to 'free' immediately - determine correct tier first
-        // Use setTimeout to avoid blocking the auth state change callback
+        // Determine correct tier immediately without setTimeout to avoid race conditions
         setTimeout(async () => {
           try {
             // Quick admin check using our fast function
@@ -144,7 +137,7 @@ export const useEnhancedAuthInitialization = ({
             
             console.log('✅ Updating Supabase user with correct tier:', subscriptionTier);
             setCurrentUser(finalUser);
-            // setIsLoading is already false from temp user
+            setIsLoading(false);
             
           } catch (error) {
             console.error('❌ Error determining user tier:', error);
@@ -156,9 +149,9 @@ export const useEnhancedAuthInitialization = ({
               user_type: 'supabase_user' as const
             };
             setCurrentUser(basicUser);
-            // setIsLoading is already false from temp user
+            setIsLoading(false);
           }
-        }, 50); // Small delay to ensure smooth UX
+        }, 10); // Reduced delay for faster tier determination
       } else if (event === 'SIGNED_OUT') {
         console.log('ℹ️ Supabase user signed out');
         setSupabaseUser(null);

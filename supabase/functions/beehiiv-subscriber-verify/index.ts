@@ -98,13 +98,19 @@ async function verifyBeehiivSubscriber(email: string): Promise<BeehiivResponse> 
     // Use the direct subscription_tier field from the API response
     let tier: 'free' | 'paid' | 'premium' = 'free';
     
-    if (subscription.subscription_tier === 'premium') {
+    // Map all possible Beehiiv subscription tiers correctly
+    const apiTier = subscription.subscription_tier;
+    if (apiTier === 'premium' || 
+        apiTier === 'Premium' || 
+        subscription.subscription_premium_tier_names?.length > 0) {
       tier = 'premium';
-    } else if (subscription.subscription_tier === 'free') {
+    } else if (apiTier === 'paid' || apiTier === 'Paid') {
+      tier = 'paid';
+    } else if (apiTier === 'free' || apiTier === 'Free') {
       tier = 'free';
     } else {
-      // Default to free for any other values
-      tier = 'free';
+      // For any unrecognized tier, check if there are premium tier names
+      tier = subscription.subscription_premium_tier_names?.length > 0 ? 'premium' : 'free';
     }
     
     console.log(`✅ Beehiiv verification complete - Email: ${email}, Active: ${isActive}, Tier: ${tier}, API Tier: ${subscription.subscription_tier}`);
