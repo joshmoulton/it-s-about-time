@@ -10,8 +10,13 @@ const LoadingScreen = ({ onLoadingComplete }: LoadingScreenProps) => {
   const [isFadingOut, setIsFadingOut] = useState(false);
   const [showLogo, setShowLogo] = useState(false);
   const [showText, setShowText] = useState(false);
+  const [logoLoaded, setLogoLoaded] = useState(false);
+  const [logoError, setLogoError] = useState(false);
 
   useEffect(() => {
+    // Only start animations after logo loads or if there's an error
+    if (!logoLoaded && !logoError) return;
+
     // Fade in main logo first (slower start)
     const logoTimer = setTimeout(() => {
       setShowLogo(true);
@@ -39,7 +44,7 @@ const LoadingScreen = ({ onLoadingComplete }: LoadingScreenProps) => {
       clearTimeout(textTimer);
       clearTimeout(fadeTimer);
     };
-  }, [onLoadingComplete]);
+  }, [onLoadingComplete, logoLoaded, logoError]);
 
   // Don't render anything if not visible
   if (!isVisible) {
@@ -63,11 +68,13 @@ const LoadingScreen = ({ onLoadingComplete }: LoadingScreenProps) => {
       <div className="flex flex-col items-center justify-center space-y-6 relative z-10">
         {/* Main Logo */}
         <img 
-          src="https://wrvvlmevpvcenauglcyz.supabase.co/storage/v1/object/public/assets//Property%201=Default%20(1).png"
+          src="https://wrvvlmevpvcenauglcyz.supabase.co/storage/v1/object/public/assets/Property%201=Default%20(1).png"
           alt="Weekly Wizdom" 
           className={`w-32 h-32 transition-all duration-700 ease-out ${
             showLogo && !isFadingOut ? 'opacity-100 scale-100' : 'opacity-0 scale-95'
           }`}
+          onLoad={() => setLogoLoaded(true)}
+          onError={() => setLogoError(true)}
         />
         
         {/* Text */}
