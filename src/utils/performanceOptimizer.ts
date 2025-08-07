@@ -30,7 +30,7 @@ export const optimizeForMobile = () => {
 // Preload critical images
 export const preloadCriticalImages = () => {
   const criticalImages = [
-    '/lovable-uploads/97f86327-e463-4091-8474-4f835ee7556f.png',
+    'https://wrvvlmevpvcenauglcyz.supabase.co/storage/v1/object/public/assets/Property%201=Black%20(3).png',
     '/lovable-uploads/a8eaa39b-22e5-4a3c-a288-fe43b8619eab.png'
   ];
 

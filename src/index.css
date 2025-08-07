@@ -39,13 +39,14 @@
     display: block;
   }
   
-  /* Lazy loading styles */
-  img[loading="lazy"] {
+  /* Lazy loading styles - only apply to lazy images that haven't loaded yet */
+  img[loading="lazy"]:not(.loaded) {
     opacity: 0;
     transition: opacity 0.3s;
   }
   
-  img[loading="lazy"].loaded {
+  img[loading="lazy"].loaded,
+  img[loading="eager"] {
     opacity: 1;
   }
 }

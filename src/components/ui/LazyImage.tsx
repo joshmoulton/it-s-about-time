@@ -72,12 +72,12 @@ export function LazyImage({
       className={cn(
         'transition-opacity duration-300',
         !isLoaded && imageSrc !== placeholder && 'opacity-0',
-        isLoaded && 'opacity-100',
+        isLoaded && 'opacity-100 loaded', // Add 'loaded' class for CSS compatibility
         className
       )}
       onLoad={handleLoad}
       onError={handleError}
-      loading="lazy"
+      loading={props.loading || "lazy"}
       decoding="async"
       {...props}
     />

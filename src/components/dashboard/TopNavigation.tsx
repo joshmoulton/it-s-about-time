@@ -42,9 +42,11 @@ export function TopNavigation({
         {/* Logo */}
         <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity min-w-0">
           <LazyImage
-            src="/lovable-uploads/a8eaa39b-22e5-4a3c-a288-fe43b8619eab.png" 
+            src="https://wrvvlmevpvcenauglcyz.supabase.co/storage/v1/object/public/assets/Property%201=Black%20(3).png" 
             alt="Weekly Wizdom" 
             className="h-5 sm:h-6 md:h-8 w-auto cursor-pointer"
+            loading="eager"
+            fetchPriority="high"
             fallback="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48dGV4dCB4PSI1MCUiIHk9IjUwJSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1zaXplPSIxNCIgZm9udC13ZWlnaHQ9ImJvbGQiIGZpbGw9IndoaXRlIj5XVzwvdGV4dD48L3N2Zz4="
           />
         </Link>
