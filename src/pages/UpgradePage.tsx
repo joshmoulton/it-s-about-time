@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Crown } from 'lucide-react';
 import PremiumPricingModal from '@/components/PremiumPricingModal';
@@ -7,11 +7,14 @@ import PremiumPricingModal from '@/components/PremiumPricingModal';
 export default function UpgradePage() {
   const navigate = useNavigate();
   const [showPricingModal, setShowPricingModal] = useState(false);
+  const location = useLocation();
 
-  // Auto-open pricing modal on page load
+  // Open modal only when ?open=1 is present
   useEffect(() => {
-    setShowPricingModal(true);
-  }, []);
+    const params = new URLSearchParams(location.search);
+    const isOpen = params.get('open') === '1' || params.get('open') === 'true';
+    setShowPricingModal(isOpen);
+  }, [location.search]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
@@ -55,7 +58,7 @@ export default function UpgradePage() {
             </p>
 
             <Button
-              onClick={() => setShowPricingModal(true)}
+              onClick={() => navigate('/pricing?open=1')}
               className="bg-gradient-to-r from-yellow-500 via-orange-500 to-red-500 hover:from-yellow-600 hover:via-orange-600 hover:to-red-600 text-white font-bold rounded-2xl h-16 px-12 text-lg shadow-2xl transition-all duration-300 transform hover:scale-105 hover:shadow-yellow-500/25 border border-yellow-400/30"
             >
               <Crown className="w-6 h-6 mr-3" />
@@ -123,7 +126,7 @@ export default function UpgradePage() {
               who rely on Weekly Wizdom for their edge in the markets.
             </p>
             <Button
-              onClick={() => setShowPricingModal(true)}
+              onClick={() => navigate('/pricing?open=1')}
               className="bg-gradient-to-r from-yellow-500 via-orange-500 to-red-500 hover:from-yellow-600 hover:via-orange-600 hover:to-red-600 text-white font-bold rounded-2xl h-14 px-10 text-lg shadow-xl transition-all duration-300 transform hover:scale-105"
             >
               <Crown className="w-5 h-5 mr-3" />
@@ -136,7 +139,12 @@ export default function UpgradePage() {
       {/* Pricing Modal */}
       <PremiumPricingModal 
         open={showPricingModal} 
-        onOpenChange={setShowPricingModal} 
+        onOpenChange={(open) => {
+          setShowPricingModal(open);
+          if (!open) {
+            navigate('/pricing', { replace: true });
+          }
+        }} 
       />
     </div>
   );
