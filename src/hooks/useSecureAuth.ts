@@ -72,8 +72,8 @@ export const useSecureAuth = (): UseSecureAuthReturn => {
       setIsLoading(true);
       
       // Verify with Beehiiv segments (pass-through only)
-      const { data, error } = await supabase.functions.invoke('unified-auth-verify', {
-        body: { email, action: 'verify' }
+      const { data, error } = await supabase.functions.invoke('beehiiv-subscriber-verify', {
+        body: { email: email.toLowerCase().trim() }
       });
 
       if (error) {
@@ -81,11 +81,11 @@ export const useSecureAuth = (): UseSecureAuthReturn => {
         throw error;
       }
 
-      if (data.verified) {
+      if (data.success) {
         const secureUser: SecureAuthUser = {
           id: supabaseUser?.id || crypto.randomUUID(),
           email,
-          tier: data.tier === 'premium' ? 'premium' : 'free',
+          tier: data.tier === 'free' ? 'free' : 'premium',
           source: data.source,
           sessionToken: data.session_token,
           verified: true

@@ -132,11 +132,11 @@ export const ModernAuthModal: React.FC<ModernAuthModalProps> = memo(({ open, onO
           // After successful Supabase login, verify with unified auth to get proper tier
           console.log('🔄 Verifying user tier after password login...');
           try {
-            const { data: verifyData, error: verifyError } = await supabase.functions.invoke('unified-auth-verify', {
+            const { data: verifyData, error: verifyError } = await supabase.functions.invoke('beehiiv-subscriber-verify', {
               body: { email: email.toLowerCase().trim() }
             });
             
-            if (verifyData?.verified) {
+            if (verifyData?.success) {
               console.log(`✅ User ${email} verified with tier: ${verifyData.tier}`);
               // The unified auth will handle setting the proper user data
             } else {

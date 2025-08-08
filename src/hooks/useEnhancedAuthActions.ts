@@ -30,15 +30,15 @@ export const useEnhancedAuthActions = ({
     try {
       // First, verify with Beehiiv to get current subscription status
       const { data: verificationResult, error: verifyError } = await supabase.functions.invoke(
-        'unified-auth-verify',
-        { body: { email } }
+        'beehiiv-subscriber-verify',
+        { body: { email: email.toLowerCase().trim() } }
       );
 
       if (verifyError) {
         throw new Error('Failed to verify subscription status');
       }
 
-      if (!verificationResult?.verified) {
+      if (!verificationResult?.success) {
         throw new Error('No active subscription found for this email');
       }
 
@@ -54,13 +54,14 @@ export const useEnhancedAuthActions = ({
       }
 
       const requiresPasswordSetup = subscriber?.requires_password_setup ?? false;
-      const userTier = verificationResult.tier || subscriber?.subscription_tier || 'free';
+      const userTierRaw = verificationResult.tier || subscriber?.subscription_tier || 'free';
+      const userTier = (userTierRaw === 'free' ? 'free' : 'premium') as 'free' | 'premium';
 
       // Set the current user
       const userData: CurrentUser = {
         id: crypto.randomUUID(),
-        email,
-        subscription_tier: userTier as any,
+        email: email.toLowerCase().trim(),
+        subscription_tier: userTier,
         user_type: 'unified_user'
       };
 

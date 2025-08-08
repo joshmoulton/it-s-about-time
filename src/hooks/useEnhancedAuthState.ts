@@ -15,8 +15,8 @@ export const useEnhancedAuthState = () => {
     // Store auth method
     localStorage.setItem('auth_method', authMethod);
     
-    // Use the tier from the verified source (Beehiiv)
-    const finalTier = user.subscription_tier || 'free';
+    // Normalize tier to two-tier system
+    const finalTier = (user.subscription_tier === 'free' ? 'free' : 'premium') as 'free' | 'premium';
     
     const currentUserData = {
       id: user.id,

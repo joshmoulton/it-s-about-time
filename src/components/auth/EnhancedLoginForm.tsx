@@ -124,11 +124,11 @@ export const EnhancedLoginForm: React.FC<EnhancedLoginFormProps> = ({ onSuccess 
       
       // Verify with Beehiiv API first
       const { data: verificationResult, error: verifyError } = await supabase.functions.invoke(
-        'unified-auth-verify',
+        'beehiiv-subscriber-verify',
         { body: { email: data.email.toLowerCase().trim() } }
       );
 
-      if (verifyError || !verificationResult?.verified) {
+      if (verifyError || !verificationResult?.success) {
         setError('No active subscription found for this email. Please check your email address or subscribe to Weekly Wizdom first.');
         return;
       }
@@ -145,7 +145,8 @@ export const EnhancedLoginForm: React.FC<EnhancedLoginFormProps> = ({ onSuccess 
       }
 
       const requiresPasswordSetup = subscriber?.requires_password_setup ?? false;
-      const userTier = verificationResult.tier || subscriber?.subscription_tier || 'free';
+      const userTierRaw = verificationResult.tier || subscriber?.subscription_tier || 'free';
+      const userTier = userTierRaw === 'free' ? 'free' : 'premium';
 
       if (requiresPasswordSetup) {
         // Show password setup modal
@@ -218,11 +219,11 @@ export const EnhancedLoginForm: React.FC<EnhancedLoginFormProps> = ({ onSuccess 
       console.log(`🔍 Checking Beehiiv subscription for magic link: ${email}`);
       
       const { data: verificationResult, error: verifyError } = await supabase.functions.invoke(
-        'unified-auth-verify',
+        'beehiiv-subscriber-verify',
         { body: { email } }
       );
 
-      if (verifyError || !verificationResult?.verified) {
+      if (verifyError || !verificationResult?.success) {
         // User doesn't exist in Beehiiv, create free subscription first
         console.log('🆕 User not found in Beehiiv, creating free subscription...');
         

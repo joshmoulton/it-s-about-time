@@ -34,7 +34,7 @@ const AuthVerify = () => {
         // Use unified auth verification to get proper user tier and data
         console.log(`🔍 Verifying user with unified auth: ${email}`);
         
-        const { data: verifyData, error: verifyError } = await supabase.functions.invoke('unified-auth-verify', {
+        const { data: verifyData, error: verifyError } = await supabase.functions.invoke('beehiiv-subscriber-verify', {
           body: { email: decodeURIComponent(email) }
         });
 
@@ -45,8 +45,8 @@ const AuthVerify = () => {
           return;
         }
 
-        if (!verifyData?.success || !verifyData?.verified) {
-          console.log('⚠️ User not verified through unified auth');
+        if (!verifyData?.success) {
+          console.log('⚠️ User not verified through Beehiiv');
           setStatus('error');
           setMessage('Unable to verify your account. Please request a new access link.');
           return;
@@ -62,7 +62,8 @@ const AuthVerify = () => {
         localStorage.setItem('auth_user_email', decodeURIComponent(email));
         localStorage.setItem('auth_method', 'magic_link');
         localStorage.setItem('auth_verified_at', new Date().toISOString());
-        localStorage.setItem('auth_user_tier', verifyData.tier || 'free');
+        const normalizedTier = verifyData.tier === 'free' ? 'free' : 'premium';
+        localStorage.setItem('auth_user_tier', normalizedTier);
         localStorage.setItem('auth_user_source', verifyData.source || 'beehiiv');
 
         setStatus('success');

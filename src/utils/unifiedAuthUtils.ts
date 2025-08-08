@@ -37,10 +37,9 @@ export const UnifiedAuth = {
     try {
       console.log('🔍 UNIFIED AUTH: Starting verification for:', email);
 
-      const { data, error } = await supabase.functions.invoke('unified-auth-verify', {
+      const { data, error } = await supabase.functions.invoke('beehiiv-subscriber-verify', {
         body: {
-          email: email.toLowerCase().trim(),
-          action: 'verify'
+          email: email.toLowerCase().trim()
         }
       });
 
@@ -57,7 +56,8 @@ export const UnifiedAuth = {
       }
 
       console.log('🔍 UNIFIED AUTH: Verification result:', data);
-      return data;
+      const normalizedTier = (data?.tier === 'free' ? 'free' : 'premium') as 'free' | 'premium';
+      return { ...data, tier: normalizedTier };
     } catch (error) {
       console.error('🔍 UNIFIED AUTH: Network error:', error);
       return {
