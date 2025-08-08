@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Crown } from 'lucide-react';
@@ -7,6 +7,11 @@ import PremiumPricingModal from '@/components/PremiumPricingModal';
 export default function UpgradePage() {
   const navigate = useNavigate();
   const [showPricingModal, setShowPricingModal] = useState(false);
+
+  // Auto-open pricing modal on page load
+  useEffect(() => {
+    setShowPricingModal(true);
+  }, []);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">

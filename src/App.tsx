@@ -105,12 +105,8 @@ const App = () => {
                  />
                  <Route
                    path="/pricing"
-                   element={
-                     <ProtectedRoute>
-                       <UpgradePage />
-                     </ProtectedRoute>
-                   }
-                />
+                   element={<UpgradePage />}
+                 />
                 <Route
                   path="/admin/*"
                   element={

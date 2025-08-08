@@ -11,6 +11,7 @@ import PricingSection from "@/components/PricingSection";
 import { SEOManager, generateStructuredData } from "@/components/SEOManager";
 import { useHashNavigation } from "@/hooks/useHashNavigation";
 import { navigateToSection } from "@/utils/hashNavigation";
+import { useNavigate } from "react-router-dom";
 
 // Lazy load components below the fold with optimized loading
 const KOLTestimonialSection = lazy(() => 
@@ -48,6 +49,7 @@ const Index = () => {
   const { subscriber, isAuthenticated } = useEnhancedAuth();
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [premiumModalOpen, setPremiumModalOpen] = useState(false);
+  const navigate = useNavigate();
 
   // Initialize hash navigation
   useHashNavigation();
@@ -144,7 +146,7 @@ const Index = () => {
       {/* 9. Premium Section */}
       <div id="pricing">
         <Suspense fallback={<div className="h-64 bg-muted/20" />}>
-          <PricingSection onOpenPremiumModal={() => setPremiumModalOpen(true)} />
+          <PricingSection onOpenPremiumModal={() => navigate('/pricing?open=1')} />
         </Suspense>
       </div>
 
