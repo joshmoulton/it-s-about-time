@@ -57,6 +57,16 @@ const Index = () => {
     (window as any).__openPremium = () => setPremiumModalOpen(true);
     console.debug('[premium] premiumModalOpen=', premiumModalOpen);
   }, [premiumModalOpen]);
+
+  // Safety: ensure body/html scroll are never left locked
+  useEffect(() => {
+    const unlock = () => {
+      document.body.style.overflow = '';
+      document.documentElement.style.overflow = '';
+    };
+    unlock();
+    return unlock;
+  }, [authModalOpen, premiumModalOpen]);
   // Generate structured data for the homepage
   const homepageStructuredData = generateStructuredData('Organization', {
     name: 'Weekly Wizdom',
