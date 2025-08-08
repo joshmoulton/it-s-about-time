@@ -30,8 +30,8 @@ const initializeApp = () => {
 // Run initialization immediately
 initializeApp();
 
-// Unregister any existing service workers to avoid stale caches interfering with UI overlays
-if ('serviceWorker' in navigator) {
+// Unregister service workers only on preview/localhost to avoid stale caches during development
+if ('serviceWorker' in navigator && (location.hostname.includes('id-preview--') || location.hostname === 'localhost')) {
   try {
     navigator.serviceWorker.getRegistrations().then(regs => regs.forEach(r => r.unregister()));
   } catch {}

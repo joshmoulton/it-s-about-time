@@ -3,12 +3,13 @@ const CACHE_NAME = 'weekly-wizdom-v3';
 const STATIC_CACHE = 'static-v3';
 const DYNAMIC_CACHE = 'dynamic-v3';
 
-// Critical resources to cache immediately
+// Disable SW behavior on Lovable preview domains
+const DISABLE_ON_PREVIEW = self.location.hostname.includes('id-preview--');
+
+// Critical resources to cache immediately (safe, build-agnostic)
 const CRITICAL_RESOURCES = [
   '/',
-  '/src/main.tsx',
-  '/src/index.css',
-  '/lovable-uploads/97f86327-e463-4091-8474-4f835ee7556f.png'
+  '/manifest.json'
 ];
 
 // Static assets with long cache
@@ -20,16 +21,31 @@ const STATIC_ASSETS = [
 
 // Install: Cache critical resources
 self.addEventListener('install', event => {
-  event.waitUntil(
-    Promise.all([
-      caches.open(CACHE_NAME).then(cache => cache.addAll(CRITICAL_RESOURCES)),
-      caches.open(STATIC_CACHE).then(cache => cache.addAll(STATIC_ASSETS))
-    ]).then(() => self.skipWaiting())
-  );
+  if (DISABLE_ON_PREVIEW) {
+    self.skipWaiting();
+    return;
+  }
+  event.waitUntil((async () => {
+    try {
+      const [critical, statics] = await Promise.all([
+        caches.open(CACHE_NAME),
+        caches.open(STATIC_CACHE)
+      ]);
+      await Promise.all([
+        critical.addAll(CRITICAL_RESOURCES).catch(() => {}),
+        statics.addAll(STATIC_ASSETS).catch(() => {})
+      ]);
+    } catch (e) {}
+    await self.skipWaiting();
+  })());
 });
 
 // Activate: Clean old caches
 self.addEventListener('activate', event => {
+  if (DISABLE_ON_PREVIEW) {
+    event.waitUntil(self.clients.claim());
+    return;
+  }
   event.waitUntil(
     caches.keys().then(cacheNames => {
       return Promise.all(
@@ -45,6 +61,7 @@ self.addEventListener('activate', event => {
 
 // Fetch: Smart caching strategy
 self.addEventListener('fetch', event => {
+  if (DISABLE_ON_PREVIEW) return;
   const { request } = event;
   const url = new URL(request.url);
 
