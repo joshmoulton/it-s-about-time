@@ -1,6 +1,7 @@
 
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { authenticatedQuery } from '@/utils/supabaseAuthWrapper';
 import { useEffect } from 'react';
 
 export interface TelegramMessage {
@@ -85,11 +86,13 @@ export function useTelegramMessages(limit: number = 20) {
       console.log('🔄 Fetching telegram messages from database...');
       
       // First try to get messages from database
-      const { data, error } = await supabase
-        .from('telegram_messages')
-        .select('*')
-        .order('message_time', { ascending: false })
-        .limit(limit);
+const { data, error } = await authenticatedQuery(() =>
+  (supabase
+    .from('telegram_messages')
+    .select('*')
+    .order('message_time', { ascending: false })
+    .limit(limit)) as unknown as Promise<any>
+);
 
       if (error) {
         console.error('❌ Database query error:', error);
@@ -115,15 +118,17 @@ export function useChatHighlights(limit: number = 5) {
   return useQuery({
     queryKey: ['chat-highlights', limit],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('chat_highlights')
-        .select(`
-          *,
-          telegram_messages (*)
-        `)
-        .order('priority_order', { ascending: false })
-        .order('promoted_at', { ascending: false })
-        .limit(limit);
+const { data, error } = await authenticatedQuery(() =>
+  (supabase
+    .from('chat_highlights')
+    .select(`
+      *,
+      telegram_messages (*)
+    `)
+    .order('priority_order', { ascending: false })
+    .order('promoted_at', { ascending: false })
+    .limit(limit)) as unknown as Promise<any>
+);
 
       if (error) throw error;
       return (data || []) as any; // Type assertion for schema mismatch
@@ -138,10 +143,12 @@ export function useAdminFeedControls() {
   return useQuery({
     queryKey: ['admin-feed-controls'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('admin_feed_controls')
-        .select('*')
-        .eq('is_active', true);
+const { data, error } = await authenticatedQuery(() =>
+  (supabase
+    .from('admin_feed_controls')
+    .select('*')
+    .eq('is_active', true)) as unknown as Promise<any>
+);
 
       if (error) throw error;
       return data;

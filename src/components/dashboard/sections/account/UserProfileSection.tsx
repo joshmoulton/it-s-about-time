@@ -156,10 +156,13 @@ export function UserProfileSection() {
         updated_at: new Date().toISOString()
       };
 
-      // For Whop users, use whop_email. For others, use user_id
+      // Helper: validate UUID format
+      const isValidUUID = (id: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id);
+
+      // For Whop users, use whop_email. For others, use user_id only if valid UUID
       if (currentUser.user_type === 'whop_user') {
         profileData.whop_email = currentUser.email;
-      } else if (currentUser.id) {
+      } else if (currentUser.id && isValidUUID(currentUser.id)) {
         profileData.user_id = currentUser.id;
       }
 
@@ -167,7 +170,7 @@ export function UserProfileSection() {
 
       const conflictTarget = currentUser.user_type === 'whop_user'
         ? 'whop_email'
-        : (currentUser.id ? 'user_id' : 'user_email');
+        : (currentUser.id && isValidUUID(currentUser.id) ? 'user_id' : 'user_email');
 
       const { data, error } = await supabase
         .from('user_profiles')
