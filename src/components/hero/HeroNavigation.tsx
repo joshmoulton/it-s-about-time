@@ -82,7 +82,7 @@ const HeroNavigation = ({
             Reviews
           </a>
           <Link 
-            to="/pricing"
+            to="/?open=1"
             className="text-foreground hover:text-primary transition-all duration-300 font-montserrat hover:translate-y-[-1px] drop-shadow-sm hover:drop-shadow-md"
           >
             Pricing
@@ -183,12 +183,12 @@ const HeroNavigation = ({
               Reviews
             </a>
             <a 
-              href="#pricing" 
+              href="/?open=1" 
               className="block text-foreground hover:text-primary transition-all duration-300 font-montserrat hover:translate-x-2 hover:drop-shadow-sm py-2 min-h-[44px] flex items-center"
               onClick={(e) => {
                 e.preventDefault();
                 setIsMobileMenuOpen(false);
-                navigateToSection('pricing');
+                navigate('/?open=1');
               }}
             >
               Pricing
