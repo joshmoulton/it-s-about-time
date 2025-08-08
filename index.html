@@ -21,22 +21,16 @@
     <meta name="twitter:description" content="Join the #1 cross-asset Newsletter & Community. Get notified as soon as our analysts share new ideas, get market analysis and updates every week, and track everything in our proprietary dashboard." />
     <meta name="twitter:image" content="/lovable-uploads/41a57ccc-0a24-4abd-89b1-3c41c3cc3d08.png" />
     
-    <!-- Performance Optimizations - Critical Path First -->
+    <!-- Essential preconnections only -->
     <link rel="preconnect" href="https://wrvvlmevpvcenauglcyz.supabase.co" crossorigin />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
-    <link rel="dns-prefetch" href="https://js.whop.com" />
-    <link rel="dns-prefetch" href="https://api.whop.com" />
-    <link rel="dns-prefetch" href="https://js.stripe.com" />
-    <link rel="dns-prefetch" href="https://checkout.stripe.com" />
     
     <!-- Cache Control Headers -->
     <meta http-equiv="Cache-Control" content="public, max-age=31536000, immutable" />
     <meta http-equiv="Expires" content="Thu, 31 Dec 2025 23:59:59 GMT" />
     
-    <!-- Preload critical resources with highest priority -->
-    <link rel="preload" href="/lovable-uploads/97f86327-e463-4091-8474-4f835ee7556f.png" as="image" fetchpriority="high" />
-    
+    <!-- Preload critical resources only -->
     <link rel="preload" href="/src/index.css" as="style" fetchpriority="high" />
     
     <!-- Critical CSS inlined for immediate render -->
@@ -94,62 +88,36 @@
     <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&display=swap&subset=latin" as="style" onload="this.onload=null;this.rel='stylesheet'" />
     <noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&display=swap&subset=latin" rel="stylesheet" /></noscript>
 
-    <!-- Minimal security headers for Whop checkout compatibility -->
+    <!-- Security headers optimized for Whop integration -->
     <meta http-equiv="X-Content-Type-Options" content="nosniff">
     <meta http-equiv="Referrer-Policy" content="no-referrer-when-downgrade">
+    <meta http-equiv="Permissions-Policy" content="payment=*, publickey-credentials-get=*, document-domain=*">
+    
+    <!-- Web App Manifest -->
+    <link rel="manifest" href="/manifest.json">
   </head>
   <body>
     <div id="root"></div>
     <!-- Enhanced script loading for performance with preloading -->
     <script type="module" src="/src/main.tsx"></script>
     
-    <!-- Performance optimization script -->
-    <script>
-      // Immediate performance optimizations
+    <!-- Minimal performance optimization script -->
+    <script type="text/javascript">
+      // Immediate performance optimizations - minimal approach
       (function() {
-        // Critical font loading with minimal weights only
+        // Only critical font loading
         if ('fonts' in document) {
           document.fonts.load('400 1em Inter');
         }
         
-        // Optimized DNS prefetching for critical domains only
-        const criticalDomains = [
-          '//wrvvlmevpvcenauglcyz.supabase.co'
-        ];
-        
-        criticalDomains.forEach(domain => {
-          const link = document.createElement('link');
-          link.rel = 'dns-prefetch';
-          link.href = domain;
-          document.head.appendChild(link);
-        });
-        
-        // Service Worker registration with error handling
-        if ('serviceWorker' in navigator && 'caches' in window) {
-          window.addEventListener('load', () => {
-            navigator.serviceWorker.register('/sw.js', { 
-              scope: '/',
-              updateViaCache: 'imports'
-            }).then(registration => {
-              // Force update on reload in dev
-              if (import.meta.env?.DEV && registration.waiting) {
-                registration.waiting.postMessage({type: 'SKIP_WAITING'});
-              }
-            }).catch(() => {});
-          });
+        // Disable service worker in preview to avoid CSP issues
+        if (window.location.hostname.includes('lovableproject.com')) {
+          if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.getRegistrations().then(registrations => {
+              registrations.forEach(registration => registration.unregister());
+            });
+          }
         }
-        
-        // Resource hints for better loading
-        const resourceHints = [
-          { rel: 'prefetch', href: '/lovable-uploads/a8eaa39b-22e5-4a3c-a288-fe43b8619eab.png', as: 'image' },
-          { rel: 'prefetch', href: 'https://i.ytimg.com/vi/uQc5bsEnaTI/maxresdefault.jpg', as: 'image' }
-        ];
-        
-        resourceHints.forEach(hint => {
-          const link = document.createElement('link');
-          Object.assign(link, hint);
-          document.head.appendChild(link);
-        });
       })();
     </script>
   </body>

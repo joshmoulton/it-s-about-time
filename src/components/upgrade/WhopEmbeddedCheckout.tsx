@@ -18,45 +18,10 @@ export const WhopEmbeddedCheckout: React.FC<WhopEmbeddedCheckoutProps> = ({
   productTitle = 'Product',
   onSuccess
 }) => {
-  // Add CSS to hide address fields when modal opens for faster checkout
+  // Minimal setup - remove aggressive CSS that causes issues
   useEffect(() => {
     if (open) {
-      const style = document.createElement('style');
-      style.id = 'whop-checkout-address-hide';
-      style.textContent = `
-        /* Hide address fields in Whop checkout to speed up payment */
-        [data-testid*="address"], 
-        [placeholder*="address" i],
-        [placeholder*="street" i],
-        [placeholder*="city" i],
-        [placeholder*="zip" i],
-        [placeholder*="postal" i],
-        [name*="address" i],
-        [name*="street" i],
-        [name*="city" i],
-        [name*="postal" i],
-        .address-field,
-        .billing-address,
-        .address-container {
-          display: none !important;
-        }
-        /* Hide address labels and containers */
-        label[for*="address" i],
-        label[for*="street" i],
-        label[for*="city" i],
-        label[for*="postal" i],
-        label:has(+ [placeholder*="address" i]) {
-          display: none !important;
-        }
-      `;
-      document.head.appendChild(style);
-      
-      return () => {
-        const existingStyle = document.getElementById('whop-checkout-address-hide');
-        if (existingStyle) {
-          existingStyle.remove();
-        }
-      };
+      console.log('Whop checkout modal opened');
     }
   }, [open]);
 
@@ -72,7 +37,8 @@ export const WhopEmbeddedCheckout: React.FC<WhopEmbeddedCheckoutProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-4xl w-full max-h-[90vh] bg-background border border-border shadow-2xl p-0 overflow-hidden">
+      <DialogContent className="sm:max-w-4xl w-full max-h-[90vh] bg-background border border-border shadow-2xl p-0 overflow-hidden" 
+        onPointerDownOutside={(e) => e.preventDefault()}>
         <div className="flex flex-col max-h-[90vh]">
           <DialogHeader className="px-6 py-4 border-b shrink-0">
             <DialogTitle className="text-center">

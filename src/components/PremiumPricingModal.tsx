@@ -31,83 +31,21 @@ const PremiumPricingModal: React.FC<PremiumPricingModalProps> = ({
     productId: null,
   });
 
-  // Preload Whop checkout when modal opens
+  // Minimal setup when modal opens - avoid aggressive prefetching
   useEffect(() => {
     if (open) {
-      // Add DNS preconnection for faster domain resolution
+      // Only add essential DNS preconnection without CORS issues
       const addPreconnect = (domain: string) => {
-        if (!document.querySelector(`link[href="${domain}"]`)) {
+        if (!document.querySelector(`link[rel="preconnect"][href="${domain}"]`)) {
           const link = document.createElement('link');
           link.rel = 'preconnect';
           link.href = domain;
-          link.crossOrigin = 'anonymous';
           document.head.appendChild(link);
         }
       };
 
-      // Preconnect to Whop domains
+      // Only preconnect to essential Whop domains
       addPreconnect('https://whop.com');
-      addPreconnect('https://api.whop.com');
-      addPreconnect('https://assets.whop.com');
-      addPreconnect('https://checkout.whop.com');
-
-      // Create multiple hidden iframes for different plans to warm up connections
-      const planIds = [
-        '4QxYd6NKaDkmMJCte9-faeD-zuxA-OjT2-0ssruHW5aST8', // Monthly card
-        'CCk7osaf7UIrzlOxj-6ULU-XjHr-7dPx-u9IUV6sHa21J', // Yearly card
-        '4ARbsoAlUZHxlkJnQl-ZxjG-iOAB-Ecqr-d4rNMoLB5psd'  // Monthly crypto
-      ];
-
-      const preloadFrames: HTMLIFrameElement[] = [];
-
-      planIds.forEach((planId, index) => {
-        setTimeout(() => {
-          const preloadFrame = document.createElement('iframe');
-          preloadFrame.src = `https://whop.com/checkout/${planId}?embed=true&minimal=true&preload=true`;
-          preloadFrame.style.position = 'absolute';
-          preloadFrame.style.left = '-9999px';
-          preloadFrame.style.top = '-9999px';
-          preloadFrame.style.width = '300px'; // Slightly larger to trigger more resource loading
-          preloadFrame.style.height = '400px';
-          preloadFrame.style.opacity = '0';
-          preloadFrame.style.pointerEvents = 'none';
-          preloadFrame.style.visibility = 'hidden';
-          preloadFrame.setAttribute('aria-hidden', 'true');
-          preloadFrame.id = `whop-preload-frame-${index}`;
-          
-          document.body.appendChild(preloadFrame);
-          preloadFrames.push(preloadFrame);
-        }, index * 100); // Stagger iframe creation to avoid overwhelming
-      });
-
-      // Prefetch known Whop assets
-      const prefetchResource = (url: string, type: 'script' | 'style' | 'fetch') => {
-        if (!document.querySelector(`link[href="${url}"]`)) {
-          const link = document.createElement('link');
-          link.rel = 'prefetch';
-          link.href = url;
-          if (type === 'script') link.as = 'script';
-          if (type === 'style') link.as = 'style';
-          if (type === 'fetch') link.as = 'fetch';
-          link.crossOrigin = 'anonymous';
-          document.head.appendChild(link);
-        }
-      };
-
-      // Prefetch common Whop resources
-      prefetchResource('https://whop.com/static/js/checkout.js', 'script');
-      prefetchResource('https://whop.com/static/css/checkout.css', 'style');
-      prefetchResource('https://api.whop.com/api/v1/checkout/config', 'fetch');
-      
-      // Cleanup function
-      return () => {
-        preloadFrames.forEach((frame, index) => {
-          const existingFrame = document.getElementById(`whop-preload-frame-${index}`);
-          if (existingFrame) {
-            document.body.removeChild(existingFrame);
-          }
-        });
-      };
     }
   }, [open]);
 
