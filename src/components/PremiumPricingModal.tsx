@@ -52,6 +52,16 @@ const PremiumPricingModal: React.FC<PremiumPricingModalProps> = ({
     console.debug('[premium] PremiumPricingModal render, open=', open);
   }, [open]);
 
+  // Ensure the modal content starts at the top on open
+  useEffect(() => {
+    if (open) {
+      requestAnimationFrame(() => {
+        const el = document.getElementById('premium-pricing-modal-content');
+        if (el) el.scrollTop = 0;
+      });
+    }
+  }, [open]);
+
   const handleCheckout = (productId: string, planTitle: string) => {
     onOpenChange(false);
     openWhopCheckout(productId, {

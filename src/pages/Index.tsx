@@ -11,7 +11,7 @@ import PricingSection from "@/components/PricingSection";
 import { SEOManager, generateStructuredData } from "@/components/SEOManager";
 import { useHashNavigation } from "@/hooks/useHashNavigation";
 import { navigateToSection } from "@/utils/hashNavigation";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 
 // Lazy load components below the fold with optimized loading
 const KOLTestimonialSection = lazy(() => 
@@ -50,6 +50,7 @@ const Index = () => {
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [premiumModalOpen, setPremiumModalOpen] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
 
   // Initialize hash navigation
   useHashNavigation();
@@ -59,6 +60,13 @@ const Index = () => {
     (window as any).__openPremium = () => setPremiumModalOpen(true);
     console.debug('[premium] premiumModalOpen=', premiumModalOpen);
   }, [premiumModalOpen]);
+
+  // Open premium modal on landing page when ?open=1 or ?open=true
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const isOpen = params.get('open') === '1' || params.get('open') === 'true';
+    setPremiumModalOpen(isOpen);
+  }, [location.search]);
 
   // Safety: ensure body/html scroll are never left locked
   useEffect(() => {
@@ -91,8 +99,17 @@ const Index = () => {
       minHeight: '100vh',
       WebkitOverflowScrolling: 'touch'
     }}>
-      <AuthOptionsModal open={authModalOpen} onOpenChange={setAuthModalOpen} />
-      <PremiumPricingModal open={premiumModalOpen} onOpenChange={setPremiumModalOpen} />
+      <PremiumPricingModal 
+        open={premiumModalOpen} 
+        onOpenChange={(open) => {
+          setPremiumModalOpen(open);
+          if (!open) {
+            const url = new URL(window.location.href);
+            url.searchParams.delete('open');
+            navigate(url.pathname + url.search, { replace: true });
+          }
+        }} 
+      />
 
       {/* 1. Navigation (built into hero) + 2. Hero + Dashboard Preview (two-column layout) */}
       <ReorganizedHeroSection 
