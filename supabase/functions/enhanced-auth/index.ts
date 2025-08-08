@@ -5,13 +5,12 @@ import { corsHeaders } from '../_shared/cors.ts'
 
 const supabaseUrl = Deno.env.get('SUPABASE_URL')!
 const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
-const whopApiKey = Deno.env.get('WHOP_API_KEY')!
+
 
 interface AuthRequest {
-  action: 'password_login' | 'whop_verify' | 'setup_password' | 'reset_password'
+  action: 'password_login' | 'setup_password' | 'reset_password'
   email: string
   password?: string
-  whop_access_token?: string
   reset_token?: string
   new_password?: string
 }
@@ -30,8 +29,6 @@ serve(async (req) => {
     switch (action) {
       case 'password_login':
         return await handlePasswordLogin(supabase, email, password!)
-      case 'whop_verify':
-        return await handleWhopVerification(supabase, email, whop_access_token!)
       case 'setup_password':
         return await handlePasswordSetup(supabase, email, password!)
       case 'reset_password':
@@ -248,88 +245,6 @@ async function handlePasswordLogin(supabase: any, email: string, password: strin
   )
 }
 
-async function handleWhopVerification(supabase: any, email: string, accessToken: string) {
-  console.log(`🎯 Whop verification for: ${email}`)
-
-  const whopUser = await verifyWhopToken(accessToken)
-  if (!whopUser || whopUser.email !== email) {
-    await logAuthEvent(supabase, email, 'whop', 'verification_failed')
-    return new Response(
-      JSON.stringify({ success: false, error: 'Invalid Whop access token' }),
-      { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    )
-  }
-
-  // Find or create user
-  let { data: user } = await supabase
-    .from('beehiiv_subscribers')
-    .select('*')
-    .eq('email', email.toLowerCase())
-    .single()
-
-  if (!user) {
-    // Create new user for Whop premium subscriber
-    const { data: newUser } = await supabase
-      .from('beehiiv_subscribers')
-      .insert({
-        email: email.toLowerCase(),
-        status: 'active',
-        subscription_tier: 'premium',
-        requires_password_setup: true,
-        metadata: { whop_user: true }
-      })
-      .select()
-      .single()
-    user = newUser
-  }
-
-  // Update/create Whop auth record
-  await supabase
-    .from('whop_authenticated_users')
-    .upsert({
-      user_email: email,
-      whop_user_id: whopUser.userId,
-      whop_purchase_id: whopUser.purchaseId,
-      subscription_tier: 'premium',
-      last_verified_at: new Date().toISOString()
-    })
-
-  // Update user subscription tier
-  await supabase
-    .from('beehiiv_subscribers')
-    .update({ 
-      subscription_tier: 'premium',
-      last_login_at: new Date().toISOString()
-    })
-    .eq('id', user.id)
-
-  // Create session
-  const sessionToken = crypto.randomUUID()
-  const expiresAt = new Date()
-  expiresAt.setHours(expiresAt.getHours() + 24)
-
-  await supabase
-    .from('user_sessions')
-    .insert({
-      subscriber_id: user.id,
-      session_token: sessionToken,
-      auth_method: 'whop',
-      whop_user_id: whopUser.userId,
-      expires_at: expiresAt.toISOString()
-    })
-
-  await logAuthEvent(supabase, email, 'whop', 'login_success')
-
-  return new Response(
-    JSON.stringify({
-      success: true,
-      user: { ...user, subscription_tier: 'premium' },
-      session_token: sessionToken,
-      auth_method: 'whop'
-    }),
-    { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-  )
-}
 
 async function handlePasswordSetup(supabase: any, email: string, password: string) {
   console.log(`🔧 Password setup for: ${email}`)
@@ -449,60 +364,6 @@ async function handlePasswordReset(supabase: any, email: string, resetToken?: st
   }
 }
 
-async function checkWhopAccess(email: string): Promise<any> {
-  try {
-    // Check Whop API for active purchases using V5
-    const response = await fetch(`https://api.whop.com/v5/apps/memberships?email=${encodeURIComponent(email)}`, {
-      headers: {
-        'Authorization': `Bearer ${whopApiKey}`,
-        'Content-Type': 'application/json'
-      }
-    })
-
-    if (!response.ok) return null
-
-    const data = await response.json()
-    const activeMembership = data.data?.find((membership: any) => 
-      membership.status === 'active' && membership.access_pass?.status === 'active'
-    )
-
-    if (activeMembership) {
-      return {
-        hasAccess: true,
-        userId: activeMembership.user_id,
-        purchaseId: activeMembership.id,
-        productId: activeMembership.product_id
-      }
-    }
-    return null
-  } catch (error) {
-    console.error('Whop API error:', error)
-    return null
-  }
-}
-
-async function verifyWhopToken(accessToken: string): Promise<any> {
-  try {
-    const response = await fetch('https://api.whop.com/v5/me', {
-      headers: {
-        'Authorization': `Bearer ${accessToken}`,
-        'Content-Type': 'application/json'
-      }
-    })
-
-    if (!response.ok) return null
-
-    const userData = await response.json()
-    return {
-      email: userData.email,
-      userId: userData.id,
-      purchaseId: 'verified' // Would need to fetch actual purchase
-    }
-  } catch (error) {
-    console.error('Whop token verification error:', error)
-    return null
-  }
-}
 
 async function logAuthEvent(supabase: any, email: string, method: string, action: string, metadata = {}) {
   await supabase.rpc('log_auth_event', {

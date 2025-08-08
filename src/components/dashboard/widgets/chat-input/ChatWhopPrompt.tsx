@@ -2,7 +2,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Send } from 'lucide-react';
-import { WhopConnectButton } from '../WhopConnectButton';
+
 
 interface ChatWhopPromptProps {
   onWhopConnected: () => void;
@@ -14,7 +14,7 @@ export function ChatWhopPrompt({ onWhopConnected }: ChatWhopPromptProps) {
       <div className="flex gap-3">
         <input 
           type="text" 
-          placeholder="Connect your Whop account to send messages..." 
+          placeholder="Sign in with your subscriber email to send messages..." 
           className="flex-1 px-4 py-3 text-sm border-0 rounded-xl bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm placeholder:text-muted-foreground/70 min-w-0 shadow-sm" 
           disabled 
         />
@@ -26,9 +26,8 @@ export function ChatWhopPrompt({ onWhopConnected }: ChatWhopPromptProps) {
           <Send className="h-4 w-4" />
         </Button>
       </div>
-      <WhopConnectButton onConnected={onWhopConnected} />
       <div className="text-xs text-muted-foreground text-center">
-        Verify your Whop purchase to access the community chat
+        Sign in with your subscriber email to access the community chat
       </div>
     </div>
   );

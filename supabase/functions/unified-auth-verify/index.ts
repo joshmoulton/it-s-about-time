@@ -15,13 +15,10 @@ interface VerificationResult {
   success: boolean;
   verified: boolean;
   tier: 'free' | 'paid' | 'premium';
-  source: 'beehiiv' | 'whop' | 'both' | 'none';
+  source: 'beehiiv' | 'none';
   metadata: {
     beehiiv_active?: boolean;
-    whop_active?: boolean;
     beehiiv_tier?: string;
-    whop_tier?: string;
-    beehiiv_segments?: string[];
     verification_timestamp: string;
   };
   session_token?: string;
@@ -59,47 +56,6 @@ async function verifyBeehiiv(email: string): Promise<{ verified: boolean; tier: 
 }
 
 
-// Verify with Whop - enhanced with product-specific verification
-async function verifyWhop(email: string): Promise<{ verified: boolean; tier: 'free' | 'paid' | 'premium' }> {
-  try {
-    const { data, error } = await supabase
-      .from('whop_authenticated_users')
-      .select('user_email, subscription_tier, metadata, last_verified_at, whop_purchase_id')
-      .eq('user_email', email)
-      .single();
-
-    if (error || !data) {
-      console.log(`Whop verification failed for ${email}:`, error?.message);
-      return { verified: false, tier: 'free' };
-    }
-
-    // Enhanced verification - check if the user has Weekly Wizdom subscriptions
-    const subscriptionTier = data.subscription_tier || 'free';
-    const hasWeeklyWizdomSubscription = data.whop_purchase_id && 
-                                       data.whop_purchase_id !== 'no_weekly_wizdom_subscription' &&
-                                       data.whop_purchase_id !== 'free_access';
-
-    // Check if verification is recent (within last 24 hours)
-    const lastVerified = new Date(data.last_verified_at);
-    const isRecentlyVerified = (Date.now() - lastVerified.getTime()) < 24 * 60 * 60 * 1000;
-
-    console.log(`🔍 Whop verification for ${email}:`, {
-      tier: subscriptionTier,
-      hasWeeklyWizdomSubscription,
-      isRecentlyVerified,
-      purchaseId: data.whop_purchase_id,
-      lastVerified: data.last_verified_at
-    });
-
-    return {
-      verified: true,
-      tier: subscriptionTier
-    };
-  } catch (error) {
-    console.error('Whop verification error:', error);
-    return { verified: false, tier: 'free' };
-  }
-}
 
 // Generate session token
 function generateSessionToken(): string {
@@ -195,24 +151,14 @@ async function unifiedVerification(email: string): Promise<VerificationResult> {
     const beehiivResult = await verifyBeehiiv(email);
     console.log(`🔍 Beehiiv verification result: ${JSON.stringify(beehiivResult)}`);
 
-    // Whop fallback disabled; Beehiiv is the only source of truth
-    const whopResult: { verified: boolean; tier: 'free' | 'paid' | 'premium' } = { verified: false, tier: 'free' as const };
-
+    // Beehiiv is the sole source of truth
     const beehiivActive = beehiivResult.verified;
-    const whopActive = whopResult.verified;
 
-    // Determine final tier by highest between sources
-    const finalTier = getHighestTier([
-      beehiivActive ? beehiivResult.tier : 'free',
-      whopActive ? whopResult.tier : 'free'
-    ]);
+    // Determine final tier solely from Beehiiv
+    const finalTier = beehiivActive ? beehiivResult.tier : 'free';
 
-    let source: 'beehiiv' | 'whop' | 'both' | 'none' = 'none';
-    if (beehiivActive && whopActive) source = 'both';
-    else if (beehiivActive) source = 'beehiiv';
-    else if (whopActive) source = 'whop';
-
-    const verified = source !== 'none';
+    const source: 'beehiiv' | 'none' = beehiivActive ? 'beehiiv' : 'none';
+    const verified = beehiivActive;
 
     
     if (verified && beehiivActive) {
@@ -245,10 +191,7 @@ async function unifiedVerification(email: string): Promise<VerificationResult> {
 
     const metadata = {
       beehiiv_active: beehiivActive,
-      whop_active: whopActive,
       beehiiv_tier: beehiivResult.tier,
-      whop_tier: whopResult.tier,
-      beehiiv_segments: beehiivResult.segments,
       verification_timestamp: new Date().toISOString()
     };
 

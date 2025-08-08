@@ -4,12 +4,12 @@ import { createSafeInnerHTML } from '@/utils/htmlSanitizer';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, Calendar, Clock, Eye, ExternalLink, RefreshCw, Lock } from 'lucide-react';
+import { ArrowLeft, Calendar, Clock, Eye, ExternalLink, RefreshCw } from 'lucide-react';
 import { format } from 'date-fns';
 import { useNewsletter, useIncrementNewsletterViews } from '@/hooks/useNewsletters';
 import { NewsletterSubscription } from '@/components/NewsletterSubscription';
 import { syncSpecificNewsletter } from '@/utils/testNewsletterSync';
-import { useWhopAuth, useWhopAuthenticatedSync } from '@/hooks/useWhopAuth';
+
 import { useUnifiedAuth } from '@/hooks/useUnifiedAuth';
 import { FreemiumWidgetWrapper } from '@/components/freemium/FreemiumWidgetWrapper';
 import { PaywallCard } from '@/components/PaywallCard';
@@ -21,9 +21,9 @@ export default function NewsletterReader() {
   const navigate = useNavigate();
   const { data: newsletter, isLoading, error, refetch } = useNewsletter(id!);
   const incrementViews = useIncrementNewsletterViews();
-  const { isWhopAuthenticated, subscriptionTier, isLoading: whopLoading } = useWhopAuth();
+  
   const { user: unifiedUser, isLoading: unifiedLoading } = useUnifiedAuth();
-  const whopAuthenticatedSync = useWhopAuthenticatedSync();
+  
   const [isSyncing, setIsSyncing] = useState(false);
 
   useEffect(() => {
@@ -38,24 +38,8 @@ export default function NewsletterReader() {
     setIsSyncing(true);
     try {
       toast.info('Syncing newsletter content...');
-      
-      if (isWhopAuthenticated) {
-        // Use Whop authenticated sync for potentially full content access
-        console.log('🔐 Using Whop authenticated sync...');
-        try {
-          await whopAuthenticatedSync(newsletter.beehiiv_post_id);
-          toast.success('Newsletter content synced with Whop authentication!');
-        } catch (whopError) {
-          console.warn('Whop sync failed, falling back to standard sync:', whopError);
-          await syncSpecificNewsletter(newsletter.beehiiv_post_id);
-          toast.success('Newsletter content synced (standard method)!');
-        }
-      } else {
-        // Standard sync for non-Whop users
-        console.log('📖 Using standard sync...');
-        await syncSpecificNewsletter(newsletter.beehiiv_post_id);
-        toast.success('Newsletter content synced successfully!');
-      }
+      await syncSpecificNewsletter(newsletter.beehiiv_post_id);
+      toast.success('Newsletter content synced successfully!');
       
       await refetch();
     } catch (error) {
@@ -241,18 +225,9 @@ export default function NewsletterReader() {
                           className="inline-flex items-center gap-2"
                           variant="default"
                         >
-                          {isWhopAuthenticated ? (
-                            <Lock className="h-4 w-4" />
-                          ) : (
-                            <RefreshCw className={`h-4 w-4 ${isSyncing ? 'animate-spin' : ''}`} />
-                          )}
-                          {isSyncing ? 'Syncing...' : isWhopAuthenticated ? 'Sync with Whop Auth' : 'Sync Content'}
+                          <RefreshCw className={`h-4 w-4 ${isSyncing ? 'animate-spin' : ''}`} />
+                          {isSyncing ? 'Syncing...' : 'Sync Content'}
                         </Button>
-                        {isWhopAuthenticated && (
-                          <Badge variant="secondary" className="self-center">
-                            🔐 Whop Authenticated ({subscriptionTier})
-                          </Badge>
-                        )}
                         {newsletter.web_url && (
                           <Button
                             variant="outline"
