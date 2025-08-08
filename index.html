@@ -96,29 +96,41 @@
   </head>
   <body>
     <div id="root"></div>
-    <!-- Enhanced script loading for performance with preloading -->
-    <script type="module" src="/src/main.tsx"></script>
-    
-    <!-- Minimal performance optimization script -->
-    <script type="text/javascript">
-      // Immediate performance optimizations - minimal approach
+
+    <!-- Aggressively remove any existing Service Workers BEFORE app boot to avoid stale caches and 404 chunks -->
+    <script>
       (function() {
-        // Only critical font loading
-        if ('fonts' in document) {
-          document.fonts.load('400 1em Inter');
+        if ('serviceWorker' in navigator) {
+          try {
+            var hadController = !!navigator.serviceWorker.controller;
+            navigator.serviceWorker.getRegistrations()
+              .then(function(regs){ return Promise.all(regs.map(function(r){ return r.unregister(); })); })
+              .then(function(){
+                if ('caches' in window) {
+                  caches.keys().then(function(keys){ keys.forEach(function(k){ caches.delete(k); }); }).catch(function(){});
+                }
+                // If the page was controlled, reload once to drop the old controller
+                if (hadController) {
+                  try { sessionStorage.setItem('sw_cleared_once','1'); } catch(e){}
+                  if (!sessionStorage.getItem('sw_reloaded')) {
+                    try { sessionStorage.setItem('sw_reloaded','1'); } catch(e){}
+                    location.reload();
+                  }
+                }
+              })
+              .catch(function(){});
+          } catch (e) {}
         }
-        
-        // Disable any service worker + clear caches in Lovable preview domains
-        const host = window.location.hostname;
-        const isLovablePreview = /lovable(app|project)\.com$/.test(host) || host.includes('lovable.app') || host.includes('lovable.dev');
-        if (isLovablePreview && 'serviceWorker' in navigator) {
-          navigator.serviceWorker.getRegistrations().then(registrations => {
-            registrations.forEach(registration => registration.unregister());
-          });
-          if ('caches' in window) {
-            caches.keys().then(keys => keys.forEach(k => caches.delete(k))).catch(() => {});
-          }
-        }
+      })();
+    </script>
+
+    <!-- App entry -->
+    <script type="module" src="/src/main.tsx"></script>
+
+    <!-- Minimal performance script (fonts only) -->
+    <script>
+      (function(){
+        try { if ('fonts' in document) { document.fonts.load('400 1em Inter'); } } catch(e){}
       })();
     </script>
   </body>
