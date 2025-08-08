@@ -150,6 +150,26 @@ export const useEnhancedAuthInitialization = ({
         console.log('🚀 Initializing enhanced auth with priority hierarchy...');
         setIsLoading(true);
         
+        // Sanitize legacy auth artifacts before proceeding
+        try {
+          const legacy = localStorage.getItem('auth_persistence_data');
+          if (legacy) {
+            const parsed = JSON.parse(legacy);
+            if (parsed.auth_method === 'whop') {
+              console.log('🧹 Removing legacy Whop persistence data during init');
+              localStorage.removeItem('auth_persistence_data');
+            }
+          }
+          // Remove any lingering whop-related flags
+          Object.keys(localStorage)
+            .filter(k => k.toLowerCase().includes('whop'))
+            .forEach(k => localStorage.removeItem(k));
+          const method = localStorage.getItem('auth_method');
+          if (method && method.startsWith('whop')) {
+            localStorage.removeItem('auth_method');
+          }
+        } catch {}
+        
         // PRIORITY 1: Check for Supabase session FIRST
         const { data: { session }, error } = await supabase.auth.getSession();
         
@@ -292,34 +312,25 @@ export const useEnhancedAuthInitialization = ({
         } else {
           console.log('ℹ️ No valid enhanced session found, checking persistence data...');
           
-          // PRIORITY 3: Fallback to persistence data (legacy support)
-          const persistenceData = localStorage.getItem('auth_persistence_data');
-          if (persistenceData) {
-            try {
-              const parsedData = JSON.parse(persistenceData);
-              if (parsedData.auth_method === 'whop' && parsedData.user_email) {
-                // Check if persistence data is still valid
-                const now = Date.now();
-                if (parsedData.expires_at && now < parsedData.expires_at) {
-                  console.log('🔍 Found valid Whop persistence data, maintaining session...');
-                  // Keep user logged in and show loading state for re-auth
-                  // This prevents redirect to login page on refresh
-                  setCurrentUser({
-                    id: 'temp',
-                    email: parsedData.user_email,
-                    subscription_tier: 'premium' as const,
-                    user_type: 'whop_user' as const
-                  });
-                  return; // Let the user stay logged in while we re-establish session
-                } else {
-                  console.log('⏰ Whop persistence data expired, clearing...');
-                  localStorage.removeItem('auth_persistence_data');
-                }
+          // PRIORITY 3: No valid session found; clear legacy artifacts and unauthenticate
+          try {
+            const persistenceData = localStorage.getItem('auth_persistence_data');
+            if (persistenceData) {
+              const parsed = JSON.parse(persistenceData);
+              if (parsed.auth_method === 'whop') {
+                console.log('🧹 Clearing legacy Whop persistence data');
+                localStorage.removeItem('auth_persistence_data');
               }
-            } catch (error) {
-              console.error('Error parsing persistence data:', error);
             }
-          }
+            // Remove any legacy whop-related flags
+            Object.keys(localStorage)
+              .filter(k => k.toLowerCase().includes('whop'))
+              .forEach(k => localStorage.removeItem(k));
+            const authMethod = localStorage.getItem('auth_method');
+            if (authMethod && authMethod.startsWith('whop')) {
+              localStorage.removeItem('auth_method');
+            }
+          } catch {}
           
           console.log('ℹ️ No valid session found, user not authenticated');
           setCurrentUser(null);
