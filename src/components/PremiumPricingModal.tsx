@@ -133,7 +133,7 @@ const PremiumPricingModal: React.FC<PremiumPricingModalProps> = ({
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent id="premium-pricing-modal-content" role="dialog" aria-modal="true" className="relative w-[min(100vw-2rem,960px)] sm:w-[min(100vw-4rem,1024px)] max-w-4xl max-h-[92svh] min-h-0 overflow-y-auto overscroll-contain bg-card border border-border shadow-xl rounded-2xl focus:outline-none p-0" style={{
+        <DialogContent id="premium-pricing-modal-content" role="dialog" aria-modal="true" className="w-[min(100vw-2rem,960px)] sm:w-[min(100vw-4rem,1024px)] max-w-4xl max-h-[92svh] min-h-0 overflow-y-auto overscroll-contain bg-card border border-border shadow-xl rounded-2xl focus:outline-none p-0" style={{
           WebkitOverflowScrolling: 'touch'
         }}>
           <DialogHeader className="text-center pb-6 pt-8">

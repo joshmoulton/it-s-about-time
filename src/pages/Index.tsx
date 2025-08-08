@@ -70,8 +70,8 @@ const Index = () => {
 
   // Scroll to top when premium modal opens to avoid off-screen positioning
   useEffect(() => {
-    if (premiumModalOpen) {
-      window.scrollTo(0, 0);
+    if (premiumModalOpen && window.scrollY > 100) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   }, [premiumModalOpen]);
 
