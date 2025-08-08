@@ -119,7 +119,7 @@ const PremiumPricingModal: React.FC<PremiumPricingModalProps> = ({
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-6xl max-h-[95vh] overflow-y-auto bg-background border border-border shadow-xl rounded-3xl">
+        <DialogContent id="premium-pricing-modal-content" role="dialog" aria-modal="true" className="max-w-6xl max-h-[95vh] overflow-y-auto bg-background border border-border shadow-xl rounded-3xl">
           <DialogHeader className="text-center pb-6 pt-8">
             <div className="flex items-center justify-center gap-3 mb-6">
               <div className="relative">

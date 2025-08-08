@@ -276,6 +276,14 @@ const PricingSection: React.FC<PricingSectionProps> = ({ onAuthClick, onOpenPrem
 const handlePremiumClick = () => {
   toast({ title: "Opening Premium…", description: "Loading premium plans.", duration: 1500 });
   onOpenPremiumModal?.();
+  // Fallback: if modal fails to mount (e.g., stale SW or CSP), navigate to /upgrade
+  window.setTimeout(() => {
+    const modalEl = document.getElementById('premium-pricing-modal-content');
+    if (!modalEl) {
+      toast({ title: "Opening premium on dedicated page…", duration: 1500 });
+      window.location.assign('/upgrade');
+    }
+  }, 700);
 };
 
   const handleFreeClick = () => {
