@@ -46,6 +46,13 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     return () => clearTimeout(timer);
   }, [isLoading]);
 
+  // Reset timeout once auth resolves to prevent false redirects
+  useEffect(() => {
+    if (isAuthenticated || !isLoading) {
+      setAuthTimeout(false);
+    }
+  }, [isAuthenticated, isLoading]);
+
   // Grant immediate access for admins (determined by database function)
   if (isAdmin) {
     logger.info('Admin access granted immediately');
@@ -64,9 +71,9 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     );
   }
 
-  // If auth timed out or not authenticated, redirect to login
-  if (authTimeout || !isAuthenticated) {
-    logger.warn('Not authenticated or timeout, redirecting to login');
+  // If not authenticated, redirect to login once loading completes or after timeout
+  if (!isAuthenticated && (authTimeout || !isLoading)) {
+    logger.warn('Not authenticated (post-load or timeout), redirecting to login');
     return <Navigate to="/login" replace />;
   }
 
