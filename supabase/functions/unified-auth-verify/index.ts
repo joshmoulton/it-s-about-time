@@ -35,48 +35,25 @@ function getHighestTier(tiers: Array<'free' | 'paid' | 'premium'>): 'free' | 'pa
   return 'free';
 }
 
-// Verify with Beehiiv using direct subscription tier API, with local-table fallback
+// Verify with Beehiiv using direct subscription tier API
 async function verifyBeehiiv(email: string): Promise<{ verified: boolean; tier: 'free' | 'paid' | 'premium'; segments: string[] }> {
   try {
     const { data, error } = await supabase.functions.invoke('beehiiv-subscriber-verify', {
       body: { email }
     });
 
-    if (!error && data?.success) {
-      return {
-        verified: data.verified,
-        tier: data.tier,
-        segments: []
-      };
-    }
-
-    console.log(`Beehiiv verification API returned failure for ${email}, falling back to local table`, error || data);
-  } catch (error) {
-    console.error('Beehiiv verification API error, falling back to local table:', error);
-  }
-
-  // Fallback: check our synced Beehiiv subscribers table
-  try {
-    const { data: row, error: tableError } = await supabase
-      .from('beehiiv_subscribers')
-      .select('email, subscription_tier, status')
-      .eq('email', email)
-      .single();
-
-    if (tableError || !row) {
-      console.log(`Beehiiv table lookup failed for ${email}:`, tableError?.message);
+    if (error || !data.success) {
+      console.log(`Beehiiv verification failed for ${email}:`, error || data.error);
       return { verified: false, tier: 'free', segments: [] };
     }
 
-    const tier = (row.subscription_tier as 'free' | 'paid' | 'premium') || 'free';
-    const isActive = (row.status || 'active') === 'active';
     return {
-      verified: isActive && tier !== 'free',
-      tier,
-      segments: []
+      verified: data.verified,
+      tier: data.tier,
+      segments: [] // No longer using segments, rely on direct subscription_tier
     };
   } catch (error) {
-    console.error('Beehiiv table fallback error:', error);
+    console.error('Beehiiv verification error:', error);
     return { verified: false, tier: 'free', segments: [] };
   }
 }

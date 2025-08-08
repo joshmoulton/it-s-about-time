@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { WhopEmbeddedCheckout } from './WhopEmbeddedCheckout';
+import { openWhopCheckout } from '@/utils/whopCheckoutUtils';
 import { useEnhancedAuth } from '@/contexts/EnhancedAuthContext';
 
 interface WhopCheckoutModalProps {
@@ -26,13 +26,12 @@ export const WhopCheckoutModal: React.FC<WhopCheckoutModalProps> = ({
     // await syncUserPurchases();
   };
 
-  return (
-    <WhopEmbeddedCheckout
-      open={open}
-      onOpenChange={onOpenChange}
-      productId={productId}
-      productTitle={productTitle}
-      onSuccess={handleCheckoutSuccess}
-    />
-  );
+  React.useEffect(() => {
+    if (open && productId) {
+      openWhopCheckout(productId, { utm_source: 'app', utm_medium: 'checkout_modal', onSuccess: handleCheckoutSuccess });
+      onOpenChange(false);
+    }
+  }, [open, productId]);
+
+  return null;
 };

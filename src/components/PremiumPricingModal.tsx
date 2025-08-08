@@ -4,8 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Check, CreditCard, Bitcoin, X, Sparkles, MessageCircle } from 'lucide-react';
-import { WhopEmbeddedCheckout } from './upgrade/WhopEmbeddedCheckout';
-import { WhopPreloader } from './upgrade/WhopPreloader';
+import { openWhopCheckout } from '@/utils/whopCheckoutUtils';
 import { useEnhancedAuth } from '@/contexts/EnhancedAuthContext';
 import { toast } from 'sonner';
 
@@ -50,12 +49,11 @@ const PremiumPricingModal: React.FC<PremiumPricingModalProps> = ({
   }, [open]);
 
   const handleCheckout = (productId: string, planTitle: string) => {
-    // Close pricing modal and open embedded checkout
     onOpenChange(false);
-    setCheckoutModal({
-      open: true,
-      productId,
-      productTitle: planTitle,
+    openWhopCheckout(productId, {
+      utm_source: 'app',
+      utm_medium: 'pricing_modal',
+      onSuccess: handleCheckoutSuccess
     });
   };
 
@@ -286,24 +284,6 @@ const PremiumPricingModal: React.FC<PremiumPricingModalProps> = ({
         </DialogContent>
       </Dialog>
 
-      {/* Embedded Checkout Modal */}
-      <WhopEmbeddedCheckout
-        open={checkoutModal.open}
-        onOpenChange={(open) => setCheckoutModal(prev => ({ ...prev, open }))}
-        productId={checkoutModal.productId}
-        productTitle={checkoutModal.productTitle}
-        onSuccess={handleCheckoutSuccess}
-      />
-
-      {/* Hidden Whop Component Preloader */}
-      <WhopPreloader 
-        isVisible={open}
-        productIds={[
-          '4QxYd6NKaDkmMJCte9-faeD-zuxA-OjT2-0ssruHW5aST8', // Monthly card
-          'CCk7osaf7UIrzlOxj-6ULU-XjHr-7dPx-u9IUV6sHa21J', // Yearly card
-          '4ARbsoAlUZHxlkJnQl-ZxjG-iOAB-Ecqr-d4rNMoLB5psd'  // Monthly crypto
-        ]}
-      />
     </>
   );
 };

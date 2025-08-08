@@ -6,10 +6,10 @@ import { Crown, Sparkles, X, RefreshCw } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useWhopProducts } from '@/hooks/useWhopProducts';
 import { WhopProductCard } from './WhopProductCard';
-import { WhopEmbeddedCheckout } from './WhopEmbeddedCheckout';
 import { useEnhancedAuth } from '@/contexts/EnhancedAuthContext';
 import { useWhopIntegration } from '@/hooks/useWhopIntegration';
 import { toast } from 'sonner';
+import { openWhopCheckout } from '@/utils/whopCheckoutUtils';
 
 interface UpgradeModalProps {
   open: boolean;
@@ -51,12 +51,12 @@ export const UpgradeModal: React.FC<UpgradeModalProps> = ({
       return;
     }
 
-    // Close this modal and open embedded checkout
+    // Open checkout in new tab to avoid iframe/CSP restrictions
     onOpenChange(false);
-    setCheckoutModal({
-      open: true,
-      productId,
-      productTitle: product?.title,
+    openWhopCheckout(productId, {
+      utm_source: 'app',
+      utm_medium: 'upgrade_modal',
+      onSuccess: handleCheckoutSuccess
     });
   };
 
@@ -241,14 +241,6 @@ export const UpgradeModal: React.FC<UpgradeModalProps> = ({
         </DialogContent>
       </Dialog>
 
-      {/* Embedded Checkout Modal */}
-      <WhopEmbeddedCheckout
-        open={checkoutModal.open}
-        onOpenChange={(open) => setCheckoutModal(prev => ({ ...prev, open }))}
-        productId={checkoutModal.productId}
-        productTitle={checkoutModal.productTitle}
-        onSuccess={handleCheckoutSuccess}
-      />
     </>
   );
 };

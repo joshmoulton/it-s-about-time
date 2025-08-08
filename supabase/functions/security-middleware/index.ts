@@ -39,16 +39,10 @@ serve(async (req) => {
         'X-Frame-Options': 'SAMEORIGIN',
         'X-Content-Type-Options': 'nosniff',
         'Referrer-Policy': 'strict-origin-when-cross-origin',
-        'Permissions-Policy': [
+'Permissions-Policy': [
           'camera=()',
           'microphone=()', 
           'geolocation=()',
-          'payment=()',
-          'usb=()',
-          'magnetometer=()',
-          'gyroscope=()',
-          'accelerometer=()',
-          'ambient-light-sensor=()',
           'fullscreen=(self)',
           'picture-in-picture=(self)'
         ].join(', '),

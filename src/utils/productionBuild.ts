@@ -45,22 +45,14 @@ export const securityHeaders = {
   // Control referrer information
   'Referrer-Policy': 'strict-origin-when-cross-origin',
   
-  // Restrict dangerous browser features while allowing necessary ones
+  // Restrict select browser features while allowing necessary ones
   'Permissions-Policy': [
     'camera=()',
     'microphone=()', 
     'geolocation=()',
-    'payment=()',
-    'usb=()',
-    'magnetometer=()',
-    'gyroscope=()',
-    'accelerometer=()',
-    'ambient-light-sensor=()',
-    // Allow fullscreen for YouTube embeds and video content
+    // Allow fullscreen and media features commonly used
     'fullscreen=(self)',
-    // Allow picture-in-picture for video content
     'picture-in-picture=(self)',
-    // Allow web-share for sharing functionality
     'web-share=(self)'
   ].join(', '),
   
