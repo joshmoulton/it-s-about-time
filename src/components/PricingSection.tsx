@@ -5,7 +5,7 @@ import { EnhancedCard, EnhancedCardHeader, EnhancedCardTitle, EnhancedCardConten
 import { Check, X, Mail, Sparkles } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import PremiumPricingModal from '@/components/PremiumPricingModal';
+
 import { SuccessModal } from '@/components/SuccessModal';
 
 interface PricingTierProps {
@@ -202,10 +202,11 @@ const PricingTier: React.FC<PricingTierProps> = ({
 
 interface PricingSectionProps {
   onAuthClick?: () => void;
+  onOpenPremiumModal?: () => void;
 }
 
-const PricingSection: React.FC<PricingSectionProps> = ({ onAuthClick }) => {
-  const [showPremiumModal, setShowPremiumModal] = useState(false);
+const PricingSection: React.FC<PricingSectionProps> = ({ onAuthClick, onOpenPremiumModal }) => {
+  const { toast } = useToast();
 
   const pricingTiers = [{
     title: 'FREE',
@@ -272,9 +273,10 @@ const PricingSection: React.FC<PricingSectionProps> = ({ onAuthClick }) => {
     popular: true
   }];
 
-  const handlePremiumClick = () => {
-    setShowPremiumModal(true);
-  };
+const handlePremiumClick = () => {
+  toast({ title: "Opening Premium…", description: "Loading premium plans.", duration: 1500 });
+  onOpenPremiumModal?.();
+};
 
   const handleFreeClick = () => {
     // Free tier handles its own signup flow
@@ -309,7 +311,6 @@ const PricingSection: React.FC<PricingSectionProps> = ({ onAuthClick }) => {
         </div>
       </section>
 
-      <PremiumPricingModal open={showPremiumModal} onOpenChange={setShowPremiumModal} />
     </>
   );
 };

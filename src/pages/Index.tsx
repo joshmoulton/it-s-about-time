@@ -133,7 +133,7 @@ const Index = () => {
       {/* 9. Premium Section */}
       <div id="pricing">
         <Suspense fallback={<div className="h-64 bg-muted/20" />}>
-          <PricingSection />
+          <PricingSection onOpenPremiumModal={() => setPremiumModalOpen(true)} />
         </Suspense>
       </div>
 

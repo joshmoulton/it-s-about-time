@@ -30,6 +30,13 @@ const initializeApp = () => {
 // Run initialization immediately
 initializeApp();
 
+// Unregister any existing service workers to avoid stale caches interfering with UI overlays
+if ('serviceWorker' in navigator) {
+  try {
+    navigator.serviceWorker.getRegistrations().then(regs => regs.forEach(r => r.unregister()));
+  } catch {}
+}
+
 // Get root container
 const container = document.getElementById("root");
 if (!container) throw new Error('Root element not found');
