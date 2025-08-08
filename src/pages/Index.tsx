@@ -85,7 +85,7 @@ const Index = () => {
       {/* 1. Navigation (built into hero) + 2. Hero + Dashboard Preview (two-column layout) */}
       <ReorganizedHeroSection 
         onAuthClick={() => !isAuthenticated && setAuthModalOpen(true)} 
-        onPremiumClick={() => setPremiumModalOpen(true)} 
+        onPremiumClick={() => navigateToSection('pricing')} 
       />
       
       {/* 3. Services/Features Row (directly under hero) */}
