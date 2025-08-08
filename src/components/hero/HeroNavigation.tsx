@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { LazyImage } from "@/components/ui/LazyImage";
 import { Menu } from "lucide-react";
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useEnhancedAuth } from "@/contexts/EnhancedAuthContext";
 import { smoothScrollTo, createScrollHandler } from '@/utils/smoothScroll';
@@ -81,16 +81,12 @@ const HeroNavigation = ({
           >
             Reviews
           </a>
-          <a 
-            href="#pricing" 
+          <Link 
+            to="/pricing"
             className="text-foreground hover:text-primary transition-all duration-300 font-montserrat hover:translate-y-[-1px] drop-shadow-sm hover:drop-shadow-md"
-            onClick={(e) => {
-              e.preventDefault();
-              navigateToSection('pricing');
-            }}
           >
             Pricing
-          </a>
+          </Link>
           <a 
             href="#faq" 
             className="text-foreground hover:text-primary transition-all duration-300 font-montserrat hover:translate-y-[-1px] drop-shadow-sm hover:drop-shadow-md"
