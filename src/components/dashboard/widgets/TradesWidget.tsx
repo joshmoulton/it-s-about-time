@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { TrendingUp, Lock, DollarSign, Calendar, Target, Activity } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface Subscriber {
   id: string;
@@ -20,6 +21,7 @@ interface TradesWidgetProps {
 
 export function TradesWidget({ subscriber }: TradesWidgetProps) {
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
 
   const getTierLevel = (tier: string) => {
     const levels = { free: 0, paid: 1, premium: 2 };
@@ -48,7 +50,7 @@ export function TradesWidget({ subscriber }: TradesWidgetProps) {
             <p className="text-muted-foreground text-center mb-6 max-w-md">
               Access live trading alerts and monitor your portfolio performance with a paid subscription.
             </p>
-            <Button onClick={() => navigate('/pricing?open=1')}>
+            <Button onClick={() => navigate(isMobile ? '/pricing' : '/pricing?open=1')}>
               Upgrade to Paid
             </Button>
           </CardContent>

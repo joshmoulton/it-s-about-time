@@ -124,9 +124,9 @@ const PremiumPricingModal: React.FC<PremiumPricingModalProps> = ({
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-6xl w-[95vw] h-[95vh] max-h-[900px] overflow-hidden p-0 border-border bg-card">
-          <div className="h-full overflow-y-auto overscroll-contain" style={{ WebkitOverflowScrolling: 'touch' }}>
-          <DialogHeader className="text-center pb-6 pt-8 px-6">
+        <DialogContent className="p-0 border-border bg-card overflow-hidden inset-0 left-0 top-0 translate-x-0 translate-y-0 h-[100dvh] w-screen max-w-none rounded-none sm:left-1/2 sm:top-1/2 sm:-translate-x-1/2 sm:-translate-y-1/2 sm:w-[95vw] sm:max-w-6xl sm:h-auto sm:rounded-lg">
+          <div className="h-full overflow-y-auto overscroll-contain pb-[env(safe-area-inset-bottom)]" style={{ WebkitOverflowScrolling: 'touch' }}>
+          <DialogHeader className="sticky top-0 z-10 text-center pb-4 pt-6 px-4 sm:px-6 bg-card/90 backdrop-blur supports-[backdrop-filter]:bg-card/80 border-b border-border/50">
             <div className="flex items-center justify-center gap-3 mb-6">
               <div className="relative">
                 <Sparkles className="h-10 w-10 text-brand-primary" />

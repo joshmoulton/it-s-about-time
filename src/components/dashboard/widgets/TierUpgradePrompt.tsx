@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Crown, Zap, Star, ArrowRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface Subscriber {
   subscription_tier: 'free' | 'paid' | 'premium';
@@ -17,6 +18,7 @@ interface TierUpgradePromptProps {
 
 export function TierUpgradePrompt({ subscriber, feature, className = '' }: TierUpgradePromptProps) {
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
   
   const getUpgradeConfig = () => {
     if (subscriber.subscription_tier === 'free') {
@@ -57,7 +59,7 @@ export function TierUpgradePrompt({ subscriber, feature, className = '' }: TierU
         <p className="text-muted-foreground mb-4 text-sm">{config.description}</p>
         
         <Button 
-          onClick={() => navigate('/pricing?open=1')}
+          onClick={() => navigate(isMobile ? '/pricing' : '/pricing?open=1')}
           className={`bg-gradient-to-r ${config.color} hover:opacity-90 transition-opacity`}
         >
           Upgrade Now

@@ -3,9 +3,11 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Send, Zap } from 'lucide-react';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 export function ChatUpgradePrompt() {
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
   return (
     <div className="border-t border-white/20 pt-4 space-y-3 flex-shrink-0">
       <div className="flex gap-3">
@@ -26,7 +28,7 @@ export function ChatUpgradePrompt() {
       <Button 
         variant="outline" 
         size="sm" 
-        onClick={() => navigate('/pricing?open=1')}
+        onClick={() => navigate(isMobile ? '/pricing' : '/pricing?open=1')}
         className="text-sm w-full bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm border-white/20 hover:bg-white/80 dark:hover:bg-gray-800/80 rounded-xl font-medium h-10"
       >
         <Zap className="h-4 w-4 mr-2" />
