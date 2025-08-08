@@ -24,11 +24,11 @@ export default function UpgradePage() {
           <div className="flex items-center justify-between h-16">
             <Button
               variant="ghost"
-              onClick={() => navigate('/dashboard')}
+              onClick={() => navigate('/')}
               className="flex items-center gap-2 text-slate-300 hover:text-white"
             >
               <ArrowLeft className="h-4 w-4" />
-              Back to Dashboard
+              Home
             </Button>
             <h1 className="text-xl font-bold text-white">Upgrade to Premium</h1>
             <div className="w-32" /> {/* Spacer for centering */}
