@@ -37,21 +37,15 @@ const DialogContent = React.forwardRef<
       ref={ref}
       className={cn(
         "fixed inset-0 z-[10001] grid place-items-center p-4 sm:p-6 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
+        className
       )}
       {...props}
     >
-      <div
-        className={cn(
-          "relative w-full max-w-lg border border-border bg-card text-card-foreground shadow-xl sm:rounded-xl max-h-[92svh] min-h-0 overflow-y-auto",
-          className
-        )}
-      >
-        {children}
-        <DialogPrimitive.Close className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-all hover:opacity-100 hover:bg-secondary focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none p-1">
-          <X className="h-4 w-4 text-muted-foreground" />
-          <span className="sr-only">Close</span>
-        </DialogPrimitive.Close>
-      </div>
+      {children}
+      <DialogPrimitive.Close className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-all hover:opacity-100 hover:bg-secondary focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none p-1 z-10">
+        <X className="h-4 w-4 text-muted-foreground" />
+        <span className="sr-only">Close</span>
+      </DialogPrimitive.Close>
     </DialogPrimitive.Content>
   </DialogPortal>
 ))
