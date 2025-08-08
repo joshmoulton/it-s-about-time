@@ -190,22 +190,42 @@ async function unifiedVerification(email: string): Promise<VerificationResult> {
   try {
     console.log(`🔍 Starting unified verification for: ${email}`);
 
-    // Only verify with Beehiiv (no more Whop dependency)
+    // Verify with Beehiiv
     const beehiivResult = await verifyBeehiiv(email);
-
     console.log(`🔍 Beehiiv verification result: ${JSON.stringify(beehiivResult)}`);
 
-    // Determine verification status and source
-    const beehiivActive = beehiivResult.verified;
-    
-    let source: 'beehiiv' | 'whop' | 'both' | 'none' = beehiivActive ? 'beehiiv' : 'none';
-    let verified = beehiivActive;
-    
-    // Use Beehiiv tier directly
-    const finalTier = beehiivActive ? beehiivResult.tier : 'free';
+    // Verify with Whop as well (fallback for users billed via Whop)
+    let whopResult: { verified: boolean; tier: 'free' | 'paid' | 'premium' } = { verified: false, tier: 'free' };
+    try {
+      const { data: whopVerify, error: whopError } = await supabase.functions.invoke('whop-integration', {
+        body: { action: 'verify_purchase', email }
+      });
+      if (!whopError && whopVerify && (whopVerify.valid || whopVerify.has_valid_purchase)) {
+        whopResult = { verified: true, tier: 'premium' };
+      }
+    } catch (e) {
+      console.warn('⚠️ Whop verification invoke failed, attempting table lookup');
+      // Fallback: try local table if exists
+      const fallback = await verifyWhop(email);
+      whopResult = fallback;
+    }
 
-    // Store successful verification results locally and create session
-    let subscriberId: string | null = null;
+    const beehiivActive = beehiivResult.verified;
+    const whopActive = whopResult.verified;
+
+    // Determine final tier by highest between sources
+    const finalTier = getHighestTier([
+      beehiivActive ? beehiivResult.tier : 'free',
+      whopActive ? whopResult.tier : 'free'
+    ]);
+
+    let source: 'beehiiv' | 'whop' | 'both' | 'none' = 'none';
+    if (beehiivActive && whopActive) source = 'both';
+    else if (beehiivActive) source = 'beehiiv';
+    else if (whopActive) source = 'whop';
+
+    const verified = source !== 'none';
+
     
     if (verified && beehiivActive) {
       try {
@@ -238,9 +258,9 @@ async function unifiedVerification(email: string): Promise<VerificationResult> {
 
     const metadata = {
       beehiiv_active: beehiivActive,
-      whop_active: false, // No longer checking Whop
+      whop_active: whopActive,
       beehiiv_tier: beehiivResult.tier,
-      whop_tier: 'free', // No longer relevant
+      whop_tier: whopResult.tier,
       beehiiv_segments: beehiivResult.segments,
       verification_timestamp: new Date().toISOString()
     };
