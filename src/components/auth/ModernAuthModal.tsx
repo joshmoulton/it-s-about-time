@@ -1,5 +1,5 @@
 
-import React, { useState, useCallback, memo, Suspense, useRef } from 'react';
+import React, { useState, useCallback, memo, Suspense, useRef, useEffect } from 'react';
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { useEnhancedAuth } from '@/contexts/EnhancedAuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -17,7 +17,7 @@ interface ModernAuthModalProps {
 type AuthMode = 'welcome' | 'signin' | 'signup' | 'magic';
 
 export const ModernAuthModal: React.FC<ModernAuthModalProps> = memo(({ open, onOpenChange, onExplicitClose }) => {
-  const { setAuthenticatedUser } = useEnhancedAuth();
+  const { setAuthenticatedUser, isAuthenticated } = useEnhancedAuth();
   const navigate = useNavigate();
   const [mode, setMode] = useState<AuthMode>('welcome');
   const [isLoading, setIsLoading] = useState(false);
@@ -30,6 +30,14 @@ export const ModernAuthModal: React.FC<ModernAuthModalProps> = memo(({ open, onO
   // Refs to prevent duplicate submissions
   const isSubmittingRef = useRef(false);
   const lastSubmitTimeRef = useRef(0);
+
+  // Auto-close and redirect when auth completes (e.g., after magic link)
+  useEffect(() => {
+    if (isAuthenticated && open) {
+      onOpenChange(false);
+      navigate('/dashboard');
+    }
+  }, [isAuthenticated, open, onOpenChange, navigate]);
 
   const resetForm = useCallback(() => {
     setEmail('');
