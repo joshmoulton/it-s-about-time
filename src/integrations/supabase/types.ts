@@ -3852,6 +3852,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: Database["public"]["Enums"]["subscription_tier"]
       }
+      get_current_user_tier_optimized: {
+        Args: Record<PropertyKey, never>
+        Returns: Database["public"]["Enums"]["subscription_tier"]
+      }
       get_effective_user_role: {
         Args: Record<PropertyKey, never>
         Returns: string
