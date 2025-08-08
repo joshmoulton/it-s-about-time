@@ -30,8 +30,7 @@
     <meta http-equiv="Cache-Control" content="public, max-age=31536000, immutable" />
     <meta http-equiv="Expires" content="Thu, 31 Dec 2025 23:59:59 GMT" />
     
-    <!-- Preload critical resources only -->
-    <link rel="preload" href="/src/index.css" as="style" fetchpriority="high" />
+    <!-- Preload critical resources only (handled by bundler) -->
     
     <!-- Critical CSS inlined for immediate render -->
     <style>
@@ -91,7 +90,6 @@
     <!-- Security headers optimized for Whop integration -->
     <meta http-equiv="X-Content-Type-Options" content="nosniff">
     <meta http-equiv="Referrer-Policy" content="no-referrer-when-downgrade">
-    <meta http-equiv="Permissions-Policy" content="payment=*, publickey-credentials-get=*, document-domain=*">
     
     <!-- Web App Manifest -->
     <link rel="manifest" href="/manifest.json">
@@ -110,12 +108,15 @@
           document.fonts.load('400 1em Inter');
         }
         
-        // Disable service worker in preview to avoid CSP issues
-        if (window.location.hostname.includes('lovableproject.com')) {
-          if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.getRegistrations().then(registrations => {
-              registrations.forEach(registration => registration.unregister());
-            });
+        // Disable any service worker + clear caches in Lovable preview domains
+        const host = window.location.hostname;
+        const isLovablePreview = /lovable(app|project)\.com$/.test(host) || host.includes('lovable.app') || host.includes('lovable.dev');
+        if (isLovablePreview && 'serviceWorker' in navigator) {
+          navigator.serviceWorker.getRegistrations().then(registrations => {
+            registrations.forEach(registration => registration.unregister());
+          });
+          if ('caches' in window) {
+            caches.keys().then(keys => keys.forEach(k => caches.delete(k))).catch(() => {});
           }
         }
       })();
