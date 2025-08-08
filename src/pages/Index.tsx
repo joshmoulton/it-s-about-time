@@ -75,7 +75,7 @@ const Index = () => {
     />
 
     
-    <div className="min-h-screen bg-background relative overflow-x-hidden overflow-y-auto" style={{
+    <div className="min-h-screen bg-background relative overflow-x-hidden" style={{
       minHeight: '100vh',
       WebkitOverflowScrolling: 'touch'
     }}>
