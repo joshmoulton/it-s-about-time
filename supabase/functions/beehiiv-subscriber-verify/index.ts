@@ -93,27 +93,33 @@ async function verifyBeehiivSubscriber(email: string): Promise<BeehiivResponse> 
     }
 
     const subscription = data.data;
-    const isActive = subscription.status === 'active';
-    
-    // Use the direct subscription_tier field from the API response
+    const status = (subscription.status || '').toString().toLowerCase();
+
+    // Consider these statuses as active/valid
+    const activeStatuses = new Set(['active', 'valid', 'validating', 'subscribed', 'confirmed']);
+
+    // Determine premium/paid from API fields
     let tier: 'free' | 'paid' | 'premium' = 'free';
-    
-    // Map all possible Beehiiv subscription tiers correctly
     const apiTier = subscription.subscription_tier;
-    if (apiTier === 'premium' || 
-        apiTier === 'Premium' || 
-        subscription.subscription_premium_tier_names?.length > 0) {
+    if (
+      apiTier === 'premium' ||
+      apiTier === 'Premium' ||
+      (Array.isArray(subscription.subscription_premium_tier_names) && subscription.subscription_premium_tier_names.length > 0)
+    ) {
       tier = 'premium';
     } else if (apiTier === 'paid' || apiTier === 'Paid') {
       tier = 'paid';
     } else if (apiTier === 'free' || apiTier === 'Free') {
       tier = 'free';
     } else {
-      // For any unrecognized tier, check if there are premium tier names
-      tier = subscription.subscription_premium_tier_names?.length > 0 ? 'premium' : 'free';
+      // Fallback: treat presence of premium tier names as premium
+      tier = (subscription.subscription_premium_tier_names?.length ?? 0) > 0 ? 'premium' : 'free';
     }
+
+    // Verified if status is active-like OR if Beehiiv reports non-free tier
+    const isActive = activeStatuses.has(status) || tier !== 'free';
     
-    console.log(`✅ Beehiiv verification complete - Email: ${email}, Active: ${isActive}, Tier: ${tier}, API Tier: ${subscription.subscription_tier}`);
+    console.log(`✅ Beehiiv verification complete - Email: ${email}, Status: ${status}, Active: ${isActive}, Tier: ${tier}, API Tier: ${subscription.subscription_tier}`);
 
     // Log the verification for audit purposes
     await supabase.from('authentication_audit_log').insert({
