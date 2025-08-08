@@ -194,21 +194,8 @@ async function unifiedVerification(email: string): Promise<VerificationResult> {
     const beehiivResult = await verifyBeehiiv(email);
     console.log(`🔍 Beehiiv verification result: ${JSON.stringify(beehiivResult)}`);
 
-    // Verify with Whop as well (fallback for users billed via Whop)
-    let whopResult: { verified: boolean; tier: 'free' | 'paid' | 'premium' } = { verified: false, tier: 'free' };
-    try {
-      const { data: whopVerify, error: whopError } = await supabase.functions.invoke('whop-integration', {
-        body: { action: 'verify_purchase', email }
-      });
-      if (!whopError && whopVerify && (whopVerify.valid || whopVerify.has_valid_purchase)) {
-        whopResult = { verified: true, tier: 'premium' };
-      }
-    } catch (e) {
-      console.warn('⚠️ Whop verification invoke failed, attempting table lookup');
-      // Fallback: try local table if exists
-      const fallback = await verifyWhop(email);
-      whopResult = fallback;
-    }
+    // Whop fallback disabled; Beehiiv is the only source of truth
+    const whopResult: { verified: boolean; tier: 'free' | 'paid' | 'premium' } = { verified: false, tier: 'free' as const };
 
     const beehiivActive = beehiivResult.verified;
     const whopActive = whopResult.verified;
@@ -247,8 +234,7 @@ async function unifiedVerification(email: string): Promise<VerificationResult> {
         if (upsertError) {
           console.error(`❌ Failed to store Beehiiv user ${email}:`, upsertError);
         } else {
-          subscriberId = upsertResult?.id;
-          console.log(`💾 Successfully stored Beehiiv verification for ${email} with tier ${beehiivResult.tier}, ID: ${subscriberId}`);
+          console.log(`💾 Successfully stored Beehiiv verification for ${email} with tier ${beehiivResult.tier}, ID: ${upsertResult?.id}`);
         }
       } catch (error) {
         console.error('Error storing Beehiiv verification result:', error);

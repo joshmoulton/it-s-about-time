@@ -7,14 +7,16 @@ interface WhopPreloaderProps {
 }
 
 export const WhopPreloader: React.FC<WhopPreloaderProps> = ({ isVisible, productIds }) => {
+  // Avoid rendering the embed in iframe environments (e.g., Lovable preview)
+  const isInIframe = typeof window !== 'undefined' && window.top !== window.self;
+
   useEffect(() => {
-    if (isVisible && productIds.length > 0) {
-      // Warm up the Whop React component by rendering it hidden
+    if (isVisible && productIds.length > 0 && !isInIframe) {
       console.log('Warming up Whop checkout components...');
     }
-  }, [isVisible, productIds]);
+  }, [isVisible, productIds, isInIframe]);
 
-  if (!isVisible || productIds.length === 0) {
+  if (!isVisible || productIds.length === 0 || isInIframe) {
     return null;
   }
 

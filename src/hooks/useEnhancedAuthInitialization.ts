@@ -74,22 +74,22 @@ export const useEnhancedAuthInitialization = ({
               localStorage.setItem('auth_method', 'supabase_admin');
               console.log('✅ Admin user detected - tier: premium');
             } else {
-              // Unified verification (Beehiiv + Whop)
+              // Beehiiv is the single source of truth for subscription tier
               try {
                 const { data: verifyData, error: verifyError } = await supabase.functions.invoke('unified-auth-verify', {
                   body: { email: session.user.email }
                 });
                 if (verifyError || !verifyData?.success) {
-                  console.warn('⚠️ Unified verification failed, defaulting to free:', verifyError || verifyData);
+                  console.warn('⚠️ Beehiiv verification failed, defaulting to free:', verifyError || verifyData);
                   subscriptionTier = 'free';
                 } else {
                   const tierRaw = verifyData.tier as 'free' | 'premium' | 'paid';
                   // Treat any non-free as premium for dashboard gating
                   subscriptionTier = tierRaw === 'free' ? 'free' : 'premium';
-                  console.log(`✅ Unified verification tier: ${verifyData.tier} (mapped to ${subscriptionTier})`);
+                  console.log(`✅ Beehiiv verification tier: ${verifyData.tier} (mapped to ${subscriptionTier})`);
                 }
               } catch (error) {
-                console.warn('⚠️ Unified verification error, defaulting to free:', error);
+                console.warn('⚠️ Beehiiv verification error, defaulting to free:', error);
                 subscriptionTier = 'free';
               }
             }
@@ -178,16 +178,16 @@ export const useEnhancedAuthInitialization = ({
               localStorage.setItem('auth_method', 'supabase_user');
               
               try {
-                console.log('🔍 Unified verification for cached session...');
+                console.log('🔍 Beehiiv verification for cached session...');
                 const { data: verifyData, error: verifyError } = await supabase.functions.invoke('unified-auth-verify', {
                   body: { email: session.user.email }
                 });
                 if (!verifyError && verifyData?.success) {
                   const tierRaw = verifyData.tier as 'free' | 'premium' | 'paid';
                   subscriptionTier = tierRaw === 'free' ? 'free' : 'premium';
-                  console.log(`✅ Cached unified tier: ${verifyData.tier} (mapped to ${subscriptionTier})`);
+                  console.log(`✅ Cached Beehiiv tier: ${verifyData.tier} (mapped to ${subscriptionTier})`);
                 } else {
-                  console.warn('⚠️ Cached unified verification failed; using free');
+                  console.warn('⚠️ Cached Beehiiv verification failed; using free');
                 }
               } catch (apiError) {
                 console.warn('⚠️ Cached unified verification error:', apiError);
