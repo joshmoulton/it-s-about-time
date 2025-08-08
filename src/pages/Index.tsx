@@ -68,6 +68,13 @@ const Index = () => {
     setPremiumModalOpen(isOpen);
   }, [location.search]);
 
+  // Scroll to top when premium modal opens to avoid off-screen positioning
+  useEffect(() => {
+    if (premiumModalOpen) {
+      window.scrollTo(0, 0);
+    }
+  }, [premiumModalOpen]);
+
   // Safety: ensure body/html scroll are never left locked
   useEffect(() => {
     const unlock = () => {
