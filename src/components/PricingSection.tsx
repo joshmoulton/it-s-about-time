@@ -5,7 +5,6 @@ import { EnhancedCard, EnhancedCardHeader, EnhancedCardTitle, EnhancedCardConten
 import { Check, X, Mail, Sparkles } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { navigateToSection } from '@/utils/hashNavigation';
 
 import { SuccessModal } from '@/components/SuccessModal';
 
@@ -279,10 +278,6 @@ const handlePremiumClick: React.MouseEventHandler<HTMLButtonElement> = (e) => {
   e.preventDefault();
   e.stopPropagation();
   console.debug('[premium] CTA clicked');
-  
-  // Scroll to the KOL testimonial section first
-  navigateToSection('about');
-  
   try {
     toast({ title: 'Opening Premium…', description: 'Loading premium plans.', duration: 1500 });
   } catch {}

@@ -6,7 +6,6 @@ const SECTION_MAPPINGS: Record<string, string> = {
   'about': '#about', 
   'testimonials': '.kol-testimonial-section',
   'reviews': '.kol-testimonial-section',
-  'farokh': '#farokh-testimonial',
   'pricing': '#pricing',
   'faq': '#faq',
   'contact': '#contact'
