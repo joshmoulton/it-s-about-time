@@ -21,7 +21,7 @@ interface PricingTierProps {
   buttonVariant?: 'default' | 'outline';
   popular?: boolean;
   isFree?: boolean;
-  onButtonClick: () => void;
+  onButtonClick: React.MouseEventHandler<HTMLButtonElement>;
 }
 
 const PricingTier: React.FC<PricingTierProps> = ({
@@ -178,6 +178,7 @@ const PricingTier: React.FC<PricingTierProps> = ({
             </form>
           ) : (
             <Button 
+              type="button"
               className="w-full h-14 bg-brand-primary hover:bg-background hover:text-brand-primary text-white font-semibold border-2 border-brand-primary transition-all duration-300 sm:hover:scale-105 sm:hover:translate-y-[-2px] touch-manipulation min-h-[44px]" 
               size="lg" 
               onClick={onButtonClick}
@@ -273,15 +274,23 @@ const PricingSection: React.FC<PricingSectionProps> = ({ onAuthClick, onOpenPrem
     popular: true
   }];
 
-const handlePremiumClick = () => {
-  toast({ title: "Opening Premium…", description: "Loading premium plans.", duration: 1500 });
+const handlePremiumClick: React.MouseEventHandler<HTMLButtonElement> = (e) => {
+  e.preventDefault();
+  e.stopPropagation();
+  console.debug('[premium] CTA clicked');
+  try {
+    toast({ title: 'Opening Premium…', description: 'Loading premium plans.', duration: 1500 });
+  } catch {}
   onOpenPremiumModal?.();
-  // Fallback: if modal fails to mount (e.g., stale SW or CSP), navigate to /upgrade
-  window.setTimeout(() => {
-    const modalEl = document.getElementById('premium-pricing-modal-content');
-    if (!modalEl) {
-      toast({ title: "Opening premium on dedicated page…", duration: 1500 });
-      window.location.assign('/upgrade');
+
+  // 700ms later, verify the modal exists; if not, hard-fallback
+  setTimeout(() => {
+    const el = document.getElementById('premium-pricing-modal-content');
+    const found = !!el;
+    console.debug('[premium] modal content present?', found, el);
+    if (!found) {
+      console.warn('[premium] modal missing, redirecting to /upgrade');
+      window.location.href = '/upgrade';
     }
   }, 700);
 };

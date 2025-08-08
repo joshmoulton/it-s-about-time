@@ -48,6 +48,10 @@ const PremiumPricingModal: React.FC<PremiumPricingModalProps> = ({
     }
   }, [open]);
 
+  useEffect(() => {
+    console.debug('[premium] PremiumPricingModal render, open=', open);
+  }, [open]);
+
   const handleCheckout = (productId: string, planTitle: string) => {
     onOpenChange(false);
     openWhopCheckout(productId, {

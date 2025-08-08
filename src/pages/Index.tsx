@@ -7,6 +7,7 @@ import AuthOptionsModal from "@/components/AuthOptionsModal";
 import PremiumPricingModal from "@/components/PremiumPricingModal";
 import ReorganizedHeroSection from "@/components/ReorganizedHeroSection";
 import FeaturesRowSection from "@/components/FeaturesRowSection";
+import PricingSection from "@/components/PricingSection";
 import { SEOManager, generateStructuredData } from "@/components/SEOManager";
 import { useHashNavigation } from "@/hooks/useHashNavigation";
 import { navigateToSection } from "@/utils/hashNavigation";
@@ -24,11 +25,6 @@ const AboutSection = lazy(() =>
 );
 const TestimonialsSection = lazy(() => 
   import("@/components/TestimonialsSection").then(module => ({ 
-    default: module.default 
-  }))
-);
-const PricingSection = lazy(() => 
-  import("@/components/PricingSection").then(module => ({ 
     default: module.default 
   }))
 );
@@ -56,6 +52,11 @@ const Index = () => {
   // Initialize hash navigation
   useHashNavigation();
 
+  // Expose emergency opener and log state
+  useEffect(() => {
+    (window as any).__openPremium = () => setPremiumModalOpen(true);
+    console.debug('[premium] premiumModalOpen=', premiumModalOpen);
+  }, [premiumModalOpen]);
   // Generate structured data for the homepage
   const homepageStructuredData = generateStructuredData('Organization', {
     name: 'Weekly Wizdom',
