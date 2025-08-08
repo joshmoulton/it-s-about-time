@@ -4,11 +4,13 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Loader2, CheckCircle, XCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useEnhancedAuth } from '@/contexts/EnhancedAuthContext';
 
 const AuthVerify = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { setAuthenticatedUser } = useEnhancedAuth();
   const [status, setStatus] = useState<'verifying' | 'success' | 'error'>('verifying');
   const [message, setMessage] = useState('Verifying your access link...');
 
@@ -66,6 +68,18 @@ const AuthVerify = () => {
         localStorage.setItem('auth_user_tier', normalizedTier);
         localStorage.setItem('auth_user_source', verifyData.source || 'beehiiv');
 
+        // Immediately set auth context to avoid redirect loop
+        setAuthenticatedUser({
+          id: 'magic_link_user',
+          email: decodeURIComponent(email),
+          subscription_tier: normalizedTier,
+          user_type: 'unified_user',
+          status: 'active',
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          metadata: { source: verifyData.source || 'beehiiv' }
+        }, 'magic_link');
+
         setStatus('success');
         setMessage('Successfully verified! Redirecting to dashboard...');
 
@@ -75,10 +89,8 @@ const AuthVerify = () => {
           description: "You've been successfully signed in.",
         });
 
-        // Redirect to dashboard after a short delay
-        setTimeout(() => {
-          navigate('/dashboard');
-        }, 2000);
+        // Redirect immediately
+        navigate('/dashboard');
 
       } catch (error) {
         console.error('❌ Verification error:', error);
