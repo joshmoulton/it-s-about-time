@@ -42,7 +42,7 @@ export function TopNavigation({
         {/* Logo */}
         <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity min-w-0">
           <LazyImage
-            src="https://wrvvlmevpvcenauglcyz.supabase.co/storage/v1/object/public/assets/Property%201=Black%20(3).png" 
+            src="https://wrvvlmevpvcenauglcyz.supabase.co/storage/v1/object/public/assets/Property%201=White%20(2).png" 
             alt="Weekly Wizdom" 
             className="h-5 sm:h-6 md:h-8 w-auto cursor-pointer"
             loading="eager"
