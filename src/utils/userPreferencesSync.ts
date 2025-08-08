@@ -2,7 +2,7 @@
 // Manages hybrid local storage + database sync for authenticated users
 
 import { supabase } from '@/integrations/supabase/client';
-import { SimplifiedAuth } from './simplifiedAuthUtils';
+
 
 export interface UserPreference {
   preference_type: string;
@@ -83,14 +83,8 @@ class UserPreferencesSync {
         this.syncQueue.set(type, data);
       }
 
-      // Log the preference change for analytics
-      if (this.currentUserEmail) {
-        await SimplifiedAuth.logAuthEvent(
-          this.currentUserEmail, 
-          'preference_update', 
-          true
-        );
-      }
+      // Analytics logging removed (deprecated SimplifiedAuth)
+
     } catch (error) {
       console.error('Failed to set preference:', error);
       throw error;

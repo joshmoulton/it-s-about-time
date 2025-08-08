@@ -22,7 +22,7 @@ serve(async (req) => {
 
   try {
     const supabase = createClient(supabaseUrl, supabaseServiceKey)
-    const { action, email, password, whop_access_token, reset_token, new_password }: AuthRequest = await req.json()
+    const { action, email, password, reset_token, new_password }: AuthRequest = await req.json()
 
     console.log(`🔐 Enhanced auth request: ${action} for ${email}`)
 

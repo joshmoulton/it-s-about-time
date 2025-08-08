@@ -1,7 +1,7 @@
 
 import { useEffect, useRef, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { SimplifiedAuth } from '@/utils/simplifiedAuthUtils';
+
 import { CurrentUser } from '@/types/auth';
 
 
@@ -286,24 +286,9 @@ export const useEnhancedAuthInitialization = ({
               return;
             }
           } catch (beehiivErr) {
-            console.warn('⚠️ Beehiiv verification failed for cached auth, falling back to Whop checks', beehiivErr);
+            console.warn('⚠️ Beehiiv verification failed for cached auth; clearing cached session', beehiivErr);
+            setCurrentUser(null);
           }
-          
-          // Check user tiers via Whop/admin fallback
-          const isWhopAuth = await SimplifiedAuth.isWhopAuthenticated(cachedEmail);
-          const isAdmin = await SimplifiedAuth.isAdmin(cachedEmail);
-          const tier = await SimplifiedAuth.getUserTier(cachedEmail);
-          
-          const userType = isAdmin ? 'whop_admin' : (isWhopAuth ? 'whop_user' : 'supabase_user');
-          localStorage.setItem('auth_method', userType);
-          
-          const user = {
-            id: 'cached_user',
-            email: cachedEmail,
-            subscription_tier: tier,
-            user_type: userType as 'whop_admin' | 'whop_user' | 'supabase_user'
-          };
-          setCurrentUser(user);
         } else {
           console.log('ℹ️ No valid enhanced session found, checking persistence data...');
           

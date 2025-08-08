@@ -5,7 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertCircle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { SimplifiedAuth } from '@/utils/simplifiedAuthUtils';
+
 import { DeviceManagementModal } from './DeviceManagementModal';
 import { RememberMeOption } from './RememberMeOption';
 import { PasswordLoginForm } from './forms/PasswordLoginForm';

@@ -1,7 +1,7 @@
 
 import { useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { SimplifiedAuth } from '@/utils/simplifiedAuthUtils';
+
 import { CurrentUser } from '@/types/auth';
 import { supabase } from '@/integrations/supabase/client';
 

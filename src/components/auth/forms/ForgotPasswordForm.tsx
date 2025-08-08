@@ -5,7 +5,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { KeyRound, Loader2, ArrowLeft, Mail } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { SimplifiedAuth } from '@/utils/simplifiedAuthUtils';
+
 
 interface ForgotPasswordFormProps {
   onBack: () => void;
