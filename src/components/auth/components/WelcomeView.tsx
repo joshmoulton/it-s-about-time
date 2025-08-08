@@ -51,11 +51,12 @@ export const WelcomeView: React.FC<WelcomeViewProps> = ({
         <Button
           onClick={() => onModeChange('magic')}
           disabled={isLoading}
-          className="w-full h-12 bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl font-medium transition-colors"
+          size="lg"
+          className="w-full rounded-xl font-medium transition-colors px-5 sm:px-6 md:px-8 gap-2 sm:gap-3"
         >
-          <Mail className="w-5 h-5 mr-3" />
-          Get Access Link (Recommended)
-          <ArrowRight className="w-4 h-4 ml-2" />
+          <Mail className="w-5 h-5 shrink-0" />
+          <span className="text-sm sm:text-base">Get Access Link (Recommended)</span>
+          <ArrowRight className="w-4 h-4 shrink-0" />
         </Button>
         <p className="text-xs text-center text-gray-500 mt-2">
           💡 Automatically verifies your Beehiiv subscription status
