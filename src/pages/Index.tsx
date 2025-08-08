@@ -152,10 +152,12 @@ const Index = () => {
         </Suspense>
       </div>
 
-      {/* 7. Custom KOL Testimonial */}
-      <Suspense fallback={<div className="h-32 bg-muted/20" />}>
-        <KOLTestimonialSection variant="custom" />
-      </Suspense>
+      {/* 7. Custom KOL Testimonial - Farokh */}
+      <div id="farokh-testimonial">
+        <Suspense fallback={<div className="h-32 bg-muted/20" />}>
+          <KOLTestimonialSection variant="custom" />
+        </Suspense>
+      </div>
 
       {/* 8. Reviews/Testimonials - Commented out for now */}
       {/* <div id="reviews">

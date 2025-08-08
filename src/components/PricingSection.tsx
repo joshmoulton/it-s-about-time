@@ -281,7 +281,7 @@ const handlePremiumClick: React.MouseEventHandler<HTMLButtonElement> = (e) => {
   console.debug('[premium] CTA clicked');
   
   // Scroll to the KOL testimonial section first
-  navigateToSection('testimonials');
+  navigateToSection('farokh');
   
   try {
     toast({ title: 'Opening Premium…', description: 'Loading premium plans.', duration: 1500 });
