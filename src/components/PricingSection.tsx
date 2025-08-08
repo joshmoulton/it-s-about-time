@@ -283,16 +283,8 @@ const handlePremiumClick: React.MouseEventHandler<HTMLButtonElement> = (e) => {
   } catch {}
   onOpenPremiumModal?.();
 
-  // 700ms later, verify the modal exists; if not, hard-fallback
-  setTimeout(() => {
-    const el = document.getElementById('premium-pricing-modal-content');
-    const found = !!el;
-    console.debug('[premium] modal content present?', found, el);
-    if (!found) {
-      console.warn('[premium] modal missing, redirecting to /upgrade');
-      window.location.href = '/upgrade';
-    }
-  }, 700);
+  // No redirect fallback; modal opens in-place
+  // If needed, you can call (window as any).__openPremium?.() here.
 };
 
   const handleFreeClick = () => {
