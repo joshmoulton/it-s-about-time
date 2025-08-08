@@ -76,17 +76,17 @@ export const useEnhancedAuthInitialization = ({
             } else {
               // Beehiiv is the single source of truth for subscription tier
               try {
-                const { data: verifyData, error: verifyError } = await supabase.functions.invoke('unified-auth-verify', {
-                  body: { email: session.user.email }
+                const { data: verifyData, error: verifyError } = await supabase.functions.invoke('beehiiv-subscriber-verify', {
+                  body: { email: session.user.email.toLowerCase().trim() }
                 });
                 if (verifyError || !verifyData?.success) {
                   console.warn('⚠️ Beehiiv verification failed, defaulting to free:', verifyError || verifyData);
                   subscriptionTier = 'free';
                 } else {
-                  const tierRaw = verifyData.tier as 'free' | 'premium' | 'paid';
+                  const tierRaw = (verifyData.tier as 'free' | 'premium' | 'paid') || 'free';
                   // Treat any non-free as premium for dashboard gating
                   subscriptionTier = tierRaw === 'free' ? 'free' : 'premium';
-                  console.log(`✅ Beehiiv verification tier: ${verifyData.tier} (mapped to ${subscriptionTier})`);
+                  console.log(`✅ Beehiiv tier: ${verifyData.tier} (mapped to ${subscriptionTier})`);
                 }
               } catch (error) {
                 console.warn('⚠️ Beehiiv verification error, defaulting to free:', error);
@@ -179,8 +179,8 @@ export const useEnhancedAuthInitialization = ({
               
               try {
                 console.log('🔍 Beehiiv verification for cached session...');
-                const { data: verifyData, error: verifyError } = await supabase.functions.invoke('unified-auth-verify', {
-                  body: { email: session.user.email }
+                const { data: verifyData, error: verifyError } = await supabase.functions.invoke('beehiiv-subscriber-verify', {
+                  body: { email: session.user.email.toLowerCase().trim() }
                 });
                 if (!verifyError && verifyData?.success) {
                   const tierRaw = verifyData.tier as 'free' | 'premium' | 'paid';
@@ -190,7 +190,7 @@ export const useEnhancedAuthInitialization = ({
                   console.warn('⚠️ Cached Beehiiv verification failed; using free');
                 }
               } catch (apiError) {
-                console.warn('⚠️ Cached unified verification error:', apiError);
+                console.warn('⚠️ Cached Beehiiv verification error:', apiError);
               }
             }
             

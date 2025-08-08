@@ -47,21 +47,22 @@ export const useEnhancedAuthState = () => {
       // Always verify against Beehiiv for current tier
       if (currentUser.email) {
         const { data: verificationResult, error: verifyError } = await supabase.functions.invoke(
-          'unified-auth-verify',
-          { body: { email: currentUser.email } }
+          'beehiiv-subscriber-verify',
+          { body: { email: currentUser.email.toLowerCase().trim() } }
         );
 
-        if (!verifyError && verificationResult?.verified) {
-          const updatedTier = verificationResult.tier || 'free';
+        if (!verifyError && verificationResult?.success) {
+          const updatedTierRaw = (verificationResult.tier as 'free' | 'paid' | 'premium') || 'free';
+          const updatedTier = (updatedTierRaw === 'free' ? 'free' : 'premium') as 'free' | 'premium';
           
-          const refreshedUserData = {
+          const refreshedUserData: CurrentUser = {
             ...currentUser,
             subscription_tier: updatedTier,
             updated_at: new Date().toISOString()
           };
           
           setCurrentUser(refreshedUserData);
-          console.log(`✅ User tier refreshed to: ${updatedTier}`);
+          console.log(`✅ User tier refreshed to: ${updatedTier} (raw: ${updatedTierRaw})`);
         }
       }
     } catch (error) {
