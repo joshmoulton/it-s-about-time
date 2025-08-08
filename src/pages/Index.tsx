@@ -68,12 +68,7 @@ const Index = () => {
     setPremiumModalOpen(isOpen);
   }, [location.search]);
 
-  // Scroll to top when premium modal opens to avoid off-screen positioning
-  useEffect(() => {
-    if (premiumModalOpen && window.scrollY > 100) {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-  }, [premiumModalOpen]);
+  // Remove automatic scroll behavior - let modal open at current scroll position
 
   // Safety: ensure body/html scroll are never left locked
   useEffect(() => {
