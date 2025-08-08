@@ -48,7 +48,7 @@ export function TradesWidget({ subscriber }: TradesWidgetProps) {
             <p className="text-muted-foreground text-center mb-6 max-w-md">
               Access live trading alerts and monitor your portfolio performance with a paid subscription.
             </p>
-            <Button onClick={() => navigate('/upgrade')}>
+            <Button onClick={() => navigate('/pricing?open=1')}>
               Upgrade to Paid
             </Button>
           </CardContent>

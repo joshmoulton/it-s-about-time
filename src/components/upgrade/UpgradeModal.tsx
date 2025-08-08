@@ -68,7 +68,7 @@ export const UpgradeModal: React.FC<UpgradeModalProps> = ({
 
   const handleViewAllPlans = () => {
     onOpenChange(false);
-    navigate('/upgrade');
+    navigate('/pricing');
   };
 
   const handleSyncProducts = async () => {

@@ -57,7 +57,7 @@ export function TierUpgradePrompt({ subscriber, feature, className = '' }: TierU
         <p className="text-muted-foreground mb-4 text-sm">{config.description}</p>
         
         <Button 
-          onClick={() => navigate('/upgrade')}
+          onClick={() => navigate('/pricing?open=1')}
           className={`bg-gradient-to-r ${config.color} hover:opacity-90 transition-opacity`}
         >
           Upgrade Now
