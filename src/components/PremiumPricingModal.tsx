@@ -52,15 +52,6 @@ const PremiumPricingModal: React.FC<PremiumPricingModalProps> = ({
     console.debug('[premium] PremiumPricingModal render, open=', open);
   }, [open]);
 
-  // Ensure the modal content starts at the top on open
-  useEffect(() => {
-    if (open) {
-      requestAnimationFrame(() => {
-        const el = document.getElementById('premium-pricing-modal-content');
-        if (el) el.scrollTop = 0;
-      });
-    }
-  }, [open]);
 
   const handleCheckout = (productId: string, planTitle: string) => {
     onOpenChange(false);
@@ -133,10 +124,9 @@ const PremiumPricingModal: React.FC<PremiumPricingModalProps> = ({
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent id="premium-pricing-modal-content" role="dialog" aria-modal="true" className="w-[min(100vw-2rem,960px)] sm:w-[min(100vw-4rem,1024px)] max-w-4xl h-[min(92vh,800px)] overflow-y-auto overscroll-contain bg-card border border-border shadow-xl rounded-2xl focus:outline-none p-0" style={{
-          WebkitOverflowScrolling: 'touch'
-        }}>
-          <DialogHeader className="text-center pb-6 pt-8">
+        <DialogContent className="max-w-6xl w-[95vw] h-[95vh] max-h-[900px] overflow-hidden p-0 border-border bg-card">
+          <div className="h-full overflow-y-auto overscroll-contain" style={{ WebkitOverflowScrolling: 'touch' }}>
+          <DialogHeader className="text-center pb-6 pt-8 px-6">
             <div className="flex items-center justify-center gap-3 mb-6">
               <div className="relative">
                 <Sparkles className="h-10 w-10 text-brand-primary" />
@@ -151,8 +141,8 @@ const PremiumPricingModal: React.FC<PremiumPricingModalProps> = ({
             </DialogDescription>
           </DialogHeader>
 
-          {/* Payment Method Toggle */}
-          <div className="flex justify-center mb-8">
+            {/* Payment Method Toggle */}
+            <div className="flex justify-center mb-8 px-6">
             <div className="bg-muted/50 backdrop-blur-sm rounded-full p-1.5 border border-border/50 shadow-lg">
               <div className="flex">
                 <button 
@@ -173,8 +163,8 @@ const PremiumPricingModal: React.FC<PremiumPricingModalProps> = ({
             </div>
           </div>
 
-          {/* Pricing Plans */}
-          <div className={`grid gap-6 mb-8 ${paymentMethod === 'card' ? 'grid-cols-1 md:grid-cols-2 max-w-4xl mx-auto' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 max-w-5xl mx-auto'}`}>
+            {/* Pricing Plans */}
+            <div className={`grid gap-6 mb-8 px-6 ${paymentMethod === 'card' ? 'grid-cols-1 md:grid-cols-2 max-w-4xl mx-auto' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 max-w-5xl mx-auto'}`}>
             {(paymentMethod === 'card' ? cardPlans : cryptoPlans).map((plan, index) => (
               <div key={index} className={`group relative p-6 rounded-2xl transition-all duration-300 hover:scale-[1.02] border flex flex-col backdrop-blur-sm ${plan.popular ? 'bg-gradient-to-br from-brand-primary/5 via-background to-background border-brand-primary border-2 shadow-xl shadow-brand-primary/10' : 'bg-card/80 border-border hover:border-brand-primary/50 hover:shadow-lg'}`}>
                 {plan.popular && (
@@ -215,8 +205,8 @@ const PremiumPricingModal: React.FC<PremiumPricingModalProps> = ({
             ))}
           </div>
 
-          {/* Payment Method Info */}
-          <div className="text-center p-4 bg-gradient-to-r from-muted/30 to-muted/20 rounded-xl border border-border/50 mb-6 backdrop-blur-sm">
+            {/* Payment Method Info */}
+            <div className="text-center p-4 mx-6 bg-gradient-to-r from-muted/30 to-muted/20 rounded-xl border border-border/50 mb-6 backdrop-blur-sm">
             <div className="flex items-center justify-center gap-3 mb-2">
               {paymentMethod === 'card' ? <CreditCard className="h-5 w-5 text-brand-primary" /> : <Bitcoin className="h-5 w-5 text-orange-500" />}
               <span className="text-foreground font-semibold">
@@ -231,8 +221,8 @@ const PremiumPricingModal: React.FC<PremiumPricingModalProps> = ({
             </p>
           </div>
 
-          {/* Questions Section */}
-          <div className="text-center mb-6 p-4 bg-gradient-to-r from-muted/20 to-muted/10 rounded-xl border border-border/50 backdrop-blur-sm">
+            {/* Questions Section */}
+            <div className="text-center mb-6 p-4 mx-6 bg-gradient-to-r from-muted/20 to-muted/10 rounded-xl border border-border/50 backdrop-blur-sm">
             <p className="text-foreground font-semibold text-sm mb-3">Have questions or concerns?</p>
             {!showContactForm ? (
               <Button 
@@ -280,8 +270,8 @@ const PremiumPricingModal: React.FC<PremiumPricingModalProps> = ({
             )}
           </div>
 
-          {/* Premium Features */}
-          <div className="mb-4 p-6 bg-gradient-to-br from-muted/30 via-muted/20 to-muted/10 rounded-2xl border border-border/50 backdrop-blur-sm">
+            {/* Premium Features */}
+            <div className="mb-4 p-6 mx-6 bg-gradient-to-br from-muted/30 via-muted/20 to-muted/10 rounded-2xl border border-border/50 backdrop-blur-sm">
             <div className="text-center mb-8">
               <h3 className="text-2xl font-bold text-foreground mb-3">What's Included</h3>
               <div className="w-16 h-1 bg-gradient-to-r from-brand-primary to-brand-primary/60 mx-auto rounded-full"></div>
@@ -295,6 +285,7 @@ const PremiumPricingModal: React.FC<PremiumPricingModalProps> = ({
                   <span className="text-foreground font-medium text-sm leading-relaxed">{feature}</span>
                 </div>
               ))}
+            </div>
             </div>
           </div>
         </DialogContent>
