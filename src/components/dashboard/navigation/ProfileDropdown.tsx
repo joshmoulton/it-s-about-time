@@ -45,10 +45,10 @@ export function ProfileDropdown({ subscriber, onStartTour, onLogout }: ProfileDr
         const { data, error } = await supabase
           .from('user_profiles')
           .select('avatar_url')
-          .or(`user_id.eq.${currentUser.id},whop_email.eq.${currentUser.email}`)
-          .single();
+          .or(`user_id.eq.${currentUser.id},whop_email.eq.${currentUser.email},user_email.eq.${currentUser.email}`)
+          .maybeSingle();
 
-        if (error && error.code !== 'PGRST116') {
+        if (error) {
           console.error('Error loading avatar:', error);
           return;
         }

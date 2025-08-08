@@ -265,7 +265,31 @@ export const useEnhancedAuthInitialization = ({
             console.error('❌ Session bridging failed:', bridgeError);
           }
           
-          // Check user tiers
+          // Verify tier via Beehiiv for cached auth (magic link)
+          try {
+            const { data: verifyData, error: verifyError } = await supabase.functions.invoke('beehiiv-subscriber-verify', {
+              body: { email: cachedEmail.toLowerCase().trim() }
+            });
+            if (!verifyError && verifyData?.success) {
+              const tierRaw = (verifyData.tier as 'free' | 'paid' | 'premium') || 'free';
+              const subscriptionTier = tierRaw === 'free' ? 'free' : 'premium';
+              const user = {
+                id: 'magic_link_user',
+                email: cachedEmail,
+                subscription_tier: subscriptionTier as 'free' | 'premium',
+                user_type: 'unified_user' as const
+              };
+              localStorage.setItem('auth_method', 'magic_link');
+              setCurrentUser(user);
+              setIsLoading(false);
+              isInitialized.current = true;
+              return;
+            }
+          } catch (beehiivErr) {
+            console.warn('⚠️ Beehiiv verification failed for cached auth, falling back to Whop checks', beehiivErr);
+          }
+          
+          // Check user tiers via Whop/admin fallback
           const isWhopAuth = await SimplifiedAuth.isWhopAuthenticated(cachedEmail);
           const isAdmin = await SimplifiedAuth.isAdmin(cachedEmail);
           const tier = await SimplifiedAuth.getUserTier(cachedEmail);

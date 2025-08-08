@@ -165,11 +165,13 @@ export function UserProfileSection() {
 
       console.log('Saving profile data:', profileData);
 
+      const conflictTarget = currentUser.user_type === 'whop_user'
+        ? 'whop_email'
+        : (currentUser.id ? 'user_id' : 'user_email');
+
       const { data, error } = await supabase
         .from('user_profiles')
-        .upsert(profileData, {
-          onConflict: currentUser.user_type === 'whop_user' ? 'whop_email' : 'user_id'
-        })
+        .upsert(profileData, { onConflict: conflictTarget })
         .select();
 
       if (error) {
