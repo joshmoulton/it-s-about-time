@@ -55,8 +55,9 @@ const PremiumPricingModal: React.FC<PremiumPricingModalProps> = ({
 
 
   const handleCheckout = (productId: string, planTitle: string) => {
-    // Open embedded checkout modal (no redirects)
-    setCheckoutModal({ open: true, productId, productTitle: planTitle });
+    // Close pricing modal, then open embedded checkout (prevents stacked overlays)
+    onOpenChange(false);
+    setTimeout(() => setCheckoutModal({ open: true, productId, productTitle: planTitle }), 0);
   };
 
   const handleCheckoutSuccess = async () => {
