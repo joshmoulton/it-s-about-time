@@ -7,6 +7,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
 import { SuccessModal } from '@/components/SuccessModal';
+import { useNavigate } from 'react-router-dom';
 
 interface PricingTierProps {
   title: string;
@@ -208,6 +209,7 @@ interface PricingSectionProps {
 
 const PricingSection: React.FC<PricingSectionProps> = ({ onAuthClick, onOpenPremiumModal }) => {
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   const pricingTiers = [{
     title: 'FREE',
@@ -277,14 +279,10 @@ const PricingSection: React.FC<PricingSectionProps> = ({ onAuthClick, onOpenPrem
 const handlePremiumClick: React.MouseEventHandler<HTMLButtonElement> = (e) => {
   e.preventDefault();
   e.stopPropagation();
-  console.debug('[premium] CTA clicked');
   try {
-    toast({ title: 'Opening Premium…', description: 'Loading premium plans.', duration: 1500 });
+    toast({ title: 'Opening Premium…', description: 'Loading premium plans.', duration: 1200 });
   } catch {}
-  onOpenPremiumModal?.();
-
-  // No redirect fallback; modal opens in-place
-  // If needed, you can call (window as any).__openPremium?.() here.
+  navigate('/pricing?open=1');
 };
 
   const handleFreeClick = () => {
