@@ -3748,21 +3748,13 @@ export type Database = {
         Returns: string
       }
       create_unified_session: {
-        Args:
-          | {
-              p_email: string
-              p_session_token: string
-              p_tier: string
-              p_source: string
-              p_expires_at: string
-            }
-          | {
-              p_email: string
-              p_session_token: string
-              p_tier?: Database["public"]["Enums"]["subscription_tier"]
-              p_source?: string
-              p_expires_at?: string
-            }
+        Args: {
+          p_email: string
+          p_session_token: string
+          p_tier?: Database["public"]["Enums"]["subscription_tier"]
+          p_source?: string
+          p_expires_at?: string
+        }
         Returns: Json
       }
       debug_current_auth_state: {
