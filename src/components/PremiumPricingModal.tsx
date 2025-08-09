@@ -122,7 +122,7 @@ const PremiumPricingModal: React.FC<PremiumPricingModalProps> = ({
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="z-[10001] p-0 border-border bg-card overflow-hidden w-[95vw] sm:w-[95vw] max-w-6xl max-h-[90dvh] sm:rounded-lg">
+        <DialogContent className="inset-0 m-auto translate-x-0 translate-y-0 z-[10001] p-0 border-border bg-card overflow-hidden w-[95vw] sm:w-[95vw] max-w-6xl max-h-[90svh] md:max-h-[90dvh] sm:rounded-lg">
           <div className="min-h-0 overflow-y-auto overscroll-contain max-h-[85dvh] sm:max-h-[90dvh] pb-[env(safe-area-inset-bottom)]" style={{ WebkitOverflowScrolling: 'touch' }}>
           <DialogHeader className="sticky top-0 z-10 text-center pb-4 pt-6 px-4 sm:px-6 bg-card/90 backdrop-blur supports-[backdrop-filter]:bg-card/80 border-b border-border/50">
             <div className="flex items-center justify-center gap-3 mb-6">
