@@ -42,10 +42,17 @@ export function ProfileDropdown({ subscriber, onStartTour, onLogout }: ProfileDr
       if (!currentUser) return;
 
       try {
+        const isValidUUID = (id: string) =>
+          /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id);
+        const useUserId = typeof currentUser.id === 'string' && isValidUUID(currentUser.id);
+        const orFilter = useUserId
+          ? `user_id.eq.${currentUser.id},whop_email.eq.${currentUser.email},user_email.eq.${currentUser.email}`
+          : `whop_email.eq.${currentUser.email},user_email.eq.${currentUser.email}`;
+
         const { data, error } = await supabase
           .from('user_profiles')
           .select('avatar_url')
-          .or(`user_id.eq.${currentUser.id},whop_email.eq.${currentUser.email},user_email.eq.${currentUser.email}`)
+          .or(orFilter)
           .maybeSingle();
 
         if (error) {

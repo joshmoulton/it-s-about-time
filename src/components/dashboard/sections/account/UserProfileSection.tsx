@@ -37,8 +37,13 @@ export function UserProfileSection() {
     try {
       // Build a more flexible query for different user types
       let query = supabase.from('user_profiles').select('*');
-      
-      if (currentUser.id) {
+
+      // Validate UUID to avoid invalid input syntax errors in PostgREST
+      const isValidUUID = (id: string) =>
+        /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id);
+      const useUserId = typeof currentUser.id === 'string' && isValidUUID(currentUser.id);
+
+      if (useUserId) {
         query = query.or(`user_id.eq.${currentUser.id},whop_email.eq.${currentUser.email},user_email.eq.${currentUser.email}`);
       } else {
         query = query.or(`whop_email.eq.${currentUser.email},user_email.eq.${currentUser.email}`);
