@@ -138,9 +138,13 @@ serve(async (req) => {
 
     if (authError) {
       console.error('❌ Error creating user in auth:', authError)
+      const msg = (authError as any).message?.toLowerCase() || ''
+      const isDuplicate = msg.includes('duplicate') || msg.includes('already') || msg.includes('users_email_partial_key') || msg.includes('database error creating new user')
+      const status = isDuplicate ? 409 : ((authError as any).status || 400)
+      const errorText = isDuplicate ? 'User already exists' : `Failed to create user: ${(authError as any).message}`
       return new Response(
-        JSON.stringify({ error: `Failed to create user: ${authError.message}` }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        JSON.stringify({ error: errorText }),
+        { status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
 

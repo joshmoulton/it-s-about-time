@@ -2,6 +2,7 @@
  * Browser detection and optimization utilities
  * Ensures consistent behavior across Chrome, Safari, Firefox, Edge, Brave, and mobile browsers
  */
+import { warn as logWarn } from '@/utils/productionLogger'
 
 // Comprehensive browser detection utilities
 export const getBrowserInfo = () => {
@@ -438,11 +439,8 @@ export const monitorPerformance = () => {
     const observer = new PerformanceObserver((list) => {
       const entries = list.getEntries();
       entries.forEach((entry) => {
-        // Log performance issues in development
-        if (process.env.NODE_ENV === 'development') {
-          if (entry.duration > 100) {
-            console.warn(`Slow performance detected: ${entry.name} took ${entry.duration}ms`);
-          }
+        if (entry.duration > 200) {
+          logWarn(`Slow performance detected: ${entry.name} took ${entry.duration}ms`)
         }
       });
     });
