@@ -34,6 +34,10 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     stateRef.current = currentState;
   }
 
+  // Grace period after magic-link verification to avoid redirect loops
+  const justLoggedInAt = Number(sessionStorage.getItem('ww.justLoggedIn') || '0');
+  const withinGrace = justLoggedInAt > 0 && Date.now() - justLoggedInAt < 10000;
+
   // Reduced timeout for faster UX
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -53,6 +57,13 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     }
   }, [isAuthenticated, isLoading]);
 
+  // Clear grace flag once authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      sessionStorage.removeItem('ww.justLoggedIn');
+    }
+  }, [isAuthenticated]);
+
   // Grant immediate access for admins (determined by database function)
   if (isAdmin) {
     logger.info('Admin access granted immediately');
@@ -71,8 +82,21 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     );
   }
 
+  // If within grace window after login, show a brief loader to allow auth to settle
+  if (!isAuthenticated && withinGrace) {
+    logger.info('Within post-login grace period, showing brief loader');
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="flex flex-col items-center space-y-4">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <p className="text-muted-foreground">Finalizing sign-in...</p>
+        </div>
+      </div>
+    );
+  }
+
   // If not authenticated, redirect to login once loading completes or after timeout
-  if (!isAuthenticated && (authTimeout || !isLoading)) {
+  if (!isAuthenticated && (authTimeout || !isLoading) && !withinGrace) {
     logger.warn('Not authenticated (post-load or timeout), redirecting to login');
     return <Navigate to="/login" replace />;
   }

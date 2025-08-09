@@ -68,6 +68,9 @@ const AuthVerify = () => {
         localStorage.setItem('auth_user_tier', normalizedTier);
         localStorage.setItem('auth_user_source', verifyData.source || 'beehiiv');
 
+        // Flag recent login to provide a short grace period for route guards
+        sessionStorage.setItem('ww.justLoggedIn', String(Date.now()));
+
         // Immediately set auth context to avoid redirect loop
         setAuthenticatedUser({
           id: 'magic_link_user',
@@ -89,8 +92,8 @@ const AuthVerify = () => {
           description: "You've been successfully signed in.",
         });
 
-        // Redirect immediately
-        navigate('/dashboard');
+        // Redirect immediately and replace history to avoid back to verify page
+        navigate('/dashboard', { replace: true });
 
       } catch (error) {
         console.error('❌ Verification error:', error);
