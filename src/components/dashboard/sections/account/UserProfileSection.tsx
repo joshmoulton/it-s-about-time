@@ -35,18 +35,29 @@ export function UserProfileSection() {
     if (!currentUser) return;
 
     try {
-      // Build a more flexible query for different user types
-      let query = supabase.from('user_profiles').select('*');
+      // Prefer subscriber linkage via beehiiv_subscribers.id
+      let query = supabase.from('user_profiles').select('*').limit(1);
 
-      // Validate UUID to avoid invalid input syntax errors in PostgREST
+      // Try to resolve subscriber_id from Beehiiv by email
+      const { data: subRow } = await supabase
+        .from('beehiiv_subscribers')
+        .select('id')
+        .eq('email', currentUser.email as string)
+        .maybeSingle();
+      const subscriberId = subRow?.id as string | undefined;
+
       const isValidUUID = (id: string) =>
         /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id);
-      const useUserId = typeof currentUser.id === 'string' && isValidUUID(currentUser.id);
 
-      if (useUserId) {
-        query = query.or(`user_id.eq.${currentUser.id},whop_email.eq.${currentUser.email},user_email.eq.${currentUser.email}`);
+      if (subscriberId && isValidUUID(subscriberId)) {
+        query = query.eq('subscriber_id', subscriberId);
       } else {
-        query = query.or(`whop_email.eq.${currentUser.email},user_email.eq.${currentUser.email}`);
+        // Fallback to OR-based lookup when subscriber_id not available
+        const useUserId = typeof currentUser.id === 'string' && isValidUUID(currentUser.id);
+        const orFilter = useUserId
+          ? `user_id.eq.${currentUser.id},whop_email.eq.${currentUser.email},user_email.eq.${currentUser.email}`
+          : `whop_email.eq.${currentUser.email},user_email.eq.${currentUser.email}`;
+        query = query.or(orFilter);
       }
 
       const { data, error } = await query.maybeSingle();
@@ -157,14 +168,26 @@ export function UserProfileSection() {
       const profileData: any = {
         display_name: formData.displayName,
         avatar_url: formData.avatarUrl,
-        user_email: currentUser.email, // Always include email for better lookups
+        user_email: currentUser.email, // keep email for lookups
         updated_at: new Date().toISOString()
       };
 
       // Helper: validate UUID format
       const isValidUUID = (id: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id);
 
-      // For Whop users, use whop_email. For others, use user_id only if valid UUID
+      // Resolve subscriber_id via Beehiiv subscribers (preferred key)
+      const { data: subRow } = await supabase
+        .from('beehiiv_subscribers')
+        .select('id')
+        .eq('email', currentUser.email as string)
+        .maybeSingle();
+      const subscriberId = subRow?.id as string | undefined;
+
+      if (subscriberId && isValidUUID(subscriberId)) {
+        profileData.subscriber_id = subscriberId;
+      }
+
+      // Preserve legacy identifiers for backward compatibility
       if (currentUser.user_type === 'whop_user') {
         profileData.whop_email = currentUser.email;
       } else if (currentUser.id && isValidUUID(currentUser.id)) {
@@ -173,9 +196,11 @@ export function UserProfileSection() {
 
       console.log('Saving profile data:', profileData);
 
-      const conflictTarget = currentUser.user_type === 'whop_user'
-        ? 'whop_email'
-        : (currentUser.id && isValidUUID(currentUser.id) ? 'user_id' : 'user_email');
+      const conflictTarget = (subscriberId && isValidUUID(subscriberId))
+        ? 'subscriber_id'
+        : (currentUser.user_type === 'whop_user'
+            ? 'whop_email'
+            : (currentUser.id && isValidUUID(currentUser.id) ? 'user_id' : 'user_email'));
 
       const { data, error } = await supabase
         .from('user_profiles')

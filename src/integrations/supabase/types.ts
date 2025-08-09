@@ -3058,6 +3058,7 @@ export type Database = {
           id: string
           linkedin_profile: string | null
           location: string | null
+          subscriber_id: string | null
           tour_disabled: boolean
           twitter_handle: string | null
           updated_at: string
@@ -3074,6 +3075,7 @@ export type Database = {
           id?: string
           linkedin_profile?: string | null
           location?: string | null
+          subscriber_id?: string | null
           tour_disabled?: boolean
           twitter_handle?: string | null
           updated_at?: string
@@ -3090,6 +3092,7 @@ export type Database = {
           id?: string
           linkedin_profile?: string | null
           location?: string | null
+          subscriber_id?: string | null
           tour_disabled?: boolean
           twitter_handle?: string | null
           updated_at?: string
@@ -3098,7 +3101,15 @@ export type Database = {
           website_url?: string | null
           whop_email?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "user_profiles_subscriber_id_fkey"
+            columns: ["subscriber_id"]
+            isOneToOne: false
+            referencedRelation: "beehiiv_subscribers"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_sessions: {
         Row: {

@@ -42,18 +42,31 @@ export function ProfileDropdown({ subscriber, onStartTour, onLogout }: ProfileDr
       if (!currentUser) return;
 
       try {
+        // Prefer subscriber_id linkage for stable profile lookup
         const isValidUUID = (id: string) =>
           /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id);
-        const useUserId = typeof currentUser.id === 'string' && isValidUUID(currentUser.id);
-        const orFilter = useUserId
-          ? `user_id.eq.${currentUser.id},whop_email.eq.${currentUser.email},user_email.eq.${currentUser.email}`
-          : `whop_email.eq.${currentUser.email},user_email.eq.${currentUser.email}`;
 
-        const { data, error } = await supabase
-          .from('user_profiles')
-          .select('avatar_url')
-          .or(orFilter)
+        // Try to resolve beehiiv subscriber_id by email (RLS allows self-read)
+        const { data: subRow } = await supabase
+          .from('beehiiv_subscribers')
+          .select('id')
+          .eq('email', currentUser.email as string)
           .maybeSingle();
+        const subscriberId = subRow?.id as string | undefined;
+
+        let query = supabase.from('user_profiles').select('avatar_url').limit(1);
+        if (subscriberId && isValidUUID(subscriberId)) {
+          query = query.eq('subscriber_id', subscriberId);
+        } else {
+          // Fallback to prior OR lookup when subscriber_id not available
+          const useUserId = typeof currentUser.id === 'string' && isValidUUID(currentUser.id);
+          const orFilter = useUserId
+            ? `user_id.eq.${currentUser.id},whop_email.eq.${currentUser.email},user_email.eq.${currentUser.email}`
+            : `whop_email.eq.${currentUser.email},user_email.eq.${currentUser.email}`;
+          query = query.or(orFilter);
+        }
+
+        const { data, error } = await query.maybeSingle();
 
         if (error) {
           console.error('Error loading avatar:', error);
