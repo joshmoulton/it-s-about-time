@@ -7,6 +7,7 @@ import { Check, CreditCard, Bitcoin, X, Sparkles, MessageCircle } from 'lucide-r
 import { openWhopCheckout } from '@/utils/whopCheckoutUtils';
 import { useEnhancedAuth } from '@/contexts/EnhancedAuthContext';
 import { toast } from 'sonner';
+import { WhopEmbeddedCheckout } from '@/components/upgrade/WhopEmbeddedCheckout';
 
 interface PremiumPricingModalProps {
   open: boolean;
@@ -54,12 +55,8 @@ const PremiumPricingModal: React.FC<PremiumPricingModalProps> = ({
 
 
   const handleCheckout = (productId: string, planTitle: string) => {
-    onOpenChange(false);
-    openWhopCheckout(productId, {
-      utm_source: 'app',
-      utm_medium: 'pricing_modal',
-      onSuccess: handleCheckoutSuccess
-    });
+    // Open embedded checkout modal (no redirects)
+    setCheckoutModal({ open: true, productId, productTitle: planTitle });
   };
 
   const handleCheckoutSuccess = async () => {
@@ -124,7 +121,7 @@ const PremiumPricingModal: React.FC<PremiumPricingModalProps> = ({
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="fixed z-[10001] p-0 border-border bg-card overflow-hidden !inset-0 !left-0 !top-0 !translate-x-0 !translate-y-0 h-[100dvh] w-screen max-w-none rounded-none sm:inset-auto sm:left-1/2 sm:top-1/2 sm:-translate-x-1/2 sm:-translate-y-1/2 sm:w-[95vw] sm:max-w-6xl sm:h-auto sm:rounded-lg">
+        <DialogContent className="fixed z-[10001] p-0 border-border bg-card overflow-hidden inset-0 left-0 top-0 translate-x-0 translate-y-0 h-[100dvh] w-screen max-w-none rounded-none sm:inset-auto sm:left-1/2 sm:top-1/2 sm:-translate-x-1/2 sm:-translate-y-1/2 sm:w-[95vw] sm:max-w-6xl sm:h-auto sm:rounded-lg">
           <div className="h-full overflow-y-auto overscroll-contain pb-[env(safe-area-inset-bottom)]" style={{ WebkitOverflowScrolling: 'touch' }}>
           <DialogHeader className="sticky top-0 z-10 text-center pb-4 pt-6 px-4 sm:px-6 bg-card/90 backdrop-blur supports-[backdrop-filter]:bg-card/80 border-b border-border/50">
             <div className="flex items-center justify-center gap-3 mb-6">
@@ -290,6 +287,14 @@ const PremiumPricingModal: React.FC<PremiumPricingModalProps> = ({
           </div>
         </DialogContent>
       </Dialog>
+
+      <WhopEmbeddedCheckout
+        open={checkoutModal.open}
+        onOpenChange={(open) => setCheckoutModal(prev => ({ ...prev, open }))}
+        productId={checkoutModal.productId}
+        productTitle={checkoutModal.productTitle}
+        onSuccess={handleCheckoutSuccess}
+      />
 
     </>
   );
