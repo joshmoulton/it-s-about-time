@@ -81,12 +81,16 @@ const HeroNavigation = ({
           >
             Reviews
           </a>
-          <Link 
-            to="/?open=1"
+          <a 
+            href="#pricing" 
             className="text-foreground hover:text-primary transition-all duration-300 font-montserrat hover:translate-y-[-1px] drop-shadow-sm hover:drop-shadow-md"
+            onClick={(e) => {
+              e.preventDefault();
+              navigateToSection('pricing');
+            }}
           >
             Pricing
-          </Link>
+          </a>
           <a 
             href="#faq" 
             className="text-foreground hover:text-primary transition-all duration-300 font-montserrat hover:translate-y-[-1px] drop-shadow-sm hover:drop-shadow-md"
@@ -183,12 +187,12 @@ const HeroNavigation = ({
               Reviews
             </a>
             <a 
-              href="/?open=1" 
+              href="#pricing" 
               className="block text-foreground hover:text-primary transition-all duration-300 font-montserrat hover:translate-x-2 hover:drop-shadow-sm py-2 min-h-[44px] flex items-center"
               onClick={(e) => {
                 e.preventDefault();
                 setIsMobileMenuOpen(false);
-                navigate('/?open=1');
+                navigateToSection('pricing');
               }}
             >
               Pricing
