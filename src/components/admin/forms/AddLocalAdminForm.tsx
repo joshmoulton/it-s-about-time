@@ -40,6 +40,12 @@ export function AddLocalAdminForm({ onCancel, onSuccess }: AddLocalAdminFormProp
         throw new Error('No active session found');
       }
 
+      // Enforce strict allowlist on client as well
+      const requesterEmail = (session.user?.email || '').toLowerCase();
+      if (requesterEmail !== 'moulton.joshua@gmail.com') {
+        throw new Error('Insufficient permissions to create admin users');
+      }
+
       // Call the edge function to create the admin user
       const { data, error } = await supabase.functions.invoke('admin-user-create', {
         body: {

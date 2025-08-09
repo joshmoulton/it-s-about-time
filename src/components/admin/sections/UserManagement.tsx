@@ -18,6 +18,7 @@ import {
   UserErrorState, 
   UserEmptyState 
 } from './user-management/components';
+import { useEnhancedAuth } from '@/contexts/EnhancedAuthContext';
 
 export function UserManagement() {
   const [showAddAdmin, setShowAddAdmin] = useState(false);
@@ -52,6 +53,9 @@ export function UserManagement() {
     removeBetaUsers,
     isProcessing
   } = useBulkActions();
+
+  const { currentUser } = useEnhancedAuth();
+  const isAllowlistedAdmin = (currentUser?.email || '').toLowerCase() === 'moulton.joshua@gmail.com';
 
   const handleSuccess = () => {
     refetch();
@@ -144,7 +148,7 @@ export function UserManagement() {
         <UserManagementHeader
           onAddAdmin={() => setShowAddAdmin(true)}
           onAddAnalyst={() => setShowAddAnalyst(true)}
-          onAddLocalAdmin={() => setShowAddLocalAdmin(true)}
+          onAddLocalAdmin={() => { if (isAllowlistedAdmin) setShowAddLocalAdmin(true); }}
         />
       </div>
 

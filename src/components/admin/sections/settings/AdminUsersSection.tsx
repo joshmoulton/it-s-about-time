@@ -13,11 +13,14 @@ import { useNavigate } from 'react-router-dom';
 import { maskEmail, logDataAccess } from '@/utils/dataMasking';
 import { adminSecurityManager } from '@/utils/adminSecurity';
 import { logger } from '@/utils/secureLogger';
+import { useEnhancedAuth } from '@/contexts/EnhancedAuthContext';
 
 export function AdminUsersSection() {
   const { toast } = useToast();
   const navigate = useNavigate();
   const [showAddAdmin, setShowAddAdmin] = useState(false);
+  const { currentUser } = useEnhancedAuth();
+  const isAllowlistedAdmin = (currentUser?.email || '').toLowerCase() === 'moulton.joshua@gmail.com';
 
   const { data: adminUsers, refetch: refetchAdmins } = useQuery({
     queryKey: ['admin-settings-users'],
@@ -205,14 +208,16 @@ export function AdminUsersSection() {
             </div>
           ))}
         </div>
-        <Button 
-          className="w-full text-xs md:text-sm"
-          onClick={() => setShowAddAdmin(true)}
-          size="sm"
-        >
-          <Plus className="h-3 w-3 md:h-4 md:w-4 mr-2" />
-          Add New Admin
-        </Button>
+        {isAllowlistedAdmin && (
+          <Button 
+            className="w-full text-xs md:text-sm"
+            onClick={() => setShowAddAdmin(true)}
+            size="sm"
+          >
+            <Plus className="h-3 w-3 md:h-4 md:w-4 mr-2" />
+            Add New Admin
+          </Button>
+        )}
       </CardContent>
     </Card>
   );

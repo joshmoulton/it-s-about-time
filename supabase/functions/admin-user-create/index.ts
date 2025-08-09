@@ -112,6 +112,17 @@ serve(async (req) => {
 
     console.log('✅ Admin verification passed')
 
+    // Temporary strict allowlist: only specific local admin can create admins
+    const allowedAdmins = new Set(['moulton.joshua@gmail.com']);
+    const requesterEmail = (user.email || '').toLowerCase();
+    if (!allowedAdmins.has(requesterEmail)) {
+      console.warn('⛔ Admin creation blocked for non-allowlisted user:', requesterEmail);
+      return new Response(
+        JSON.stringify({ error: 'Insufficient permissions for this operation' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     // Parse request body
     const { email, password, role } = await req.json()
     console.log('📝 Request data:', { email, role })
