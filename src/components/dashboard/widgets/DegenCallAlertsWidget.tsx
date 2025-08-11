@@ -1,3 +1,4 @@
+
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ModernCard, ModernCardHeader, ModernCardTitle, ModernCardContent } from '@/components/ui/modern-card';
@@ -7,6 +8,7 @@ import { Zap, ExternalLink, TrendingUp, DollarSign, Clock } from 'lucide-react';
 import { useDegenCallAlerts } from '@/hooks/useDegenCallAlerts';
 import { supabase } from '@/integrations/supabase/client';
 import { useQueryClient } from '@tanstack/react-query';
+
 interface Subscriber {
   id: string;
   email: string;
@@ -15,10 +17,12 @@ interface Subscriber {
   created_at: string;
   updated_at: string;
 }
+
 interface DegenCallAlertsWidgetProps {
   subscriber: Subscriber;
   hideHeader?: boolean;
 }
+
 export function DegenCallAlertsWidget({
   subscriber,
   hideHeader = false
@@ -30,6 +34,7 @@ export function DegenCallAlertsWidget({
   } = useDegenCallAlerts(2); // Last 2 calls for better fit
 
   const queryClient = useQueryClient();
+
   useEffect(() => {
     const KEY = 'ww_backfill_degen_2025_08_11';
     if (sessionStorage.getItem(KEY)) return;
@@ -107,9 +112,11 @@ export function DegenCallAlertsWidget({
   const handleViewAllCalls = () => {
     navigate('/dashboard?section=degen-calls');
   };
+
   const formatMultiplier = (multiplier: number) => {
     return `${multiplier.toFixed(1)}x`;
   };
+
   const formatTimeAgo = (timestamp: string) => {
     const now = new Date();
     const callTime = new Date(timestamp);
@@ -119,8 +126,11 @@ export function DegenCallAlertsWidget({
     if (diffMinutes < 1440) return `${Math.floor(diffMinutes / 60)}h ago`;
     return `${Math.floor(diffMinutes / 1440)}d ago`;
   };
-  return <ModernCard className="h-full min-h-[300px] flex flex-col bg-gradient-to-br from-orange-900/20 via-red-900/10 to-slate-800/50 border-orange-500/20 hover:border-orange-400/30 transition-all duration-200" interactive data-tour="degen-calls-widget">
-      {!hideHeader && <ModernCardHeader className="pb-2 pt-3 flex-shrink-0 px-4">
+
+  return (
+    <ModernCard className="h-full min-h-[300px] flex flex-col bg-gradient-to-br from-orange-900/20 via-red-900/10 to-slate-800/50 border-orange-500/20 hover:border-orange-400/30 transition-all duration-200" interactive data-tour="degen-calls-widget">
+      {!hideHeader && (
+        <ModernCardHeader className="pb-2 pt-3 flex-shrink-0 px-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 bg-gradient-to-br from-orange-500 to-red-500 rounded-lg flex items-center justify-center shadow-sm">
@@ -133,10 +143,22 @@ export function DegenCallAlertsWidget({
             {/* Spacer to match newsletter countdown height */}
             <div className="h-10 w-16"></div>
           </div>
-        </ModernCardHeader>}
-      
+        </ModernCardHeader>
+      )}
+
       <ModernCardContent className={`flex-1 flex flex-col ${hideHeader ? 'pt-0' : 'pt-0'} px-4 pb-4`}>
         <div className="flex-1 flex flex-col gap-3">
+          {/* Testing notice - centered and attention-grabbing */}
+          <div className="w-full flex justify-center">
+            <Badge
+              variant="outline"
+              className="px-3 py-1.5 text-sm font-extrabold uppercase tracking-wider bg-orange-400/20 border-orange-300/60 text-orange-100 shadow-md backdrop-blur-sm animate-pulse"
+              aria-live="polite"
+            >
+              TESTING ONLY — DISREGARD
+            </Badge>
+          </div>
+
           {isLoading ? (
             <div className="flex-1 flex items-center justify-center">
               <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-orange-500" />
@@ -187,5 +209,6 @@ export function DegenCallAlertsWidget({
           )}
         </div>
       </ModernCardContent>
-    </ModernCard>;
+    </ModernCard>
+  );
 }
