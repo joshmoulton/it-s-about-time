@@ -144,7 +144,7 @@ export function DegenCallAlertsWidget({
           ) : degenCalls && degenCalls.length > 0 ? (
             <div className="space-y-3">
               {degenCalls.map((call) => (
-                <div key={call.id} className="bg-orange-900/20 border border-orange-500/20 rounded-lg p-3 hover:border-orange-400/30 transition-colors">
+                <div key={call.id} className="bg-orange-900/25 border border-orange-500/30 rounded-xl px-4 py-3.5 hover:border-orange-400/40 hover:bg-orange-900/35 transition-all duration-200 shadow-sm leading-relaxed tracking-wide">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <div className="w-6 h-6 bg-gradient-to-br from-orange-500 to-red-500 rounded-md flex items-center justify-center">
