@@ -44,9 +44,60 @@ export function DegenCallAlertsWidget({
           console.error('❌ Backfill error:', (res as any).error);
         } else {
           console.log('✅ Backfill result:', (res as any).data || res);
-          // Refresh the degen calls list
-          queryClient.invalidateQueries({ queryKey: ['degenCallAlerts', 2] });
         }
+
+        // Fallback: scan recent !degen messages client-side and upsert via insert_degen_call
+        const { data: msgs, error: msgsErr } = await supabase
+          .from('telegram_messages')
+          .select('telegram_message_id, chat_id, message_thread_id, user_id, username, first_name, last_name, message_text, timestamp')
+          .not('message_text', 'is', null)
+          .ilike('message_text', '!degen%')
+          .order('timestamp', { ascending: true })
+          .limit(50);
+
+        if (msgsErr) {
+          console.error('❌ Fetch telegram_messages error:', msgsErr);
+        } else if (msgs && msgs.length) {
+          const re = /^\s*!degen\s+(\$?[A-Za-z]{2,15})(?:\s+(here))?(?:\s+entry\s+([0-9]+(?:\.[0-9]+)?))?(?:\s+stop\s+([0-9]+(?:\.[0-9]+)?))?(?:\s+target\s+([0-9]+(?:\.[0-9]+)?))?(?:\s+risk\s+([A-Za-z]+|[0-9]+(?:\.[0-9]+)?%))?/i;
+          const toNum = (v: any) => {
+            const n = typeof v === 'number' ? v : parseFloat(String(v));
+            return Number.isFinite(n) ? n : null;
+          };
+          for (const m of msgs) {
+            const text = m.message_text || '';
+            const match = text.match(re);
+            if (!match) continue;
+            const rawTicker = match[1] || '';
+            const ticker = rawTicker.replace(/^\$/,'').toUpperCase().trim();
+            const entry = toNum(match[3]);
+            const stop = toNum(match[4]);
+            const target = toNum(match[5]);
+            const risk = match[6] || null;
+
+            await supabase.functions.invoke('telegram-bot', {
+              body: {
+                action: 'insert_degen_call',
+                degen_call: { ticker, entry, stop, target, risk },
+                message: {
+                  message_id: m.telegram_message_id,
+                  chat_id: m.chat_id,
+                  thread_id: m.message_thread_id || 0,
+                  from_user: {
+                    id: m.user_id,
+                    username: m.username,
+                    first_name: m.first_name,
+                    last_name: m.last_name || null,
+                  },
+                  text,
+                  timestamp: Math.floor(new Date(m.timestamp).getTime() / 1000),
+                }
+              }
+            });
+          }
+        }
+
+        // Refresh the degen calls list
+        queryClient.invalidateQueries({ queryKey: ['degenCallAlerts', 2] });
       } catch (e: any) {
         console.error('❌ Backfill invocation failed:', e?.message || e);
       }
