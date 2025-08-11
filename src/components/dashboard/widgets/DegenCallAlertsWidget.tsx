@@ -1,10 +1,12 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ModernCard, ModernCardHeader, ModernCardTitle, ModernCardContent } from '@/components/ui/modern-card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Zap, ExternalLink, TrendingUp, DollarSign, Clock } from 'lucide-react';
 import { useDegenCallAlerts } from '@/hooks/useDegenCallAlerts';
+import { supabase } from '@/integrations/supabase/client';
+import { useQueryClient } from '@tanstack/react-query';
 interface Subscriber {
   id: string;
   email: string;
@@ -26,6 +28,30 @@ export function DegenCallAlertsWidget({
     data: degenCalls,
     isLoading
   } = useDegenCallAlerts(2); // Last 2 calls for better fit
+
+  const queryClient = useQueryClient();
+  useEffect(() => {
+    const KEY = 'ww_backfill_degen_2025_08_11';
+    if (sessionStorage.getItem(KEY)) return;
+    sessionStorage.setItem(KEY, '1');
+    (async () => {
+      try {
+        console.log('🧩 Triggering degen backfill...');
+        const res = await supabase.functions.invoke('telegram-bot', {
+          body: { action: 'backfill_degen_calls', limit: 500 }
+        });
+        if ((res as any).error) {
+          console.error('❌ Backfill error:', (res as any).error);
+        } else {
+          console.log('✅ Backfill result:', (res as any).data || res);
+          // Refresh the degen calls list
+          queryClient.invalidateQueries({ queryKey: ['degenCallAlerts', 2] });
+        }
+      } catch (e: any) {
+        console.error('❌ Backfill invocation failed:', e?.message || e);
+      }
+    })();
+  }, [queryClient]);
 
   const handleViewAllCalls = () => {
     navigate('/dashboard?section=degen-calls');
