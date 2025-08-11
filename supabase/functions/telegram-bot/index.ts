@@ -203,10 +203,11 @@ serve(async (req) => {
         }
       }
       
-      // Support path-based routing for insert_degen_call
+      // Support path-based routing for insert_degen_call and backfill_degen_calls
       const { pathname } = new URL(req.url);
-      if (!body.action && pathname.endsWith('/insert_degen_call')) {
-        body.action = 'insert_degen_call';
+      if (!body.action) {
+        if (pathname.endsWith('/insert_degen_call')) body.action = 'insert_degen_call';
+        if (pathname.endsWith('/backfill_degen_calls')) body.action = 'backfill_degen_calls';
       }
       
       console.log('🎯 Processing API action request:', body.action);
@@ -475,6 +476,143 @@ serve(async (req) => {
 
           } catch (err) {
             console.error('❌ insert_degen_call error:', err);
+            return new Response(JSON.stringify({ error: err.message || 'Unknown error' }), {
+              status: 500,
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            });
+          }
+
+        case 'backfill_degen_calls':
+          try {
+            const limit = Math.min(parseInt(String(body.limit ?? '200')), 1000) || 200;
+            const since = body.since ? new Date(body.since) : null;
+            const chatFilter = body.chat_id ?? null;
+            const dryRun = Boolean(body.dry_run ?? false);
+
+            const { data: messages, error: fetchErr } = await supabase
+              .from('telegram_messages')
+              .select('telegram_message_id, message_text, chat_id, message_thread_id, user_id, username, first_name, last_name, timestamp')
+              .not('message_text', 'is', null)
+              .not('telegram_message_id', 'is', null)
+              .ilike('message_text', '!degen%')
+              .order('timestamp', { ascending: true })
+              .limit(limit);
+
+            if (fetchErr) {
+              console.error('❌ backfill fetch error:', fetchErr);
+              return new Response(JSON.stringify({ error: fetchErr.message }), {
+                status: 400,
+                headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+              });
+            }
+
+            const filtered = (messages || []).filter(m => {
+              if (since && new Date(m.timestamp) < since) return false;
+              if (chatFilter && String(m.chat_id) !== String(chatFilter)) return false;
+              return true;
+            });
+
+            const re = /^\s*!degen\s+(\$?[A-Za-z]{2,15})(?:\s+(here))?(?:\s+entry\s+([0-9]+(?:\.[0-9]+)?))?(?:\s+stop\s+([0-9]+(?:\.[0-9]+)?))?(?:\s+target\s+([0-9]+(?:\.[0-9]+)?))?(?:\s+risk\s+([A-Za-z]+|[0-9]+(?:\.[0-9]+)?%))?/i;
+            const toNum = (v: any) => {
+              const n = typeof v === 'number' ? v : parseFloat(String(v));
+              return Number.isFinite(n) ? n : null;
+            };
+            const parseRisk = (r: any): number | null => {
+              if (r == null) return null;
+              const s = String(r).trim();
+              const pctMatch = s.match(/^([0-9]+(?:\.[0-9]+)?)%$/);
+              if (pctMatch) {
+                const val = parseFloat(pctMatch[1]);
+                return Number.isFinite(val) ? Math.max(0.01, Math.min(val, 100)) : null;
+              }
+              switch (s.toLowerCase()) {
+                case 'tiny': return 0.5;
+                case 'low': return 1.0;
+                case 'medium': return 2.0;
+                case 'high': return 5.0;
+                default: return null;
+              }
+            };
+            const inferDirection = (e: number | null, s: number | null, t: number | null): 'long' | 'short' => {
+              if (e != null && t != null) {
+                if (t > e) return 'long';
+                if (t < e) return 'short';
+              }
+              if (e != null && s != null) {
+                if (s < e) return 'long';
+                if (s > e) return 'short';
+              }
+              return 'long';
+            };
+
+            let candidates = filtered.length;
+            let parsed = 0, inserted = 0, skipped = 0, errors = 0;
+            const sample: any[] = [];
+
+            for (const m of filtered) {
+              const text = m.message_text || '';
+              const match = text.match(re);
+              if (!match) { skipped++; continue; }
+
+              const rawTicker = match[1] || '';
+              const ticker = rawTicker.replace(/^\$/,'').toUpperCase().trim();
+              const entry = toNum(match[3]);
+              const stop = toNum(match[4]);
+              const target = toNum(match[5]);
+              const riskRaw = match[6] || null;
+              const risk_percentage = parseRisk(riskRaw) ?? 2.0;
+              const trade_direction = inferDirection(entry, stop, target);
+              parsed++;
+
+              // Idempotency check
+              const { data: existing } = await supabase
+                .from('analyst_signals')
+                .select('id')
+                .eq('telegram_message_id', m.telegram_message_id)
+                .maybeSingle();
+              if (existing?.id) { skipped++; continue; }
+
+              const insertPayload: any = {
+                analyst_name: m.username || m.first_name || 'Telegram Analyst',
+                market: 'crypto',
+                trade_type: 'futures',
+                trade_direction,
+                ticker,
+                risk_percentage,
+                entry_type: 'market',
+                entry_price: entry,
+                risk_management: stop != null ? 'stop_loss' : 'conditional',
+                stop_loss_price: stop,
+                targets: target != null ? [target] : [],
+                full_description: text ? `DEGEN: ${text}` : `Degen call for ${ticker}`,
+                posted_to_telegram: true,
+                status: 'active',
+                telegram_message_id: m.telegram_message_id
+              };
+
+              if (dryRun) {
+                sample.push({ ticker, entry, stop, target, risk_percentage, trade_direction, telegram_message_id: m.telegram_message_id });
+                continue;
+              }
+
+              const { error: insErr } = await supabase
+                .from('analyst_signals')
+                .insert(insertPayload);
+
+              if (insErr) {
+                console.error('❌ backfill insert error:', insErr);
+                errors++;
+              } else {
+                inserted++;
+                if (sample.length < 10) sample.push({ ticker, entry, stop, target, risk_percentage, trade_direction, telegram_message_id: m.telegram_message_id });
+              }
+            }
+
+            return new Response(JSON.stringify({ success: true, dryRun, candidates, parsed, inserted, skipped, errors, sample }), {
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            });
+          } catch (err) {
+            console.error('❌ backfill_degen_calls error:', err);
             return new Response(JSON.stringify({ error: err.message || 'Unknown error' }), {
               status: 500,
               headers: { ...corsHeaders, 'Content-Type': 'application/json' },
