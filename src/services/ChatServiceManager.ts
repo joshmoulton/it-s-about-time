@@ -79,7 +79,8 @@ class ChatServiceManager {
     try {
       console.log('📨 Loading initial messages...');
       
-      const { data, error } = await supabase
+      // 1) Fetch latest messages only (no joins to avoid RLS/FK issues)
+      const { data: msgRows, error: msgErr } = await supabase
         .from('telegram_messages')
         .select(`
           id,
@@ -91,43 +92,65 @@ class ChatServiceManager {
           topic_name,
           message_thread_id,
           likes_count,
-          message_type,
-          auto_highlights:auto_highlights(
-            id,
-            rule_id,
-            priority_score,
-            chat_highlight_rules:rule_id(
-              rule_name,
-              highlight_color,
-              highlight_style
-            )
-          )
+          message_type
         `)
         .order('timestamp', { ascending: false })
         .limit(50);
 
-      if (error) {
-        console.error('❌ Error loading messages:', error);
-        throw error;
+      if (msgErr) {
+        console.error('❌ Error loading messages:', msgErr);
+        throw msgErr;
       }
 
-      // Transform the data to match our interface
-      const transformedMessages: ChatMessage[] = (data || []).map((msg: any) => ({
+      const messageIds = (msgRows || []).map((m: any) => m.id);
+
+      // 2) Fetch auto_highlights for these messages (separate query)
+      let highlightMap: Record<string, any[]> = {};
+      if (messageIds.length > 0) {
+        const { data: highlights, error: hlErr } = await supabase
+          .from('auto_highlights')
+          .select('id, rule_id, priority_score, telegram_message_id')
+          .in('telegram_message_id', messageIds);
+        if (hlErr) {
+          console.warn('⚠️ auto_highlights fetch skipped due to error:', hlErr.message);
+        } else if (highlights && highlights.length > 0) {
+          // 3) Fetch rules metadata for color/style
+          const ruleIds = [...new Set(highlights.map(h => h.rule_id).filter(Boolean))];
+          let rulesMap: Record<string, any> = {};
+          if (ruleIds.length > 0) {
+            const { data: rules, error: rulesErr } = await supabase
+              .from('chat_highlight_rules')
+              .select('id, rule_name, highlight_color, highlight_style')
+              .in('id', ruleIds);
+            if (!rulesErr && rules) {
+              rules.forEach((r: any) => { rulesMap[r.id] = r; });
+            }
+          }
+          highlights.forEach((h: any) => {
+            const arr = highlightMap[h.telegram_message_id] || (highlightMap[h.telegram_message_id] = []);
+            const rule = rulesMap[h.rule_id] || {};
+            arr.push({
+              id: h.id,
+              rule_id: h.rule_id,
+              priority_score: h.priority_score,
+              highlight_color: rule.highlight_color || '#fbbf24',
+              highlight_style: rule.highlight_style || 'background',
+              rule_name: rule.rule_name || 'Highlight'
+            });
+          });
+        }
+      }
+
+      // 4) Transform messages and attach highlights
+      const transformedMessages: ChatMessage[] = (msgRows || []).map((msg: any) => ({
         ...msg,
-        auto_highlights: (msg.auto_highlights || []).map((highlight: any) => ({
-          id: highlight.id,
-          rule_id: highlight.rule_id,
-          priority_score: highlight.priority_score,
-          highlight_color: highlight.chat_highlight_rules?.highlight_color || '#fbbf24',
-          highlight_style: highlight.chat_highlight_rules?.highlight_style || 'background',
-          rule_name: highlight.chat_highlight_rules?.rule_name || 'Highlight'
-        }))
+        auto_highlights: highlightMap[msg.id] || []
       }));
 
       this.messages = transformedMessages;
       this.notifyMessageSubscribers();
       
-      console.log(`✅ Loaded ${this.messages.length} messages`);
+      console.log(`✅ Loaded ${this.messages.length} messages (with ${Object.keys(highlightMap).length} highlight sets)`);
     } catch (error) {
       console.error('❌ Failed to load initial messages:', error);
       throw error;
