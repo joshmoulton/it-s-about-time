@@ -28,6 +28,9 @@ import {
   Admin,
 } from "@/components/LazyComponents";
 
+// Static pages
+import TermsOfService from "@/pages/TermsOfService";
+
 // Loading fallback component
 const PageLoader = () => (
   <div className="flex items-center justify-center min-h-screen bg-background">
@@ -103,11 +106,15 @@ const App = () => {
                      </ProtectedRoute>
                    }
                  />
+                  <Route
+                    path="/pricing"
+                    element={<UpgradePage />}
+                  />
+                  <Route
+                    path="/terms"
+                    element={<TermsOfService />}
+                  />
                  <Route
-                   path="/pricing"
-                   element={<UpgradePage />}
-                 />
-                <Route
                   path="/admin/*"
                   element={
                     <ProtectedRoute>
