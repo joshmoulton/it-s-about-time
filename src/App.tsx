@@ -30,6 +30,7 @@ import {
 
 // Static pages
 import TermsOfService from "@/pages/TermsOfService";
+import PrivacyPolicy from "@/pages/PrivacyPolicy";
 
 // Loading fallback component
 const PageLoader = () => (
@@ -113,6 +114,10 @@ const App = () => {
                   <Route
                     path="/terms"
                     element={<TermsOfService />}
+                  />
+                  <Route
+                    path="/privacy"
+                    element={<PrivacyPolicy />}
                   />
                  <Route
                   path="/admin/*"

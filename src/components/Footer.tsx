@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import { Link } from 'react-router-dom';
 const Footer = () => {
   return <footer id="contact" className="py-6 px-4 border-t border-border relative" style={{
     backgroundImage: `url('/lovable-uploads/b10f012a-6279-4c66-984a-e1eac45701fe.png')`,
@@ -35,12 +36,12 @@ const Footer = () => {
         </div>
         
         <div className="mt-6 flex justify-center gap-6 text-white/80 text-sm">
-          <a href="/terms" className="hover:text-white transition-colors duration-200">
+          <Link to="/terms" className="hover:text-white transition-colors duration-200">
             Terms & Conditions
-          </a>
-          <a href="/privacy" className="hover:text-white transition-colors duration-200">
+          </Link>
+          <Link to="/privacy" className="hover:text-white transition-colors duration-200">
             Privacy Policy
-          </a>
+          </Link>
         </div>
         
         <div className="border-t border-white/20 mt-6 pt-6 text-center text-white/80">

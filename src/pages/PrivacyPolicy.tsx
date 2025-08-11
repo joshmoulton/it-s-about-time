@@ -33,8 +33,11 @@ const PrivacyPolicy = () => {
           <div className="bg-card rounded-lg border border-border p-6 sm:p-8 space-y-6">
             
             <div className="space-y-4">
+              <p className="text-sm font-medium text-muted-foreground mb-4">
+                Effective Date: 24th of July 2025
+              </p>
               <p className="text-foreground leading-relaxed">
-                Weekly Wizdom LLC ("we," "our," "us") values your privacy and is committed to protecting your personal data. This privacy policy explains how we collect, use, share, and safeguard your information.
+                Weekly Wizdom LLC ("we," "our," or "us") values your privacy and is committed to protecting your personal data. This policy explains how we collect, use, share, and protect your information.
               </p>
             </div>
 
@@ -44,20 +47,20 @@ const PrivacyPolicy = () => {
                   1. Information We Collect
                 </h2>
                 <p className="text-foreground leading-relaxed mb-3">
-                  We may collect information you provide through:
+                  We may collect personal information when you:
                 </p>
                 <ul className="list-disc pl-6 space-y-1 text-foreground mb-4">
-                  <li>Forms you fill out on our website or related platforms</li>
-                  <li>Direct interactions (e.g., emails, messages, or inquiries)</li>
-                  <li>Messages you send in our community Telegram channel</li>
+                  <li>Fill out forms on our website or external platforms</li>
+                  <li>Contact us via email or social media</li>
+                  <li>Send messages in our community chat (e.g., Telegram)</li>
                 </ul>
                 
                 <p className="text-foreground leading-relaxed mb-3">
-                  The types of information we collect may include:
+                  We may collect:
                 </p>
                 <ul className="list-disc pl-6 space-y-1 text-foreground">
-                  <li>Your name, email address, and other contact details</li>
-                  <li>General information about your interests, goals, preferences, employment status, wealth estimates, or any relevant details related to our services (e.g., newsletter preferences, coaching needs)</li>
+                  <li>Your name, email, and contact details</li>
+                  <li>General info about your interests, employment, wealth range, or goals related to our services</li>
                 </ul>
               </section>
 
@@ -70,110 +73,135 @@ const PrivacyPolicy = () => {
                 </p>
                 <ul className="list-disc pl-6 space-y-2 text-foreground">
                   <li>Provide and improve our services</li>
-                  <li>Support our marketing and communication efforts</li>
-                  <li>Understand your needs to offer relevant recommendations and content</li>
+                  <li>Tailor communications and marketing</li>
+                  <li>Respond to inquiries and deliver relevant content</li>
                 </ul>
               </section>
 
               <section>
                 <h2 className="text-xl font-semibold text-foreground mb-3 border-b border-border pb-2">
-                  3. Sharing Your Information
+                  3. Legal Basis for Processing (EU/UK Users)
                 </h2>
                 <p className="text-foreground leading-relaxed mb-3">
-                  We do not sell your personal information. We may share your data:
+                  For users in the EU/UK, we process your personal data under one or more of the following bases:
                 </p>
                 <ul className="list-disc pl-6 space-y-2 text-foreground">
-                  <li>Internally, within Weekly Wizdom</li>
-                  <li>With trusted partners or service providers to support marketing, analytics, or customer engagement (e.g., Beehiiv, Whop, Google Analytics, etc.)</li>
+                  <li>Your consent</li>
+                  <li>To perform a contract with you</li>
+                  <li>Our legitimate business interests</li>
+                  <li>Compliance with legal obligations</li>
                 </ul>
               </section>
 
               <section>
                 <h2 className="text-xl font-semibold text-foreground mb-3 border-b border-border pb-2">
-                  4. Data Storage and Security
+                  4. Sharing Your Information
                 </h2>
-                <div className="bg-accent/50 border border-accent rounded-lg p-4">
-                  <p className="text-foreground leading-relaxed">
-                    Your information is stored with access controls and industry-standard security measures. Only authorized personnel can access your data, and we implement technical safeguards to prevent unauthorized access or misuse.
-                  </p>
-                </div>
+                <p className="text-foreground leading-relaxed mb-3">
+                  We do not sell your personal data. We may share data with:
+                </p>
+                <ul className="list-disc pl-6 space-y-2 text-foreground">
+                  <li>Internal staff and service providers (e.g., Beehiiv, Whop, Google Analytics)</li>
+                  <li>External tools used to support communications, payments, or marketing</li>
+                </ul>
               </section>
 
               <section>
                 <h2 className="text-xl font-semibold text-foreground mb-3 border-b border-border pb-2">
-                  5. Your Rights
+                  5. Data Storage and Security
+                </h2>
+                <p className="text-foreground leading-relaxed">
+                  We store your information securely with access controls and encryption. Only authorized personnel can access your data.
+                </p>
+              </section>
+
+              <section>
+                <h2 className="text-xl font-semibold text-foreground mb-3 border-b border-border pb-2">
+                  6. International Data Transfers
+                </h2>
+                <p className="text-foreground leading-relaxed">
+                  Your data may be processed or stored outside your country of residence, including in the United States. We use standard safeguards to protect your information during such transfers.
+                </p>
+              </section>
+
+              <section>
+                <h2 className="text-xl font-semibold text-foreground mb-3 border-b border-border pb-2">
+                  7. Your Rights
                 </h2>
                 <p className="text-foreground leading-relaxed mb-3">
-                  Depending on your location, you may have rights under applicable data protection laws, such as:
+                  Depending on your location (e.g., EU, UK, California), you may have the right to:
                 </p>
                 <ul className="list-disc pl-6 space-y-2 text-foreground">
-                  <li>Access to your personal data</li>
-                  <li>Correction of inaccurate information</li>
-                  <li>Deletion of your data</li>
-                  <li>Withdrawal of consent (where applicable)</li>
+                  <li>Access your data</li>
+                  <li>Correct or delete your data</li>
+                  <li>Withdraw consent</li>
+                  <li>Object to data use</li>
+                  <li>Request portability of your data</li>
+                  <li>Opt out of the sale or sharing of your data (California)</li>
+                  <li>File a complaint with a data protection authority</li>
                 </ul>
                 <p className="text-foreground leading-relaxed mt-3">
-                  To exercise your rights, please contact us using the information below.
+                  To exercise your rights, contact us at support@weeklywizdom.com.
                 </p>
               </section>
 
               <section>
                 <h2 className="text-xl font-semibold text-foreground mb-3 border-b border-border pb-2">
-                  6. Cookies and Tracking
+                  8. Cookies and Tracking
                 </h2>
                 <p className="text-foreground leading-relaxed">
-                  We may use cookies or similar technologies to personalize your experience and analyze site usage. You can adjust your browser settings to control cookies.
+                  We may use cookies and similar technologies to personalize content and measure engagement. You can adjust your browser settings to disable cookies.
                 </p>
               </section>
 
               <section>
                 <h2 className="text-xl font-semibold text-foreground mb-3 border-b border-border pb-2">
-                  7. Data Retention
+                  9. Data Retention
                 </h2>
                 <p className="text-foreground leading-relaxed">
-                  We retain your data only as long as necessary to fulfill the purposes described in this policy, or as required by law.
+                  We retain data only as long as needed for business or legal reasons. When no longer needed, we securely delete or anonymize it.
                 </p>
               </section>
 
               <section>
                 <h2 className="text-xl font-semibold text-foreground mb-3 border-b border-border pb-2">
-                  8. Children's Privacy
+                  10. Children's Privacy
                 </h2>
                 <p className="text-foreground leading-relaxed">
-                  Our services are not intended for individuals under the age of 13. We do not knowingly collect data from minors.
+                  Our services are not directed at children under 18. We do not knowingly collect data from anyone under 18.
                 </p>
               </section>
 
               <section>
                 <h2 className="text-xl font-semibold text-foreground mb-3 border-b border-border pb-2">
-                  9. Contact Us
+                  11. Contact Us
                 </h2>
                 <p className="text-foreground leading-relaxed mb-3">
-                  If you have any questions about this privacy policy or your data, contact us at:
+                  For privacy-related questions or requests, contact us at:
                 </p>
                 <div className="bg-muted rounded-lg p-4">
                   <p className="text-foreground">
-                    🌐 Website: <a href="https://weeklywizdom.com/#contact" className="text-primary hover:underline">https://weeklywizdom.com/#contact</a>
+                    📧 Email: <a href="mailto:support@weeklywizdom.com" className="text-primary hover:underline">support@weeklywizdom.com</a>
                   </p>
                   <p className="text-foreground mt-1">
-                    📧 Email: <a href="mailto:support@weeklywizdom.com" className="text-primary hover:underline">support@weeklywizdom.com</a>
+                    🌐 Website: <a href="https://weeklywizdom.com/#contact" className="text-primary hover:underline">https://weeklywizdom.com/#contact</a>
                   </p>
                 </div>
               </section>
 
               <section>
                 <h2 className="text-xl font-semibold text-foreground mb-3 border-b border-border pb-2">
-                  10. Updates to This Policy
+                  12. Updates to This Policy
                 </h2>
                 <p className="text-foreground leading-relaxed">
-                  We may revise this privacy policy periodically. Please review it regularly to stay informed about how we protect your data.
+                  We may update this policy periodically. Changes will be posted on this page with an updated effective date. We encourage you to check it regularly.
                 </p>
               </section>
             </div>
 
             <div className="pt-6 border-t border-border">
               <p className="text-sm text-muted-foreground text-center">
-                Last updated: {new Date().toLocaleDateString()}
+                Effective Date: July 24th, 2025
               </p>
             </div>
 
