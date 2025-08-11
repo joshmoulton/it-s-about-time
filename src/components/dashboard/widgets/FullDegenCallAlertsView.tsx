@@ -97,7 +97,7 @@ export function FullDegenCallAlertsView({ subscriber }: FullDegenCallAlertsViewP
         </CardContent>
       </Card>
 
-      <DegenCallSettingsModal open={showSettings} onOpenChange={setShowSettings} />
+      <DegenCallSettingsModal isOpen={showSettings} onClose={() => setShowSettings(false)} />
     </div>
   );
 }

@@ -28,15 +28,23 @@ export function useDegenCallAlerts(limit = 10) {
         return [];
       }
 
-      const mapped: DegenCall[] = (data || []).map((row: any) => ({
-        id: row.id,
-        coin: (row.ticker || '').toUpperCase(),
-        entry_price: row.entry_price != null ? String(row.entry_price) : 'Market',
-        direction: row.trade_direction ? String(row.trade_direction).toLowerCase() : undefined,
-        outcome: 'pending',
-        status: row.status,
-        created_at: row.created_at,
-      }));
+      const mapped: DegenCall[] = (data || []).map((row: any) => {
+        let dir: 'long' | 'short' | 'neutral' | undefined = undefined;
+        const td = (row.trade_direction ? String(row.trade_direction).toLowerCase() : '').trim();
+        if (td === 'long') dir = 'long';
+        else if (td === 'short') dir = 'short';
+        else if (td) dir = 'neutral';
+
+        return {
+          id: row.id,
+          coin: (row.ticker || '').toUpperCase(),
+          entry_price: row.entry_price != null ? String(row.entry_price) : 'Market',
+          direction: dir,
+          outcome: 'pending',
+          status: row.status,
+          created_at: row.created_at,
+        };
+      });
 
       console.debug('useDegenCallAlerts fetched', { count: mapped.length, limit });
       return mapped;
