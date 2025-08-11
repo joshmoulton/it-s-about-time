@@ -105,13 +105,7 @@ export function ModernAlertsWidget({
     const progressPercentage = totalRange > 0 ? currentRange / totalRange * 100 : 50;
     const isProfit = percentageFromEntry > 0;
     return <div 
-      className="bg-slate-900/80 border border-slate-700/50 rounded-xl p-3 transition-all duration-200 hover:border-slate-600/70 h-[160px] sm:h-[170px] cursor-pointer hover:bg-slate-800/60" 
-      onClick={(e) => {
-        console.log('🔗 Alert clicked from ModernAlertsWidget, redirecting to WeeklyWizAlerts');
-        e.preventDefault();
-        e.stopPropagation();
-        window.open('https://weeklywizalerts.com', '_blank');
-      }}
+      className="bg-slate-900/80 border border-slate-700/50 rounded-xl p-3 transition-all duration-200 hover:border-slate-600/70 h-[160px] sm:h-[170px] hover:bg-slate-800/60" 
     >
         {/* Header with badges in top right */}
         <div className="flex items-center justify-between mb-3">

@@ -138,13 +138,7 @@ export function FullAlertsView({ subscriber }: FullAlertsViewProps) {
       <div 
         className="bg-gradient-to-br from-card/90 to-card/95 backdrop-blur-xl border border-border/50 rounded-xl p-4 
                    hover:border-emerald-400/30 hover:shadow-lg hover:shadow-emerald-400/10 
-                   transition-all duration-300 animate-fade-in group cursor-pointer relative overflow-hidden"
-        onClick={(e) => {
-          console.log('🔗 Alert card clicked, redirecting to WeeklyWizAlerts');
-          e.preventDefault();
-          e.stopPropagation();
-          window.open('https://weeklywizalerts.com', '_blank');
-        }}
+                   transition-all duration-300 animate-fade-in group relative overflow-hidden"
       >
         {/* Subtle glow overlay */}
         <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-transparent rounded-xl opacity-0 
