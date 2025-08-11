@@ -42,11 +42,10 @@ const initializeApp = () => {
 
   // Defer non-critical analytics (PostHog) to idle/load
   const loadAnalytics = () => import('./utils/postHogWrapper').catch(() => {});
-  const w = window as Window & typeof globalThis;
-  if ('requestIdleCallback' in w) {
-    (w as any).requestIdleCallback(loadAnalytics);
+  if ((window as any).requestIdleCallback) {
+    (window as any).requestIdleCallback(loadAnalytics);
   } else {
-    w.addEventListener('load', () => loadAnalytics(), { once: true });
+    window.addEventListener('load', () => loadAnalytics(), { once: true });
   }
   
   logger.info('🚀 App initialized with performance optimizations');
