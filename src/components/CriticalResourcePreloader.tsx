@@ -17,31 +17,41 @@ export const CriticalResourcePreloader = () => {
       }
     });
 
-    // Preload critical images
-    const criticalImages = [
-      'https://wrvvlmevpvcenauglcyz.supabase.co/storage/v1/object/public/assets/Property%201=Black%20(3).png',
-      '/lovable-uploads/a8eaa39b-22e5-4a3c-a288-fe43b8619eab.png'
-    ];
+    // Add connection/resource hints instead of eager image loads
+    try {
+      const supabaseOrigin = 'https://wrvvlmevpvcenauglcyz.supabase.co';
+      const addLink = (rel: string, href: string, as?: string, crossOrigin?: string) => {
+        const link = document.createElement('link');
+        link.rel = rel;
+        link.href = href;
+        if (as) link.as = as;
+        if (crossOrigin) link.crossOrigin = crossOrigin;
+        document.head.appendChild(link);
+      };
+      // Preconnect to Supabase for faster API/image fetches
+      addLink('preconnect', supabaseOrigin, undefined, 'anonymous');
+      addLink('dns-prefetch', supabaseOrigin);
 
-    criticalImages.forEach(src => {
-      const img = new Image();
-      img.src = src;
-      img.loading = 'eager';
-      img.fetchPriority = 'high';
-    });
+      // Prefetch non-critical images during idle time
+      const idlePrefetch = () => {
+        const prefetchResources = [
+          '/lovable-uploads/2766797d-f12e-40af-bcc7-5fdee4ce7325.png'
+        ];
+        prefetchResources.forEach(href => {
+          const link = document.createElement('link');
+          link.rel = 'prefetch';
+          link.href = href;
+          link.as = 'image';
+          document.head.appendChild(link);
+        });
+      };
+      if ('requestIdleCallback' in window) {
+        (window as any).requestIdleCallback(idlePrefetch);
+      } else {
+        setTimeout(idlePrefetch, 1500);
+      }
+    } catch {}
 
-    // Prefetch next likely resources
-    const prefetchResources = [
-      '/lovable-uploads/2766797d-f12e-40af-bcc7-5fdee4ce7325.png'
-    ];
-
-    prefetchResources.forEach(href => {
-      const link = document.createElement('link');
-      link.rel = 'prefetch';
-      link.href = href;
-      link.as = 'image';
-      document.head.appendChild(link);
-    });
   }, []);
 
   return null;

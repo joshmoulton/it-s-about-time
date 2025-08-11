@@ -72,7 +72,7 @@ export const ResponsiveImage: React.FC<ResponsiveImageProps> = ({
       {/* Loading placeholder */}
       {!isLoaded && !hasError && (
         <div 
-          className={`absolute inset-0 bg-gray-200 animate-pulse ${className}`}
+          className="block bg-gray-200 animate-pulse"
           style={{
             aspectRatio: width && height ? `${width}/${height}` : undefined,
           }}

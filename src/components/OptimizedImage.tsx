@@ -6,6 +6,7 @@ interface OptimizedImageProps {
   className?: string;
   width?: number;
   height?: number;
+  sizes?: string;
   priority?: boolean;
   placeholder?: string;
 }
@@ -16,6 +17,7 @@ export const OptimizedImage: React.FC<OptimizedImageProps> = ({
   className = '',
   width,
   height,
+  sizes = '100vw',
   priority = false,
   placeholder = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIGZpbGw9IiNmMGYwZjAiLz48L3N2Zz4='
 }) => {
@@ -62,14 +64,17 @@ export const OptimizedImage: React.FC<OptimizedImageProps> = ({
       className={`${className} ${isLoaded ? 'loaded' : 'lazy'} transition-opacity duration-300`}
       width={width}
       height={height}
+      sizes={sizes}
       onLoad={handleLoad}
       onError={handleError}
       loading={priority ? 'eager' : 'lazy'}
+      fetchPriority={priority ? 'high' : 'low'}
       decoding="async"
       style={{
         opacity: isLoaded ? 1 : 0.7,
         transform: 'translateZ(0)',
-        backfaceVisibility: 'hidden'
+        backfaceVisibility: 'hidden',
+        aspectRatio: width && height ? `${width}/${height}` : undefined as unknown as string,
       }}
     />
   );

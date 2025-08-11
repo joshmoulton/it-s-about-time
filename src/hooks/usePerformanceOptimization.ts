@@ -29,24 +29,23 @@ export const usePerformanceOptimization = () => {
     }
   }, []);
 
-  // Preload critical resources
-  const preloadCriticalResources = useCallback(() => {
-    const criticalResources = [
-      { href: '/src/App.tsx', as: 'script' },
-      { href: '/lovable-uploads/97f86327-e463-4091-8474-4f835ee7556f.png', as: 'image' }
+// Preload critical resources (lightweight)
+const preloadCriticalResources = useCallback(() => {
+  try {
+    // Only add resource hints, avoid preloading scripts/images that may be unused
+    const preconnects = [
+      'https://wrvvlmevpvcenauglcyz.supabase.co'
     ];
 
-    criticalResources.forEach(resource => {
+    preconnects.forEach((href) => {
       const link = document.createElement('link');
-      link.rel = 'preload';
-      link.href = resource.href;
-      link.as = resource.as;
-      if (resource.as === 'image') {
-        link.fetchPriority = 'high';
-      }
+      link.rel = 'preconnect';
+      link.href = href;
+      link.crossOrigin = 'anonymous';
       document.head.appendChild(link);
     });
-  }, []);
+  } catch {}
+}, []);
 
   // Optimize scroll performance
   const optimizeScrolling = useCallback(() => {
