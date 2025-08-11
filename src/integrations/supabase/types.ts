@@ -3960,6 +3960,14 @@ export type Database = {
           | { p_admin_email: string; p_ip_address: unknown }
         Returns: boolean
       }
+      list_public_tables_rls: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          table_name: string
+          rls_enabled: boolean
+          policy_count: number
+        }[]
+      }
       log_admin_security_event: {
         Args:
           | { event_type: string; event_details?: Json; admin_email?: string }
