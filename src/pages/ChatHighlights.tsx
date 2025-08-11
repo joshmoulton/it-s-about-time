@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { MessageCircle, Clock, RefreshCw, ArrowLeft, Search, Flame, Hash } from 'lucide-react';
 import { useHighlightTopics, useTopicComments, useCreateTopicFromKeywords } from '@/hooks/useHighlightTopics';
 import { useChatHighlights } from '@/hooks/useChatHighlights';
+import { useAutoHighlightsSummary } from '@/hooks/useAutoHighlightsSummary';
 import { TopicCard } from '@/components/chat-highlights/TopicCard';
 import { CommentThread } from '@/components/chat-highlights/CommentThread';
 
@@ -17,9 +18,10 @@ export default function ChatHighlights() {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState('trending');
   
-  // Fetch topics and keyword highlights
+  // Fetch topics and highlights (auto-based primary, keyword scanner fallback)
   const { data: topics = [], isLoading: topicsLoading, refetch: refetchTopics } = useHighlightTopics();
-  const { data: keywordHighlights = [] } = useChatHighlights(6);
+  const { data: keywordHighlights = [] } = useChatHighlights(24);
+  const { data: autoHighlights = [] } = useAutoHighlightsSummary(6);
   const createTopicFromKeywords = useCreateTopicFromKeywords();
   
   // If viewing a specific topic, show the comment thread
@@ -40,11 +42,15 @@ export default function ChatHighlights() {
     return matchesSearch;
   });
 
-  // Auto-create topics from trending keywords
   React.useEffect(() => {
-    if (keywordHighlights.length > 0 && topics.length === 0) {
+    const baseHighlights = (autoHighlights && autoHighlights.length > 0) ? autoHighlights : keywordHighlights;
+    if (!autoHighlights.length && keywordHighlights.length) {
+      console.debug('ChatHighlights page: falling back to keyword highlights for topic creation');
+    }
+
+    if (baseHighlights.length > 0 && topics.length === 0) {
       // Group keywords by sentiment and create topics
-      const groupedKeywords = keywordHighlights.reduce((acc, highlight) => {
+      const groupedKeywords = baseHighlights.reduce((acc: Record<string, string[]>, highlight: any) => {
         const sentiment = highlight.sentiment;
         if (!acc[sentiment]) acc[sentiment] = [];
         acc[sentiment].push(highlight.keyword);
@@ -52,7 +58,7 @@ export default function ChatHighlights() {
       }, {} as Record<string, string[]>);
 
       // Create topics for each sentiment group
-      Object.entries(groupedKeywords).forEach(([sentiment, keywords]) => {
+      Object.entries(groupedKeywords).forEach(([_, keywords]) => {
         if (keywords.length >= 2) {
           createTopicFromKeywords.mutate({
             keywords: keywords.slice(0, 5), // Limit to top 5 keywords
@@ -61,7 +67,7 @@ export default function ChatHighlights() {
         }
       });
     }
-  }, [keywordHighlights, topics.length, createTopicFromKeywords]);
+  }, [autoHighlights, keywordHighlights, topics.length, createTopicFromKeywords]);
 
   const formatTimeAgo = (timestamp: string) => {
     const now = new Date();

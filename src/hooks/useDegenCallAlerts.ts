@@ -1,52 +1,47 @@
 import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 
-interface DegenCall {
+export interface DegenCall {
   id: string;
-  coin: string;
-  entry_price: string;
-  target_multiplier?: number;
-  actual_multiplier?: number;
+  coin: string; // ticker
+  entry_price: string; // string for display, 'Market' if null
+  direction?: 'long' | 'short' | 'neutral';
   outcome: 'hit' | 'miss' | 'pending';
+  status?: string | null;
   created_at: string;
 }
 
-// Mock data for demonstration
-const mockDegenCalls: DegenCall[] = [
-  {
-    id: '1',
-    coin: 'SOLANA',
-    entry_price: '0.00234',
-    target_multiplier: 2.5,
-    actual_multiplier: 3.2,
-    outcome: 'hit',
-    created_at: new Date(Date.now() - 1000 * 60 * 15).toISOString(), // 15 mins ago
-  },
-  {
-    id: '2',
-    coin: 'PEPE',
-    entry_price: '0.000012',
-    target_multiplier: 1.8,
-    outcome: 'pending',
-    created_at: new Date(Date.now() - 1000 * 60 * 30).toISOString(), // 30 mins ago
-  },
-  {
-    id: '3',
-    coin: 'BONK',
-    entry_price: '0.0000045',
-    target_multiplier: 2.2,
-    outcome: 'miss',
-    created_at: new Date(Date.now() - 1000 * 60 * 60).toISOString(), // 1 hour ago
-  },
-];
-
-export function useDegenCallAlerts(limit?: number) {
-  return useQuery({
+export function useDegenCallAlerts(limit = 10) {
+  return useQuery<DegenCall[]>({
     queryKey: ['degenCallAlerts', limit],
     queryFn: async () => {
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 500));
-      return limit ? mockDegenCalls.slice(0, limit) : mockDegenCalls;
+      // Fetch latest active, posted signals
+      const { data, error } = await supabase
+        .from('analyst_signals')
+        .select('id, ticker, entry_price, trade_direction, entry_type, created_at, status, posted_to_telegram')
+        .eq('posted_to_telegram', true)
+        .order('created_at', { ascending: false })
+        .limit(limit);
+
+      if (error) {
+        console.error('useDegenCallAlerts error:', error);
+        return [];
+      }
+
+      const mapped: DegenCall[] = (data || []).map((row: any) => ({
+        id: row.id,
+        coin: (row.ticker || '').toUpperCase(),
+        entry_price: row.entry_price != null ? String(row.entry_price) : 'Market',
+        direction: row.trade_direction ? String(row.trade_direction).toLowerCase() : undefined,
+        outcome: 'pending',
+        status: row.status,
+        created_at: row.created_at,
+      }));
+
+      console.debug('useDegenCallAlerts fetched', { count: mapped.length, limit });
+      return mapped;
     },
-    staleTime: 30000, // 30 seconds
+    staleTime: 10_000,
+    refetchInterval: 30_000,
   });
 }

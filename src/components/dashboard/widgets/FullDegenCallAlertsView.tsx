@@ -8,6 +8,7 @@ import { useAnalystSubscriptions } from '@/hooks/useAnalystSubscriptions';
 import { DegenCallSettingsModal } from './DegenCallSettingsModal';
 import { formatDistanceToNow } from 'date-fns';
 import { useQueryClient } from '@tanstack/react-query';
+import { useDegenCallAlerts } from '@/hooks/useDegenCallAlerts';
 
 interface Subscriber {
   id: string;
@@ -79,25 +80,75 @@ export function FullDegenCallAlertsView({ subscriber }: FullDegenCallAlertsViewP
 
   return (
     <div className="space-y-6">
-      {/* Coming Soon Banner */}
       <Card className="bg-gradient-to-br from-orange-900/20 via-red-900/10 to-slate-800/50 border-orange-500/20">
-        <CardContent className="p-8 text-center">
-          <div className="mb-4">
-            <Badge className="bg-gradient-to-r from-orange-500 to-red-500 text-white border-none text-lg px-6 py-3">
-              Coming Soon
-            </Badge>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle className="text-white">Recent Degen Calls</CardTitle>
+          <div className="flex items-center gap-2">
+            <Button size="sm" variant="ghost" onClick={refreshData}>
+              <RefreshCw className="w-4 h-4 mr-1" /> Refresh
+            </Button>
+            <Button size="sm" variant="outline" onClick={() => setShowSettings(true)}>
+              <Settings2 className="w-4 h-4 mr-1" /> Settings
+            </Button>
           </div>
-          <h2 className="text-2xl font-bold text-white mb-4">Degen Call Alerts</h2>
-          <p className="text-slate-400 mb-6 max-w-md mx-auto">
-            Premium degen call alerts with high-risk, high-reward opportunities are coming soon. 
-            Get ready for lightning-fast notifications on potential moonshot plays.
-          </p>
-          <div className="flex items-center justify-center gap-2 text-orange-300">
-            <Clock className="w-4 h-4" />
-            <span className="text-sm">Stay tuned for updates</span>
-          </div>
+        </CardHeader>
+        <CardContent>
+          <DegenCallsList />
         </CardContent>
       </Card>
+
+      <DegenCallSettingsModal open={showSettings} onOpenChange={setShowSettings} />
+    </div>
+  );
+}
+
+function DegenCallsList() {
+  const { data: calls = [], isLoading } = useDegenCallAlerts(10);
+
+  if (isLoading) {
+    return (
+      <div className="py-8 text-center text-orange-200/80">Loading degen calls...</div>
+    );
+  }
+
+  if (!calls.length) {
+    console.debug('FullDegenCallAlertsView: no calls to show');
+    return (
+      <div className="py-8 text-center text-orange-200/80">No recent degen calls</div>
+    );
+  }
+
+  return (
+    <div className="space-y-3">
+      {calls.map(call => (
+        <div key={call.id} className="bg-orange-900/20 border border-orange-500/20 rounded-lg p-4 hover:border-orange-400/30 transition-colors">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 bg-gradient-to-br from-orange-500 to-red-500 rounded-lg flex items-center justify-center">
+                <TrendingUp className="w-4 h-4 text-white" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="text-white font-semibold">{call.coin}</span>
+                  {call.direction && (
+                    <Badge variant="outline" className="text-xs border-orange-400/30 text-orange-200">
+                      {call.direction.toUpperCase()}
+                    </Badge>
+                  )}
+                  {call.status && (
+                    <Badge className="text-xs bg-orange-500/20 text-orange-200 border-orange-500/30">
+                      {call.status}
+                    </Badge>
+                  )}
+                </div>
+                <div className="text-sm text-orange-200/80">
+                  Entry {call.entry_price} • {formatDistanceToNow(new Date(call.created_at), { addSuffix: true })}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      ))}
     </div>
   );
 }

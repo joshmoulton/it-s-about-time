@@ -59,19 +59,55 @@ export function DegenCallAlertsWidget({
         </ModernCardHeader>}
       
       <ModernCardContent className={`flex-1 flex flex-col ${hideHeader ? 'pt-0' : 'pt-0'} px-4 pb-4`}>
-        {/* Coming Soon Badge Overlay */}
-        <div className="flex-1 flex items-center justify-center relative">
-          <div className="absolute inset-0 bg-gradient-to-br from-orange-900/30 via-red-800/20 to-transparent rounded-lg flex items-center justify-center backdrop-blur-sm">
-            <div className="text-center space-y-4">
-              <div className="w-16 h-16 mx-auto bg-orange-500/20 rounded-full flex items-center justify-center mb-4">
-                <Clock className="w-8 h-8 text-orange-400" />
-              </div>
-              <h3 className="text-xl font-semibold text-white">Coming Soon</h3>
-              <p className="text-orange-200/80 max-w-sm">
-                Premium degen call alerts with high-risk, high-reward opportunities are coming soon.
-              </p>
+        <div className="flex-1 flex flex-col gap-3">
+          {isLoading ? (
+            <div className="flex-1 flex items-center justify-center">
+              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-orange-500" />
             </div>
-          </div>
+          ) : degenCalls && degenCalls.length > 0 ? (
+            <div className="space-y-3">
+              {degenCalls.map((call) => (
+                <div key={call.id} className="bg-orange-900/20 border border-orange-500/20 rounded-lg p-3 hover:border-orange-400/30 transition-colors">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="w-6 h-6 bg-gradient-to-br from-orange-500 to-red-500 rounded-md flex items-center justify-center">
+                        <Zap className="w-3.5 h-3.5 text-white" />
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-white text-sm font-semibold">{call.coin}</span>
+                          {call.direction && (
+                            <Badge variant="outline" className="text-xs border-orange-400/30 text-orange-200">
+                              {call.direction.toUpperCase()}
+                            </Badge>
+                          )}
+                          {call.status && (
+                            <Badge className="text-xs bg-orange-500/20 text-orange-200 border-orange-500/30">
+                              {call.status}
+                            </Badge>
+                          )}
+                        </div>
+                        <div className="text-xs text-orange-200/80">
+                          Entry {call.entry_price} • {formatTimeAgo(call.created_at)}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+
+              <div className="pt-1">
+                <Button size="sm" variant="ghost" className="text-orange-300 hover:text-white hover:bg-orange-900/30" onClick={handleViewAllCalls}>
+                  View all degen calls
+                  <ExternalLink className="w-3.5 h-3.5 ml-1" />
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <div className="flex-1 flex items-center justify-center text-orange-200/80">
+              No recent degen calls
+            </div>
+          )}
         </div>
       </ModernCardContent>
     </ModernCard>;
