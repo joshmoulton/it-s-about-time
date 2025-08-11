@@ -203,6 +203,12 @@ serve(async (req) => {
         }
       }
       
+      // Support path-based routing for insert_degen_call
+      const { pathname } = new URL(req.url);
+      if (!body.action && pathname.endsWith('/insert_degen_call')) {
+        body.action = 'insert_degen_call';
+      }
+      
       console.log('🎯 Processing API action request:', body.action);
 
       switch (body.action) {
@@ -358,6 +364,122 @@ serve(async (req) => {
           return new Response(JSON.stringify(repairResult), {
             headers: { ...corsHeaders, 'Content-Type': 'application/json' },
           });
+
+        case 'insert_degen_call':
+          try {
+            console.log('🧩 insert_degen_call payload:', JSON.stringify(body, null, 2));
+            const payload = body.degen_call || {};
+            const msg = body.message || {};
+            const from = msg.from_user || {};
+
+            const rawTicker = (payload.ticker ?? '').toString();
+            const ticker = rawTicker.replace(/^\$/,'').toUpperCase().trim();
+            if (!ticker) {
+              return new Response(JSON.stringify({ error: 'ticker is required' }), {
+                status: 400,
+                headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+              });
+            }
+
+            const toNum = (v: any) => {
+              const n = typeof v === 'number' ? v : parseFloat(String(v));
+              return Number.isFinite(n) ? n : null;
+            };
+
+            const entry = toNum(payload.entry);
+            const stop = toNum(payload.stop);
+            const target = toNum(payload.target);
+
+            const parseRisk = (r: any): number | null => {
+              if (r == null) return null;
+              const s = String(r).trim();
+              const pctMatch = s.match(/^([0-9]+(?:\.[0-9]+)?)%$/);
+              if (pctMatch) {
+                const val = parseFloat(pctMatch[1]);
+                return Number.isFinite(val) ? Math.max(0.01, Math.min(val, 100)) : null;
+              }
+              switch (s.toLowerCase()) {
+                case 'tiny': return 0.5;
+                case 'low': return 1.0;
+                case 'medium': return 2.0;
+                case 'high': return 5.0;
+                default: return null;
+              }
+            };
+            const risk_percentage = parseRisk(payload.risk) ?? 2.0;
+
+            const inferDirection = (e: number | null, s: number | null, t: number | null): 'long' | 'short' => {
+              if (e != null && t != null) {
+                if (t > e) return 'long';
+                if (t < e) return 'short';
+              }
+              if (e != null && s != null) {
+                if (s < e) return 'long';
+                if (s > e) return 'short';
+              }
+              return 'long';
+            };
+            const trade_direction = inferDirection(entry, stop, target);
+
+            const existingCheckId = msg.message_id ?? null;
+            if (existingCheckId != null) {
+              const { data: existing } = await supabase
+                .from('analyst_signals')
+                .select('id')
+                .eq('telegram_message_id', existingCheckId)
+                .maybeSingle();
+              if (existing?.id) {
+                console.log('🟡 idempotent: analyst_signal already exists', existing.id);
+                return new Response(JSON.stringify({ success: true, idempotent: true, analyst_signal_id: existing.id }), {
+                  headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+                });
+              }
+            }
+
+            const insertPayload: any = {
+              analyst_name: from.username || from.first_name || 'Telegram Analyst',
+              market: 'crypto',
+              trade_type: 'futures',
+              trade_direction,
+              ticker,
+              risk_percentage,
+              entry_type: 'market',
+              entry_price: entry,
+              risk_management: stop != null ? 'stop_loss' : 'conditional',
+              stop_loss_price: stop,
+              targets: target != null ? [target] : [],
+              full_description: msg.text ? `DEGEN: ${msg.text}` : `Degen call for ${ticker}`,
+              posted_to_telegram: true,
+              status: 'active',
+              telegram_message_id: existingCheckId
+            };
+
+            const { data: inserted, error: insertError } = await supabase
+              .from('analyst_signals')
+              .insert(insertPayload)
+              .select('id')
+              .maybeSingle();
+
+            if (insertError) {
+              console.error('❌ analyst_signals insert error:', insertError);
+              return new Response(JSON.stringify({ error: insertError.message }), {
+                status: 400,
+                headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+              });
+            }
+
+            console.log('✅ analyst_signal created', inserted);
+            return new Response(JSON.stringify({ success: true, analyst_signal_id: inserted?.id || null }), {
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            });
+
+          } catch (err) {
+            console.error('❌ insert_degen_call error:', err);
+            return new Response(JSON.stringify({ error: err.message || 'Unknown error' }), {
+              status: 500,
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            });
+          }
 
         case 'send_test_message':
           console.log('📤 Sending test message to chat_id:', body.chat_id);
