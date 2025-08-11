@@ -87,9 +87,6 @@ export function FullDegenCallAlertsView({ subscriber }: FullDegenCallAlertsViewP
             <Button size="sm" variant="ghost" onClick={refreshData}>
               <RefreshCw className="w-4 h-4 mr-1" /> Refresh
             </Button>
-            <Button size="sm" variant="outline" onClick={() => setShowSettings(true)}>
-              <Settings2 className="w-4 h-4 mr-1" /> Settings
-            </Button>
           </div>
         </CardHeader>
         <CardContent>
