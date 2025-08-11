@@ -41,7 +41,7 @@ export function UnifiedChatContainer({ subscriber, hideHeader = false }: Unified
                 asChild
                 className="h-8 px-4 text-sm bg-gradient-to-r from-blue-500 to-indigo-500 text-white hover:from-blue-600 hover:to-indigo-600 shadow-lg hover:shadow-xl transition-all duration-200 font-medium"
               >
-                <a href="https://whop.com/weeklywizdom/telegram-DnUOfaebgphZtq/app/" target="_blank" rel="noopener noreferrer">
+                <a href="https://whop.com/experiences/exp_DnUOfaebgphZtq" target="_blank" rel="noopener noreferrer">
                   Join Telegram
                 </a>
               </Button>
