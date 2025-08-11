@@ -18,17 +18,41 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    const { adminEmail, expiresMinutes = 15 } = await req.json()
-
-    if (!adminEmail) {
+    // Require authenticated admin (verify_jwt is enabled by default)
+    const authHeader = req.headers.get('authorization') || ''
+    const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : null
+    if (!token) {
       return new Response(
-        JSON.stringify({ success: false, error: 'Missing adminEmail' }),
-        { 
-          status: 400, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-        }
+        JSON.stringify({ success: false, error: 'Missing Authorization token' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
+
+    const { data: userData, error: userErr } = await supabaseClient.auth.getUser(token)
+    if (userErr || !userData?.user?.email) {
+      return new Response(
+        JSON.stringify({ success: false, error: 'Invalid auth token' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    const adminEmail = userData.user.email!
+
+    const { data: adminRow, error: adminCheckErr } = await supabaseClient
+      .from('admin_users')
+      .select('id, is_active')
+      .eq('email', adminEmail)
+      .eq('is_active', true)
+      .single()
+
+    if (adminCheckErr || !adminRow) {
+      return new Response(
+        JSON.stringify({ success: false, error: 'Admin access required' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    const { expiresMinutes = 15 } = await req.json().catch(() => ({ expiresMinutes: 15 }))
 
     console.log(`🔐 Creating 2FA session for admin: ${adminEmail}`)
 
@@ -55,7 +79,7 @@ serve(async (req) => {
         expires_at: expiresAt,
         ip_address: ipAddress,
         user_agent: userAgent,
-        verified_at: new Date().toISOString()
+        verified_at: null
       })
       .select()
       .single()

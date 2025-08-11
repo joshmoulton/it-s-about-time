@@ -18,6 +18,38 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
+    // Require authenticated admin
+    const authHeader = req.headers.get('authorization') || ''
+    const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : null
+    if (!token) {
+      return new Response(
+        JSON.stringify({ valid: false, error: 'Missing Authorization token' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    const { data: userData, error: userErr } = await supabaseClient.auth.getUser(token)
+    if (userErr || !userData?.user?.email) {
+      return new Response(
+        JSON.stringify({ valid: false, error: 'Invalid auth token' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    const adminEmail = userData.user.email!
+    const { data: adminRow, error: adminCheckErr } = await supabaseClient
+      .from('admin_users')
+      .select('id, is_active')
+      .eq('email', adminEmail)
+      .eq('is_active', true)
+      .single()
+    if (adminCheckErr || !adminRow) {
+      return new Response(
+        JSON.stringify({ valid: false, error: 'Admin access required' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
     const { sessionToken } = await req.json()
 
     if (!sessionToken) {
@@ -77,12 +109,7 @@ serve(async (req) => {
 
     console.log('✅ 2FA session verified successfully')
     return new Response(
-      JSON.stringify({ 
-        valid: true,
-        adminEmail: sessionData.admin_email,
-        expiresAt: sessionData.expires_at,
-        verifiedAt: sessionData.verified_at
-      }),
+      JSON.stringify({ valid: true }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
       }
