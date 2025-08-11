@@ -83,11 +83,14 @@ export function FullDegenCallAlertsView({ subscriber }: FullDegenCallAlertsViewP
       <Card className="bg-gradient-to-br from-orange-900/20 via-red-900/10 to-slate-800/50 border-orange-500/20">
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle className="text-white">Recent Degen Calls</CardTitle>
-          <div className="flex items-center gap-2">
-            <Button size="sm" variant="ghost" onClick={refreshData}>
-              <RefreshCw className="w-4 h-4 mr-1" /> Refresh
-            </Button>
-          </div>
+            <div className="flex items-center gap-3">
+              <Badge variant="outline" className="text-xs uppercase tracking-wide border-orange-400/40 text-orange-200 bg-orange-500/10">
+                Currently in test mode — please disregard
+              </Badge>
+              <Button size="sm" variant="ghost" onClick={refreshData}>
+                <RefreshCw className="w-4 h-4 mr-1" /> Refresh
+              </Button>
+            </div>
         </CardHeader>
         <CardContent>
           <DegenCallsList />
