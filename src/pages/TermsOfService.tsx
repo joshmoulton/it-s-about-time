@@ -33,6 +33,9 @@ const TermsOfService = () => {
           <div className="bg-card rounded-lg border border-border p-6 sm:p-8 space-y-6">
             
             <div className="space-y-4">
+              <p className="text-sm font-medium text-muted-foreground mb-4">
+                Effective Date: 24th of July 2025
+              </p>
               <p className="text-foreground leading-relaxed">
                 Welcome to WeeklyWizdom.com ("we," "us," or "our"). These Terms of Service ("Terms") govern your use of our website, services, newsletters, and community content. By accessing or using any part of WeeklyWizdom.com, you agree to these Terms. If you do not agree, please do not use our services.
               </p>
@@ -44,7 +47,7 @@ const TermsOfService = () => {
                   1. Who We Are
                 </h2>
                 <p className="text-foreground leading-relaxed mb-3">
-                  WeeklyWizdom is a U.S.-based company that provides:
+                  Weekly Wizdom LLC is a Michigan-based company that provides:
                 </p>
                 <ul className="list-disc pl-6 space-y-1 text-foreground">
                   <li>A cross-asset financial newsletter</li>
@@ -53,7 +56,7 @@ const TermsOfService = () => {
                   <li>A private community chat</li>
                 </ul>
                 <p className="text-foreground leading-relaxed mt-3">
-                  Our content is designed for informational and educational purposes only.
+                  Our content is designed strictly for informational and educational purposes.
                 </p>
               </section>
 
@@ -62,7 +65,7 @@ const TermsOfService = () => {
                   2. Eligibility
                 </h2>
                 <p className="text-foreground leading-relaxed">
-                  Our services are intended for users 13 years and older. By using WeeklyWizdom, you confirm that you meet this requirement and are legally able to enter into this agreement.
+                  Our services are intended for users 18 years and older. By using WeeklyWizdom.com, you confirm that you meet this requirement and are legally able to enter into this agreement.
                 </p>
               </section>
 
@@ -72,10 +75,10 @@ const TermsOfService = () => {
                 </h2>
                 <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4 space-y-3">
                   <ul className="list-disc pl-6 space-y-2 text-foreground">
-                    <li>WeeklyWizdom does not offer investment, legal, tax, or financial advice.</li>
-                    <li>All content shared is for educational and informational purposes only. Our analysts may share personal opinions or investment decisions they make, these opinions and decisions should not be construed as personalized investment recommendations or a solicitation to buy or sell any securities.</li>
-                    <li>We are not registered financial advisors, broker-dealers, or fiduciaries under U.S. federal securities laws or any other jurisdiction. Decisions based on our materials are made at your own risk. Always consult a licensed professional before making any financial decisions.</li>
-                    <li>You acknowledge that trading or investing in financial markets carries inherent risks, including the loss of capital.</li>
+                    <li>Weekly Wizdom LLC does not offer investment, legal, tax, or financial advice.</li>
+                    <li>All content shared is for educational and informational purposes only. Our team may share opinions or personal investment actions; none of these should be construed as personalized investment recommendations or solicitations to buy or sell securities.</li>
+                    <li>We are not registered financial advisors, broker-dealers, or fiduciaries under U.S. federal securities laws or any other jurisdiction. You agree that any actions you take based on our content are made solely at your own risk. Always consult a licensed financial professional before making decisions.</li>
+                    <li>You acknowledge that trading or investing in financial markets carries inherent risks, including the potential for significant or total loss of capital.</li>
                   </ul>
                 </div>
               </section>
@@ -85,8 +88,8 @@ const TermsOfService = () => {
                   4. Payments and Refund Policy
                 </h2>
                 <ul className="list-disc pl-6 space-y-2 text-foreground">
-                  <li>All purchases are made through Whop, which supports both traditional payment methods and cryptocurrency.</li>
-                  <li>We do not offer refunds. Exceptions may be made at our sole discretion, on a case-by-case basis.</li>
+                  <li>All purchases are processed through Whop, which supports both traditional and cryptocurrency payments.</li>
+                  <li>We do not offer refunds. In exceptional cases, we may grant refunds at our sole discretion. By subscribing, you agree to these terms.</li>
                 </ul>
               </section>
 
@@ -95,8 +98,8 @@ const TermsOfService = () => {
                   5. Intellectual Property
                 </h2>
                 <ul className="list-disc pl-6 space-y-2 text-foreground">
-                  <li>All content on WeeklyWizdom.com, including newsletters, reports, graphics, and written materials, is the intellectual property of WeeklyWizdom and is protected by copyright and other applicable laws.</li>
-                  <li>You may not reproduce, distribute, modify, or publicly display our content without express written permission.</li>
+                  <li>All content provided on WeeklyWizdom.com, including but not limited to newsletters, reports, graphics, videos, and written materials, is the intellectual property of Weekly Wizdom LLC and protected under U.S. and international copyright and intellectual property laws.</li>
+                  <li>You may not reproduce, distribute, modify, or publicly display our content without our express written permission.</li>
                 </ul>
               </section>
 
@@ -105,8 +108,8 @@ const TermsOfService = () => {
                   6. Community and Communication
                 </h2>
                 <ul className="list-disc pl-6 space-y-2 text-foreground">
-                  <li>While you may participate in our community chat, any posts, comments, or messages within the community remain your responsibility. We do not claim ownership over your messages and do not consider casual discussion in our private groups as formal user-generated content for the purpose of these Terms.</li>
-                  <li>However, we reserve the right to moderate or remove content that we deem abusive, unlawful, or disruptive.</li>
+                  <li>Participation in our private community (e.g., Telegram or similar platforms) is welcomed. However, you are solely responsible for any content you post.</li>
+                  <li>We do not claim ownership of your posts, nor do we treat casual discussion as formal user-generated content. However, we reserve the right to moderate, remove, or report any content we deem abusive, unlawful, or in violation of community guidelines.</li>
                 </ul>
               </section>
 
@@ -118,8 +121,8 @@ const TermsOfService = () => {
                   To the fullest extent permitted by law:
                 </p>
                 <ul className="list-disc pl-6 space-y-2 text-foreground">
-                  <li>We are not liable for any indirect, incidental, or consequential damages arising from your use of our services.</li>
-                  <li>Our total liability, if any, is limited to the amount you paid us in the 12 months preceding the event giving rise to the claim.</li>
+                  <li>Weekly Wizdom LLC is not liable for any indirect, incidental, consequential, or punitive damages arising from your use of our services.</li>
+                  <li>Our total liability, if any, is limited to the amount you paid us in the 12 months prior to the event giving rise to the claim.</li>
                 </ul>
               </section>
 
@@ -128,8 +131,8 @@ const TermsOfService = () => {
                   8. Termination
                 </h2>
                 <ul className="list-disc pl-6 space-y-2 text-foreground">
-                  <li>We reserve the right to terminate or restrict access to our services at any time, with or without cause, and without notice.</li>
-                  <li>You may cancel your subscription via Whop at any time. No refunds will be issued upon cancellation, unless otherwise granted per Section 4.</li>
+                  <li>We may terminate or restrict access to our services at any time, with or without notice or cause.</li>
+                  <li>You may cancel your subscription at any time through Whop. Refunds will not be issued except under Section 4 (Payments and Refund Policy).</li>
                 </ul>
               </section>
 
@@ -138,11 +141,7 @@ const TermsOfService = () => {
                   9. Privacy
                 </h2>
                 <p className="text-foreground leading-relaxed">
-                  Your privacy is important to us. Please review our{' '}
-                  <Link to="/privacy" className="text-primary hover:underline">
-                    Privacy Policy
-                  </Link>{' '}
-                  for details on how we collect and use personal data.
+                  Your privacy is important to us. Please review our Privacy Policy to understand how we collect, use, and protect your personal data.
                 </p>
               </section>
 
@@ -151,7 +150,7 @@ const TermsOfService = () => {
                   10. Governing Law
                 </h2>
                 <p className="text-foreground leading-relaxed">
-                  These Terms are governed by the laws of the [U.S. state where WeeklyWizdom is registered]. You agree to submit to the exclusive jurisdiction of the courts located in that state for any disputes arising from these Terms.
+                  These Terms are governed by the laws of the State of Michigan, without regard to conflict of law principles. You agree to the exclusive jurisdiction of the courts located in Michigan for any disputes related to these Terms.
                 </p>
               </section>
 
@@ -160,7 +159,7 @@ const TermsOfService = () => {
                   11. Updates to These Terms
                 </h2>
                 <p className="text-foreground leading-relaxed">
-                  We may update these Terms at any time. Changes take effect immediately upon posting. We encourage you to review this page periodically.
+                  We may update these Terms from time to time. Changes will take effect immediately upon posting. You agree to review these Terms regularly.
                 </p>
               </section>
 
@@ -169,7 +168,7 @@ const TermsOfService = () => {
                   12. Contact
                 </h2>
                 <p className="text-foreground leading-relaxed mb-3">
-                  If you have questions about these Terms, please contact us at:
+                  For any questions, contact us at:
                 </p>
                 <div className="bg-muted rounded-lg p-4">
                   <p className="text-foreground">
@@ -180,11 +179,29 @@ const TermsOfService = () => {
                   </p>
                 </div>
               </section>
+
+              <section>
+                <h2 className="text-xl font-semibold text-foreground mb-3 border-b border-border pb-2">
+                  13. Miscellaneous
+                </h2>
+                <p className="text-foreground leading-relaxed">
+                  If any provision of these Terms is found to be unlawful, void, or unenforceable, it shall not affect the validity of the remaining provisions.
+                </p>
+              </section>
+
+              <section>
+                <h2 className="text-xl font-semibold text-foreground mb-3 border-b border-border pb-2">
+                  14. Entire Agreement
+                </h2>
+                <p className="text-foreground leading-relaxed">
+                  These Terms, along with our Privacy Policy, represent the full agreement between you and Weekly Wizdom LLC and supersede all prior communications.
+                </p>
+              </section>
             </div>
 
             <div className="pt-6 border-t border-border">
               <p className="text-sm text-muted-foreground text-center">
-                Last updated: {new Date().toLocaleDateString()}
+                Effective Date: July 24th, 2025
               </p>
             </div>
           </div>
