@@ -3839,6 +3839,12 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: string
       }
+      get_blacklisted_newsletter_ids: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          beehiiv_post_id: string
+        }[]
+      }
       get_current_user_email: {
         Args: Record<PropertyKey, never>
         Returns: string
@@ -3958,6 +3964,10 @@ export type Database = {
         Args:
           | { ip_address: unknown; admin_email: string }
           | { p_admin_email: string; p_ip_address: unknown }
+        Returns: boolean
+      }
+      is_newsletter_blacklisted: {
+        Args: { p_beehiiv_post_id: string }
         Returns: boolean
       }
       list_public_tables_rls: {

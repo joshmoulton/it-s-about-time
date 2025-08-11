@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 
 // Helper function to blacklist a newsletter
@@ -21,21 +22,21 @@ export const blacklistNewsletter = async (beehiivPostId: string, title: string, 
   }
 };
 
-// Helper function to get blacklisted newsletter IDs
+// Helper function to get blacklisted newsletter IDs (via RPC due to RLS)
 export const getBlacklistedNewsletterIds = async (): Promise<string[]> => {
   try {
-    const { data, error } = await supabase
-      .from('newsletter_blacklist')
-      .select('beehiiv_post_id');
+    const { data, error } = await supabase.rpc('get_blacklisted_newsletter_ids');
 
     if (error) {
-      console.error('Error fetching blacklisted newsletters:', error);
+      console.error('Error fetching blacklisted newsletters (RPC):', error);
       return [];
     }
 
-    return data?.map(item => item.beehiiv_post_id) || [];
+    // data should be an array of rows with beehiiv_post_id
+    const ids = Array.isArray(data) ? data.map((item: { beehiiv_post_id: string }) => item.beehiiv_post_id) : [];
+    return ids;
   } catch (error) {
-    console.error('Failed to fetch blacklisted newsletters:', error);
+    console.error('Failed to fetch blacklisted newsletters (RPC):', error);
     return [];
   }
 };
@@ -47,23 +48,22 @@ export const filterBlacklistedNewsletters = (newsletters: any[], blacklistedIds:
   );
 };
 
-// Helper function to check if a newsletter is blacklisted
+// Helper function to check if a newsletter is blacklisted (via RPC due to RLS)
 export const isNewsletterBlacklisted = async (beehiivPostId: string): Promise<boolean> => {
   try {
-    const { data, error } = await supabase
-      .from('newsletter_blacklist')
-      .select('beehiiv_post_id')
-      .eq('beehiiv_post_id', beehiivPostId)
-      .single();
+    const { data, error } = await supabase.rpc('is_newsletter_blacklisted', {
+      p_beehiiv_post_id: beehiivPostId
+    });
 
-    if (error && error.code !== 'PGRST116') {
-      console.error('Error checking newsletter blacklist:', error);
+    if (error) {
+      console.error('Error checking newsletter blacklist (RPC):', error);
       return false;
     }
 
-    return !!data;
+    // data should be a boolean
+    return Boolean(data);
   } catch (error) {
-    console.error('Failed to check newsletter blacklist:', error);
+    console.error('Failed to check newsletter blacklist (RPC):', error);
     return false;
   }
 };
