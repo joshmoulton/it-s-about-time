@@ -3851,6 +3851,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: string
       }
+      get_current_user_telegram_id: {
+        Args: Record<PropertyKey, never>
+        Returns: number
+      }
       get_current_user_tier: {
         Args: Record<PropertyKey, never>
         Returns: Database["public"]["Enums"]["subscription_tier"]
