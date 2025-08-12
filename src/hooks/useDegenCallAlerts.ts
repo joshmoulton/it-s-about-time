@@ -9,16 +9,20 @@ export interface DegenCall {
   outcome: 'hit' | 'miss' | 'pending';
   status?: string | null;
   created_at: string;
+  stop_loss?: string;
+  targets?: number[];
+  risk_percentage?: number;
+  analyst_name?: string;
 }
 
 export function useDegenCallAlerts(limit = 10) {
   return useQuery<DegenCall[]>({
     queryKey: ['degenCallAlerts', limit],
     queryFn: async () => {
-      // Fetch latest active, posted signals
+      // Fetch latest active, posted signals with all needed fields
       const { data, error } = await supabase
         .from('analyst_signals')
-        .select('id, ticker, entry_price, trade_direction, entry_type, created_at, status, posted_to_telegram')
+        .select('id, ticker, entry_price, trade_direction, entry_type, created_at, status, posted_to_telegram, stop_loss_price, targets, risk_percentage, analyst_name')
         .eq('posted_to_telegram', true)
         .order('created_at', { ascending: false })
         .limit(limit);
@@ -43,6 +47,10 @@ export function useDegenCallAlerts(limit = 10) {
           outcome: 'pending',
           status: row.status,
           created_at: row.created_at,
+          stop_loss: row.stop_loss_price != null ? String(row.stop_loss_price) : undefined,
+          targets: row.targets ? (Array.isArray(row.targets) ? row.targets : [row.targets]) : undefined,
+          risk_percentage: row.risk_percentage || undefined,
+          analyst_name: row.analyst_name || undefined,
         };
       });
 

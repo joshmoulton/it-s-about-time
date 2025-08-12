@@ -48,13 +48,39 @@ export const useDegenCommandParser = () => {
   };
 
   const parseDegenCommand = async (message: string): Promise<DegenCommandData | null> => {
-    // Match pattern: !degen supporting long|short TICKER (optional entry/stop/target)
-    const degenRegex = /!degen\s+supporting\s+(long|short)\s+([A-Za-z0-9]+)(?:\s+(.+))?/i;
-    const match = message.match(degenRegex);
+    // Match patterns: 
+    // !degen supporting long|short TICKER (optional entry/stop/target)
+    // !degen long|short TICKER [entry] (optional stop/target)
+    const supportingFormat = /!degen\s+supporting\s+(long|short)\s+([A-Za-z0-9]+)(?:\s+(.+))?/i;
+    const directFormat = /!degen\s+(long|short)\s+([A-Za-z0-9]+)(?:\s+([0-9.]+))?(?:\s+(.+))?/i;
+    
+    let match = message.match(supportingFormat);
+    let isDirectFormat = false;
+    
+    if (!match) {
+      match = message.match(directFormat);
+      isDirectFormat = true;
+    }
 
     if (!match) return null;
 
-    const [, direction, ticker, additionalParams] = match;
+    let direction: string, ticker: string, additionalParams: string | undefined;
+    
+    if (isDirectFormat) {
+      [, direction, ticker, , additionalParams] = match;
+      // For direct format, the third capture group is the entry price
+      const entryPrice = match[3];
+      if (entryPrice) {
+        const commandData: DegenCommandData = {
+          ticker: ticker.toUpperCase(),
+          direction: direction.toLowerCase() as 'long' | 'short',
+          entryPrice: parseFloat(entryPrice)
+        };
+        return commandData;
+      }
+    } else {
+      [, direction, ticker, additionalParams] = match;
+    }
     
     const commandData: DegenCommandData = {
       ticker: ticker.toUpperCase(),
