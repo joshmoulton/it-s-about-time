@@ -36,7 +36,7 @@ export function TopicSelector({ selectedTopic, onTopicChange }: TopicSelectorPro
       <SelectTrigger className="w-40 h-8 text-xs bg-slate-700 text-white border-slate-600 focus:border-blue-500">
         <SelectValue placeholder="Money Glitch" />
       </SelectTrigger>
-      <SelectContent className="z-[100] bg-slate-800 border-slate-700 text-white backdrop-blur-sm shadow-lg" position="popper" sideOffset={4}>
+      <SelectContent className="z-[9999] bg-slate-800 border-slate-700 text-white backdrop-blur-sm shadow-xl" position="popper" sideOffset={4} align="start" avoidCollisions={true}>
         {workingTopics.map((topic) => (
           <SelectItem 
             key={topic.id} 
