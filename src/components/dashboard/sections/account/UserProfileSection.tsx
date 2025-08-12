@@ -1,18 +1,21 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { User, Camera, Save, Loader2 } from 'lucide-react';
+import { Camera, Save, Loader2 } from 'lucide-react';
 import { useEnhancedAuth } from '@/contexts/EnhancedAuthContext';
-import { useAdminStatus } from '@/hooks/useAdminStatus';
+// Removed unused isAdmin import
+// import { useAdminStatus } from '@/hooks/useAdminStatus';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 
 export function UserProfileSection() {
   const { currentUser } = useEnhancedAuth();
-  const { isAdmin } = useAdminStatus();
+  // Removed unused isAdmin usage
+  // const { isAdmin } = useAdminStatus();
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isEditing, setIsEditing] = useState(false);
@@ -323,6 +326,8 @@ export function UserProfileSection() {
             </p>
           </div>
 
+          {/* Removed Account Type section as requested */}
+          {/* 
           <div className="grid gap-2">
             <Label>Account Type</Label>
             <div className="flex items-center space-x-2">
@@ -347,6 +352,7 @@ export function UserProfileSection() {
               </p>
             )}
           </div>
+          */}
         </div>
 
         {/* Action Buttons */}
