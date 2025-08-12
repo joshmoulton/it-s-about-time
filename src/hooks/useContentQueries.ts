@@ -49,11 +49,13 @@ export function useContentQueries(subscriber: Subscriber, isFullView: boolean = 
       const { data, error } = await query;
         
       if (error) throw error;
-      return data?.filter(video => {
-        if (video.required_tier === 'free') return true;
-        if (video.required_tier === 'paid' && ['paid', 'premium'].includes(subscriber.subscription_tier)) return true;
-        if (video.required_tier === 'premium' && subscriber.subscription_tier === 'premium') return true;
-        return false;
+      return data?.filter((video) => {
+        const tier = (video.required_tier as 'free' | 'paid' | 'premium' | null) ?? 'free';
+        if (tier === 'free') return true;
+        if (tier === 'paid') return ['paid', 'premium'].includes(subscriber.subscription_tier);
+        if (tier === 'premium') return subscriber.subscription_tier === 'premium';
+        // Fallback: if tier is unknown, do not hide it from premium users
+        return subscriber.subscription_tier === 'premium';
       });
     }
   });
