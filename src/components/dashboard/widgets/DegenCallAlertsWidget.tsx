@@ -31,7 +31,7 @@ export function DegenCallAlertsWidget({
   const {
     data: degenCalls,
     isLoading
-  } = useDegenCallAlerts(2); // Last 2 calls for better fit
+  } = useDegenCallAlerts(1); // Last 1 call for consistent height with other widgets
 
   const queryClient = useQueryClient();
 
@@ -107,7 +107,7 @@ export function DegenCallAlertsWidget({
         }
 
         // Refresh the degen calls list
-        queryClient.invalidateQueries({ queryKey: ['degenCallAlerts', 2] });
+        queryClient.invalidateQueries({ queryKey: ['degenCallAlerts', 1] });
       } catch (e: any) {
         console.error('❌ Backfill invocation failed:', e?.message || e);
       }
