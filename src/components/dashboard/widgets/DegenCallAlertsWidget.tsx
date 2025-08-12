@@ -273,7 +273,7 @@ export function DegenCallAlertsWidget({
                   onClick={handleViewAllCalls}
                 >
                   <ExternalLink className="h-4 w-4 mr-2 flex-shrink-0" />
-                  View all degen calls
+                  View All Degen Calls
                 </Button>
               </div>
             </div>
