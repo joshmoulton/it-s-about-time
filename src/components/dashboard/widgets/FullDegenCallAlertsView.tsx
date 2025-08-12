@@ -9,6 +9,7 @@ import { DegenCallSettingsModal } from './DegenCallSettingsModal';
 import { formatDistanceToNow } from 'date-fns';
 import { useQueryClient } from '@tanstack/react-query';
 import { useDegenCallAlerts } from '@/hooks/useDegenCallAlerts';
+import { useCryptoPrices } from '@/hooks/useCryptoPrices';
 
 interface Subscriber {
   id: string;
@@ -111,6 +112,10 @@ export function FullDegenCallAlertsView({ subscriber }: FullDegenCallAlertsViewP
 
 function DegenCallsList() {
   const { data: calls = [], isLoading } = useDegenCallAlerts(10);
+  
+  // Get tickers for price fetching
+  const tickers = calls?.map(call => call.coin) || [];
+  const { data: cryptoPrices } = useCryptoPrices(tickers);
 
   if (isLoading) {
     return (
@@ -146,22 +151,32 @@ function DegenCallsList() {
     return size; // Return original if not recognized
   };
 
+  const formatPrice = (price: number) => {
+    if (price >= 1) return `$${price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    if (price >= 0.01) return `$${price.toFixed(4)}`;
+    return `$${price.toFixed(8)}`;
+  };
+
+  const getPriceForTicker = (ticker: string) => {
+    return cryptoPrices?.find(p => p.ticker === ticker.toUpperCase());
+  };
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
       {calls.map(call => (
-        <div key={call.id} className="bg-orange-900/25 border border-orange-500/30 rounded-xl px-4 py-3.5 hover:border-orange-400/40 hover:bg-orange-900/35 transition-all duration-200 shadow-sm leading-relaxed tracking-wide">
+        <div key={call.id} className="bg-orange-900/25 border border-orange-500/30 rounded-md px-2.5 py-2 hover:border-orange-400/40 hover:bg-orange-900/35 transition-all duration-200 shadow-sm space-y-2">
           {/* Header with ticker, direction, and timestamp */}
-          <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <div className="w-6 h-6 bg-gradient-to-br from-orange-500 to-red-500 rounded-md flex items-center justify-center">
-                <Zap className="w-3.5 h-3.5 text-white" />
+              <div className="w-5 h-5 bg-gradient-to-br from-orange-500 to-red-500 rounded-md flex items-center justify-center">
+                <Zap className="w-2.5 h-2.5 text-white" />
               </div>
-              <div className="flex items-center gap-2">
-                <span className="text-white text-sm font-semibold">{call.coin}</span>
+              <div className="flex items-center gap-1.5">
+                <span className="text-white text-sm font-bold">{call.coin}</span>
                 {call.direction && (
                   <Badge 
                     variant="outline" 
-                    className={`text-xs border ${
+                    className={`text-xs px-1.5 py-0.5 border ${
                       call.direction.toLowerCase() === 'long' 
                         ? 'border-green-400/50 text-green-200 bg-green-500/10' 
                         : 'border-red-400/50 text-red-200 bg-red-500/10'
@@ -172,66 +187,89 @@ function DegenCallsList() {
                 )}
               </div>
             </div>
-            <div className="text-xs text-orange-200/80">
-              {formatTimeAgo(call.created_at)}
+            <div className="text-right">
+              <div className="flex items-center gap-1 text-xs text-orange-200/80">
+                <Clock className="w-2.5 h-2.5" />
+                <span>{formatTimeAgo(call.created_at)}</span>
+              </div>
             </div>
           </div>
 
           {/* Caller name */}
           {call.analyst_name && (
-            <div className="flex items-center gap-1 mb-2">
+            <div className="flex items-center gap-1.5 pb-1.5 border-b border-orange-500/20">
               <span className="text-xs text-orange-300">Called by:</span>
               <span className="text-xs text-white font-medium">{call.analyst_name}</span>
             </div>
           )}
 
-          {/* Trading details grid */}
-          <div className="grid grid-cols-2 gap-2 text-xs">
+          {/* Current Price Section */}
+          <div className="bg-black/20 rounded-md p-1.5">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-1.5">
+                <DollarSign className="w-3 h-3 text-blue-400" />
+                <span className="text-xs text-orange-200/80">Current Price:</span>
+              </div>
+              {(() => {
+                const priceData = getPriceForTicker(call.coin);
+                if (priceData) {
+                  return (
+                    <span className="text-white font-semibold text-sm">
+                      {formatPrice(priceData.price_usd)}
+                    </span>
+                  );
+                }
+                return <span className="text-orange-300 font-medium text-xs">Loading...</span>;
+              })()}
+            </div>
+          </div>
+
+          {/* Trading details */}
+          <div className="space-y-1">
             {/* Entry */}
-            <div className="flex items-center gap-1">
-              <DollarSign className="w-3 h-3 text-orange-400" />
-              <span className="text-orange-200/80">Entry:</span>
-              <span className="text-white font-medium">
-                {call.entry_price ? `$${Number(call.entry_price).toLocaleString()}` : 'N/A'}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-1.5">
+                <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                <span className="text-xs text-orange-200/80">Entry:</span>
+              </div>
+              <span className="text-white font-medium text-xs">
+                {call.entry_price && call.entry_price !== 'Market' ? `$${Number(call.entry_price).toLocaleString()}` : 'Market'}
               </span>
             </div>
 
             {/* Stop Loss */}
-            <div className="flex items-center gap-1">
-              <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-              <span className="text-orange-200/80">Stop:</span>
-              <span className="text-white font-medium">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-1.5">
+                <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+                <span className="text-xs text-orange-200/80">Stop Loss:</span>
+              </div>
+              <span className="text-white font-medium text-xs">
                 {call.stop_loss ? `$${Number(call.stop_loss).toLocaleString()}` : 'N/A'}
               </span>
             </div>
 
             {/* Target */}
-            <div className="flex items-center gap-1">
-              <TrendingUp className="w-3 h-3 text-green-400" />
-              <span className="text-orange-200/80">Target:</span>
-              <span className="text-white font-medium">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-1.5">
+                <TrendingUp className="w-2.5 h-2.5 text-green-400" />
+                <span className="text-xs text-orange-200/80">Target:</span>
+              </div>
+              <span className="text-white font-medium text-xs">
                 {call.targets && call.targets.length > 0 ? `$${Number(call.targets[0]).toLocaleString()}` : 'N/A'}
               </span>
             </div>
 
             {/* Size */}
-            <div className="flex items-center gap-1">
-              <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
-              <span className="text-orange-200/80">Size:</span>
-              <span className="text-white font-medium">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-1.5">
+                <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
+                <span className="text-xs text-orange-200/80">Size:</span>
+              </div>
+              <span className="text-white font-medium text-xs">
                 {formatSizeLevel(call.size || call.risk_management)}
               </span>
             </div>
           </div>
-
-          {/* Status badge */}
-          {call.status && (
-            <div className="mt-2 flex justify-end">
-              <Badge className="text-xs bg-orange-500/20 text-orange-200 border-orange-500/30">
-                {call.status}
-              </Badge>
-            </div>
-          )}
         </div>
       ))}
     </div>
