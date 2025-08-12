@@ -115,7 +115,7 @@ export function DegenCallAlertsWidget({
   }, [queryClient]);
 
   const handleViewAllCalls = () => {
-    navigate('/dashboard?section=degen-calls');
+    navigate('/degen-calls');
   };
 
   const formatMultiplier = (multiplier: number) => {
