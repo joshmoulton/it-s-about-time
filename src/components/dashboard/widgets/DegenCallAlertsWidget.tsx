@@ -1,4 +1,3 @@
-
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ModernCard, ModernCardHeader, ModernCardTitle, ModernCardContent } from '@/components/ui/modern-card';
@@ -9,7 +8,6 @@ import { useDegenCallAlerts } from '@/hooks/useDegenCallAlerts';
 import { useCryptoPrices } from '@/hooks/useCryptoPrices';
 import { supabase } from '@/integrations/supabase/client';
 import { useQueryClient } from '@tanstack/react-query';
-
 interface Subscriber {
   id: string;
   email: string;
@@ -18,12 +16,10 @@ interface Subscriber {
   created_at: string;
   updated_at: string;
 }
-
 interface DegenCallAlertsWidgetProps {
   subscriber: Subscriber;
   hideHeader?: boolean;
 }
-
 export function DegenCallAlertsWidget({
   subscriber,
   hideHeader = false
@@ -36,10 +32,10 @@ export function DegenCallAlertsWidget({
 
   // Get tickers for price fetching
   const tickers = degenCalls?.map(call => call.coin) || [];
-  const { data: cryptoPrices } = useCryptoPrices(tickers);
-
+  const {
+    data: cryptoPrices
+  } = useCryptoPrices(tickers);
   const queryClient = useQueryClient();
-
   useEffect(() => {
     const KEY = 'ww_backfill_degen_2025_08_11';
     if (sessionStorage.getItem(KEY)) return;
@@ -48,7 +44,10 @@ export function DegenCallAlertsWidget({
       try {
         console.log('🧩 Triggering degen backfill...');
         const res = await supabase.functions.invoke('telegram-bot', {
-          body: { action: 'backfill_degen_calls', limit: 500 }
+          body: {
+            action: 'backfill_degen_calls',
+            limit: 500
+          }
         });
         if ((res as any).error) {
           console.error('❌ Backfill error:', (res as any).error);
@@ -57,14 +56,12 @@ export function DegenCallAlertsWidget({
         }
 
         // Fallback: scan recent !degen messages client-side and upsert via insert_degen_call
-        const { data: msgs, error: msgsErr } = await supabase
-          .from('telegram_messages')
-          .select('telegram_message_id, chat_id, message_thread_id, user_id, username, first_name, last_name, message_text, timestamp')
-          .not('message_text', 'is', null)
-          .ilike('message_text', '!degen%')
-          .order('timestamp', { ascending: true })
-          .limit(50);
-
+        const {
+          data: msgs,
+          error: msgsErr
+        } = await supabase.from('telegram_messages').select('telegram_message_id, chat_id, message_thread_id, user_id, username, first_name, last_name, message_text, timestamp').not('message_text', 'is', null).ilike('message_text', '!degen%').order('timestamp', {
+          ascending: true
+        }).limit(50);
         if (msgsErr) {
           // Suppress RLS access errors for free users (expected behavior)
           if (msgsErr.code === 'PGRST301' || msgsErr.message?.includes('RLS')) {
@@ -83,16 +80,21 @@ export function DegenCallAlertsWidget({
             const match = text.match(re);
             if (!match) continue;
             const rawTicker = match[1] || '';
-            const ticker = rawTicker.replace(/^\$/,'').toUpperCase().trim();
+            const ticker = rawTicker.replace(/^\$/, '').toUpperCase().trim();
             const entry = toNum(match[3]);
             const stop = toNum(match[4]);
             const target = toNum(match[5]);
             const risk = match[6] || null;
-
             await supabase.functions.invoke('telegram-bot', {
               body: {
                 action: 'insert_degen_call',
-                degen_call: { ticker, entry, stop, target, risk },
+                degen_call: {
+                  ticker,
+                  entry,
+                  stop,
+                  target,
+                  risk
+                },
                 message: {
                   message_id: m.telegram_message_id,
                   chat_id: m.chat_id,
@@ -101,10 +103,10 @@ export function DegenCallAlertsWidget({
                     id: m.user_id,
                     username: m.username,
                     first_name: m.first_name,
-                    last_name: m.last_name || null,
+                    last_name: m.last_name || null
                   },
                   text,
-                  timestamp: Math.floor(new Date(m.timestamp).getTime() / 1000),
+                  timestamp: Math.floor(new Date(m.timestamp).getTime() / 1000)
                 }
               }
             });
@@ -112,17 +114,17 @@ export function DegenCallAlertsWidget({
         }
 
         // Refresh the degen calls list
-        queryClient.invalidateQueries({ queryKey: ['degenCallAlerts', 1] });
+        queryClient.invalidateQueries({
+          queryKey: ['degenCallAlerts', 1]
+        });
       } catch (e: any) {
         console.error('❌ Backfill invocation failed:', e?.message || e);
       }
     })();
   }, [queryClient]);
-
   const handleViewAllCalls = () => {
     navigate('/dashboard?section=degen-calls');
   };
-
   const formatMultiplier = (multiplier: number) => {
     return `${multiplier.toFixed(1)}x`;
   };
@@ -130,12 +132,10 @@ export function DegenCallAlertsWidget({
   // Convert risk percentage to descriptive labels only when present
   const formatRiskLevel = (riskPercentage?: number): string => {
     if (!riskPercentage) return 'N/A';
-    
     if (riskPercentage <= 3) return 'Low';
     if (riskPercentage <= 7) return 'Med';
     return 'High';
   };
-
   const formatTimeAgo = (timestamp: string) => {
     const now = new Date();
     const callTime = new Date(timestamp);
@@ -145,21 +145,19 @@ export function DegenCallAlertsWidget({
     if (diffMinutes < 1440) return `${Math.floor(diffMinutes / 60)}h ago`;
     return `${Math.floor(diffMinutes / 1440)}d ago`;
   };
-
   const formatPrice = (price: number) => {
-    if (price >= 1) return `$${price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    if (price >= 1) return `$${price.toLocaleString(undefined, {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    })}`;
     if (price >= 0.01) return `$${price.toFixed(4)}`;
     return `$${price.toFixed(8)}`;
   };
-
   const getPriceForTicker = (ticker: string) => {
     return cryptoPrices?.find(p => p.ticker === ticker.toUpperCase());
   };
-
-  return (
-    <ModernCard className="h-full min-h-[300px] flex flex-col bg-gradient-to-br from-orange-900/20 via-red-900/10 to-slate-800/50 border-orange-500/20 hover:border-orange-400/30 transition-all duration-200" interactive data-tour="degen-calls-widget">
-      {!hideHeader && (
-        <ModernCardHeader className="pb-2 pt-3 flex-shrink-0 px-4">
+  return <ModernCard className="h-full min-h-[300px] flex flex-col bg-gradient-to-br from-orange-900/20 via-red-900/10 to-slate-800/50 border-orange-500/20 hover:border-orange-400/30 transition-all duration-200" interactive data-tour="degen-calls-widget">
+      {!hideHeader && <ModernCardHeader className="pb-2 pt-3 flex-shrink-0 px-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 bg-gradient-to-br from-orange-500 to-red-500 rounded-lg flex items-center justify-center shadow-sm">
@@ -172,30 +170,21 @@ export function DegenCallAlertsWidget({
             {/* Spacer to match newsletter countdown height */}
             <div className="h-10 w-16"></div>
           </div>
-        </ModernCardHeader>
-      )}
+        </ModernCardHeader>}
 
       <ModernCardContent className={`flex-1 flex flex-col ${hideHeader ? 'pt-0' : 'pt-0'} px-4 pb-4`}>
         <div className="flex-1 flex flex-col gap-3">
           {/* Testing notice - centered and attention-grabbing */}
           <div className="w-full flex justify-center">
-            <Badge
-              variant="outline"
-              className="px-3 py-1.5 text-sm font-extrabold uppercase tracking-wider bg-orange-400/20 border-orange-300/60 text-orange-100 shadow-md backdrop-blur-sm animate-pulse"
-              aria-live="polite"
-            >
+            <Badge variant="outline" className="px-3 py-1.5 text-sm font-extrabold uppercase tracking-wider bg-orange-400/20 border-orange-300/60 text-orange-100 shadow-md backdrop-blur-sm animate-pulse" aria-live="polite">
               TESTING ONLY — DISREGARD
             </Badge>
           </div>
 
-          {isLoading ? (
-            <div className="flex-1 flex items-center justify-center">
+          {isLoading ? <div className="flex-1 flex items-center justify-center">
               <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-orange-500" />
-            </div>
-          ) : degenCalls && degenCalls.length > 0 ? (
-            <div className="space-y-3">
-              {degenCalls.map((call) => (
-                <div key={call.id} className="bg-orange-900/25 border border-orange-500/30 rounded-xl px-5 py-4 hover:border-orange-400/40 hover:bg-orange-900/35 transition-all duration-200 shadow-sm space-y-4">
+            </div> : degenCalls && degenCalls.length > 0 ? <div className="space-y-3">
+              {degenCalls.map(call => <div key={call.id} className="bg-orange-900/25 border border-orange-500/30 rounded-xl px-5 py-4 hover:border-orange-400/40 hover:bg-orange-900/35 transition-all duration-200 shadow-sm space-y-4">
                   {/* Header with ticker, direction, and timestamp */}
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
@@ -204,18 +193,9 @@ export function DegenCallAlertsWidget({
                       </div>
                       <div className="flex items-center gap-3">
                         <span className="text-white text-lg font-bold">{call.coin}</span>
-                        {call.direction && (
-                          <Badge 
-                            variant="outline" 
-                            className={`text-sm px-3 py-1 border ${
-                              call.direction.toLowerCase() === 'long' 
-                                ? 'border-green-400/50 text-green-200 bg-green-500/10' 
-                                : 'border-red-400/50 text-red-200 bg-red-500/10'
-                            }`}
-                          >
+                        {call.direction && <Badge variant="outline" className={`text-sm px-3 py-1 border ${call.direction.toLowerCase() === 'long' ? 'border-green-400/50 text-green-200 bg-green-500/10' : 'border-red-400/50 text-red-200 bg-red-500/10'}`}>
                             {call.direction.toUpperCase()}
-                          </Badge>
-                        )}
+                          </Badge>}
                       </div>
                     </div>
                     <div className="text-right">
@@ -224,23 +204,21 @@ export function DegenCallAlertsWidget({
                         <span>{formatTimeAgo(call.created_at)}</span>
                       </div>
                       <div className="text-xs text-orange-300/60">
-                        {new Date(call.created_at).toLocaleDateString('en-US', { 
-                          month: 'short', 
-                          day: 'numeric',
-                          hour: '2-digit',
-                          minute: '2-digit'
-                        })}
+                        {new Date(call.created_at).toLocaleDateString('en-US', {
+                    month: 'short',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                  })}
                       </div>
                     </div>
                   </div>
 
                   {/* Caller name */}
-                  {call.analyst_name && (
-                    <div className="flex items-center gap-2 pb-2 border-b border-orange-500/20">
+                  {call.analyst_name && <div className="flex items-center gap-2 pb-2 border-b border-orange-500/20">
                       <span className="text-sm text-orange-300">Called by:</span>
                       <span className="text-sm text-white font-medium">{call.analyst_name}</span>
-                    </div>
-                  )}
+                    </div>}
 
                   {/* Current Price Section */}
                   <div className="bg-black/20 rounded-lg p-3">
@@ -250,31 +228,17 @@ export function DegenCallAlertsWidget({
                         <span className="text-sm text-orange-200/80">Current Price:</span>
                       </div>
                       {(() => {
-                        const priceData = getPriceForTicker(call.coin);
-                        if (priceData) {
-                          return (
-                            <div className="flex items-center gap-3">
+                  const priceData = getPriceForTicker(call.coin);
+                  if (priceData) {
+                    return <div className="flex items-center gap-3">
                               <span className="text-white font-semibold text-lg">
                                 {formatPrice(priceData.price_usd)}
                               </span>
-                              {priceData.price_change_24h !== null && (
-                                <div className={`flex items-center gap-1 px-2 py-1 rounded-md ${
-                                  priceData.price_change_24h >= 0 ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'
-                                }`}>
-                                  {priceData.price_change_24h >= 0 ? 
-                                    <ArrowUp className="w-3 h-3" /> : 
-                                    <ArrowDown className="w-3 h-3" />
-                                  }
-                                  <span className="text-sm font-medium">
-                                    {Math.abs(priceData.price_change_24h).toFixed(1)}%
-                                  </span>
-                                </div>
-                              )}
-                            </div>
-                          );
-                        }
-                        return <span className="text-orange-300 font-medium">Loading...</span>;
-                      })()}
+                              {priceData.price_change_24h !== null}
+                            </div>;
+                  }
+                  return <span className="text-orange-300 font-medium">Loading...</span>;
+                })()}
                     </div>
                   </div>
 
@@ -326,34 +290,19 @@ export function DegenCallAlertsWidget({
                   </div>
 
                   {/* Status badge */}
-                  {call.status && (
-                    <div className="flex justify-end pt-2 border-t border-orange-500/20">
-                      <Badge className="text-sm bg-orange-500/20 text-orange-200 border-orange-500/30">
-                        {call.status}
-                      </Badge>
-                    </div>
-                  )}
-                </div>
-              ))}
+                  {call.status}
+                </div>)}
 
               <div className="pt-1">
-                <Button 
-                  size="sm" 
-                  className="w-full bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 text-white rounded-xl h-12 text-sm font-medium shadow-sm transition-all duration-200" 
-                  onClick={handleViewAllCalls}
-                >
+                <Button size="sm" className="w-full bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 text-white rounded-xl h-12 text-sm font-medium shadow-sm transition-all duration-200" onClick={handleViewAllCalls}>
                   <ExternalLink className="h-4 w-4 mr-2 flex-shrink-0" />
                   View All Degen Calls
                 </Button>
               </div>
-            </div>
-          ) : (
-            <div className="flex-1 flex items-center justify-center text-orange-200/80">
+            </div> : <div className="flex-1 flex items-center justify-center text-orange-200/80">
               No recent degen calls
-            </div>
-          )}
+            </div>}
         </div>
       </ModernCardContent>
-    </ModernCard>
-  );
+    </ModernCard>;
 }
