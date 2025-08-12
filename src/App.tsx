@@ -9,6 +9,7 @@ import { EnhancedAuthProvider } from "@/contexts/EnhancedAuthContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { DeveloperProvider, DeveloperToggle } from "@/components/dev/DeveloperToggle";
 import { AccessibilityProvider } from "@/components/AccessibilityProvider";
+import { MobilePerfOptimizer } from "@/components/MobilePerfOptimizer";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 // Critical components (loaded immediately)
@@ -50,6 +51,7 @@ const App = () => {
             <AccessibilityProvider>
               <Toaster />
               <Sonner />
+              <MobilePerfOptimizer />
               <DeveloperProvider>
                 <EnhancedAuthProvider>
                 <DeveloperToggle />

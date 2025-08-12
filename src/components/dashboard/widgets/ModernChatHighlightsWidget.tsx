@@ -44,9 +44,6 @@ export function ModernChatHighlightsWidget({
     return `${Math.floor(diffMinutes / 1440)}d ago`;
   };
   return <ModernCard interactive className="h-full flex flex-col overflow-hidden bg-gradient-to-br from-purple-900/20 via-pink-900/10 to-slate-800/50 border-purple-500/20 hover:border-purple-400/30 transition-all duration-200 relative" data-tour="chat-highlights">
-      <Badge className="absolute top-4 right-4 z-10 bg-yellow-600/90 text-yellow-50 text-xs px-2 py-1 rounded-md">
-        WIP
-      </Badge>
       {!hideHeader && <ModernCardHeader className="pb-2 pt-3 flex-shrink-0 px-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">

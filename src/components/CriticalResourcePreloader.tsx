@@ -32,12 +32,14 @@ export const CriticalResourcePreloader = () => {
       addLink('preconnect', supabaseOrigin, undefined, 'anonymous');
       addLink('dns-prefetch', supabaseOrigin);
 
-      // Prefetch non-critical images during idle time
+      // Only prefetch critical images that are above the fold
       const idlePrefetch = () => {
-        const prefetchResources = [
-          '/lovable-uploads/2766797d-f12e-40af-bcc7-5fdee4ce7325.png'
+        // Removed large image prefetches to improve mobile performance
+        // Only prefetch truly critical resources
+        const criticalResources = [
+          // Keep this minimal for mobile performance
         ];
-        prefetchResources.forEach(href => {
+        criticalResources.forEach(href => {
           const link = document.createElement('link');
           link.rel = 'prefetch';
           link.href = href;

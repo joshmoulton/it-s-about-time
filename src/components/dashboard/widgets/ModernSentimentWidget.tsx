@@ -58,9 +58,6 @@ export function ModernSentimentWidget({
     source: 'telegram'
   }];
   return <ModernCard interactive className="h-full flex flex-col bg-gradient-to-br from-purple-900/20 via-violet-900/10 to-slate-800/50 border-purple-500/20 hover:border-purple-400/30 transition-all duration-200 relative" data-tour="sentiment-tracker">
-      <Badge className="absolute top-4 right-4 z-10 bg-yellow-600/90 text-yellow-50 text-xs px-2 py-1 rounded-md">
-        WIP
-      </Badge>
       {!hideHeader && <ModernCardHeader className="pb-2 pt-3 flex-shrink-0 px-4">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-violet-500 rounded-lg flex items-center justify-center shadow-sm">
