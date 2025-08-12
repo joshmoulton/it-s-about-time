@@ -281,7 +281,8 @@ function getCommonCoinMapping(ticker: string): string | null {
     'WIF': 'dogwifcoin',
     'PEPE': 'pepe',
     'SHIB': 'shiba-inu',
-    'DOGE': 'dogecoin'
+    'DOGE': 'dogecoin',
+    'REKT': 'rekt-2'
   }
   
   return commonMappings[ticker.toUpperCase()] || null

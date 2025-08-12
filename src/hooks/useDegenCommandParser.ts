@@ -25,8 +25,11 @@ export const useDegenCommandParser = () => {
 
   const fetchCurrentPrice = async (ticker: string): Promise<number | null> => {
     try {
-      const { data, error } = await supabase.functions.invoke('coingecko-proxy', {
-        body: { coin: ticker.toUpperCase() }
+      const { data, error } = await supabase.functions.invoke('crypto-pricing', {
+        body: { 
+          action: 'fetch_prices',
+          tickers: [ticker.toUpperCase()] 
+        }
       });
 
       if (error) {
@@ -34,13 +37,14 @@ export const useDegenCommandParser = () => {
         return null;
       }
 
-      const response = data as CoinGeckoResponse;
-      if (response.hasError || !response.price) {
-        console.error('Invalid price response:', response);
-        return null;
+      if (data.success && data.prices && data.prices.length > 0) {
+        const priceData = data.prices[0];
+        console.log('✅ Fetched current price for', ticker, ':', priceData.price);
+        return priceData.price;
       }
 
-      return response.price;
+      console.error('No price data found for ticker:', ticker);
+      return null;
     } catch (error) {
       console.error('Failed to fetch current price:', error);
       return null;

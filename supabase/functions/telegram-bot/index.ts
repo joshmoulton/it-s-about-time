@@ -461,9 +461,32 @@ serve(async (req) => {
               return Number.isFinite(n) ? n : null;
             };
 
-            const entry = toNum(payload.entry);
+            let entry = toNum(payload.entry);
             const stop = toNum(payload.stop);
             const target = toNum(payload.target);
+
+            // If no entry price provided, fetch current price
+            if (!entry) {
+              try {
+                console.log(`📈 Fetching current price for ${ticker}...`);
+                const priceResponse = await supabase.functions.invoke('crypto-pricing', {
+                  body: { 
+                    action: 'fetch_prices',
+                    tickers: [ticker] 
+                  }
+                });
+
+                if (priceResponse.data && priceResponse.data.success && priceResponse.data.prices && priceResponse.data.prices.length > 0) {
+                  entry = priceResponse.data.prices[0].price;
+                  console.log(`✅ Fetched current price for ${ticker}: $${entry}`);
+                } else {
+                  console.log(`⚠️ Could not fetch price for ${ticker}, using market entry`);
+                }
+              } catch (priceError) {
+                console.error('Error fetching current price:', priceError);
+                // Continue without price - will show as "Market"
+              }
+            }
 
             const parseRisk = (r: any): number | null => {
               if (r == null) return null;
@@ -518,7 +541,7 @@ serve(async (req) => {
               trade_direction,
               ticker,
               risk_percentage,
-              entry_type: 'market',
+              entry_type: entry ? 'limit' : 'market',
               entry_price: entry,
               risk_management: stop != null ? 'stop_loss' : 'conditional',
               stop_loss_price: stop,
