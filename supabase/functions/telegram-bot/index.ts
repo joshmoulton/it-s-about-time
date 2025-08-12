@@ -276,10 +276,11 @@ serve(async (req) => {
         }
       }
       
-      // Support path-based routing for insert_degen_call and backfill_degen_calls
+      // Support path-based routing for degen call endpoints
       const { pathname } = new URL(req.url);
       if (!body.action) {
         if (pathname.endsWith('/insert_degen_call')) body.action = 'insert_degen_call';
+        if (pathname.endsWith('/close_degen_call')) body.action = 'close_degen_call';
         if (pathname.endsWith('/backfill_degen_calls')) body.action = 'backfill_degen_calls';
       }
       
@@ -549,6 +550,101 @@ serve(async (req) => {
 
           } catch (err) {
             console.error('❌ insert_degen_call error:', err);
+            return new Response(JSON.stringify({ error: err.message || 'Unknown error' }), {
+              status: 500,
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            });
+          }
+
+        case 'close_degen_call':
+          try {
+            console.log('🚫 close_degen_call payload:', JSON.stringify(body, null, 2));
+            const payload = body.close_call || {};
+            const msg = body.message || {};
+            const from = msg.from_user || {};
+
+            const rawTicker = (payload.ticker ?? '').toString();
+            const ticker = rawTicker.replace(/^\$/,'').toUpperCase().trim();
+            if (!ticker) {
+              return new Response(JSON.stringify({ error: 'ticker is required' }), {
+                status: 400,
+                headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+              });
+            }
+
+            const toNum = (v: any) => {
+              const n = typeof v === 'number' ? v : parseFloat(String(v));
+              return Number.isFinite(n) ? n : null;
+            };
+
+            const close_price = toNum(payload.close_price);
+            const reason = payload.reason || 'Closed via !close command';
+            const analyst_name = from.username || from.first_name || payload.analyst_username || 'Telegram Analyst';
+
+            // Find active signals with matching ticker
+            const { data: activeSignals, error: findError } = await supabase
+              .from('analyst_signals')
+              .select('id, ticker, analyst_name, created_at')
+              .eq('ticker', ticker)
+              .eq('status', 'active')
+              .order('created_at', { ascending: false });
+
+            if (findError) {
+              console.error('❌ Error finding active signals:', findError);
+              return new Response(JSON.stringify({ error: findError.message }), {
+                status: 400,
+                headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+              });
+            }
+
+            if (!activeSignals || activeSignals.length === 0) {
+              console.log('⚠️ No active signals found for ticker:', ticker);
+              return new Response(JSON.stringify({ 
+                success: true, 
+                message: `No active signals found for ${ticker}`,
+                closed_count: 0
+              }), {
+                headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+              });
+            }
+
+            // Close all active signals for this ticker
+            const { data: updatedSignals, error: updateError } = await supabase
+              .from('analyst_signals')
+              .update({
+                status: 'closed',
+                closed_at: new Date().toISOString(),
+                closed_by: analyst_name,
+                close_reason: reason
+              })
+              .eq('ticker', ticker)
+              .eq('status', 'active')
+              .select('id, ticker');
+
+            if (updateError) {
+              console.error('❌ Error closing signals:', updateError);
+              return new Response(JSON.stringify({ error: updateError.message }), {
+                status: 400,
+                headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+              });
+            }
+
+            const closed_count = updatedSignals?.length || 0;
+            console.log(`✅ Closed ${closed_count} signals for ${ticker}`);
+            
+            return new Response(JSON.stringify({ 
+              success: true, 
+              message: `Closed ${closed_count} signal(s) for ${ticker}`,
+              closed_count,
+              closed_signals: updatedSignals,
+              close_price,
+              reason
+            }), {
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            });
+
+          } catch (err) {
+            console.error('❌ close_degen_call error:', err);
             return new Response(JSON.stringify({ error: err.message || 'Unknown error' }), {
               status: 500,
               headers: { ...corsHeaders, 'Content-Type': 'application/json' },
