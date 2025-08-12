@@ -1,10 +1,10 @@
 import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ArrowLeft, RefreshCw, MessageCircle, Sparkles } from 'lucide-react';
 import { useChatHighlights } from '@/hooks/useChatHighlights';
 import { useAutoHighlightsSummary } from '@/hooks/useAutoHighlightsSummary';
-import { HighlightsList } from '@/components/chat-highlights/HighlightsList';
 
 export default function ChatHighlights() {
   const navigate = useNavigate();
@@ -61,12 +61,12 @@ export default function ChatHighlights() {
                   <MessageCircle className="h-6 w-6 text-white" />
                 </div>
                 <h1 className="text-3xl font-bold text-foreground">
-                  Chat Highlights Discussion
+                  Chat Highlights
                 </h1>
               </div>
               
               <p className="text-muted-foreground">
-                Join the conversation on trending topics from our community chat
+                Trending topics and important messages from community chat
               </p>
             </div>
             
@@ -91,13 +91,54 @@ export default function ChatHighlights() {
           )}
         </div>
 
-        {/* Highlights List */}
-        <HighlightsList
-          highlights={highlightsData}
-          isLoading={isLoading}
-          title="Chat Highlights"
-          subtitle="Trending keywords and discussions from the community"
-        />
+        {/* Simple Highlights Display */}
+        <div className="space-y-4">
+          {isLoading ? (
+            <div className="flex justify-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            </div>
+          ) : highlightsData.length > 0 ? (
+            highlightsData.map((highlight, index) => (
+              <Card key={index} className="hover:shadow-md transition-shadow">
+                <CardHeader>
+                  <CardTitle className="text-lg" style={{ color: highlight.color }}>
+                    {highlight.keyword}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    {highlight.count} mentions in recent activity
+                  </p>
+                  
+                  {highlight.latest_mentions?.slice(0, 3).map((mention, idx) => (
+                    <div key={mention.id || idx} className="mb-3 p-3 bg-muted/50 rounded-lg">
+                      <p className="text-sm mb-2">{mention.message_text}</p>
+                      <div className="text-xs text-muted-foreground">
+                        {mention.first_name && <span>{mention.first_name}</span>}
+                        {mention.username && <span> (@{mention.username})</span>}
+                        {mention.timestamp && (
+                          <span className="ml-2">
+                            {new Date(mention.timestamp).toLocaleString()}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </CardContent>
+              </Card>
+            ))
+          ) : (
+            <Card>
+              <CardContent className="p-8 text-center">
+                <MessageCircle className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                <h3 className="text-lg font-semibold mb-2">No highlights found</h3>
+                <p className="text-muted-foreground">
+                  Chat highlights will appear here as conversations develop.
+                </p>
+              </CardContent>
+            </Card>
+          )}
+        </div>
       </div>
     </div>
   );

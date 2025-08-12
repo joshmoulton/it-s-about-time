@@ -119,7 +119,7 @@ const { data, error } = await authenticatedQuery(() =>
   });
 }
 
-export function useChatHighlights(limit: number = 5) {
+export function useChatHighlightsPromoted(limit: number = 5) {
   return useQuery({
     queryKey: ['chat-highlights', limit],
     queryFn: async () => {
