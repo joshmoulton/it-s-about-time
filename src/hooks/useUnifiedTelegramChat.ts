@@ -36,24 +36,32 @@ export interface TopicMapping {
 export function useUnifiedTelegramChat(limit: number = 50) {
   const [selectedTopic, setSelectedTopic] = useState<string | null>(null);
   
-  // Fetch messages
+  // Fetch messages with topic filtering at database level
   const { data: messages = [], isLoading: messagesLoading, refetch: refetchMessages } = useQuery({
-    queryKey: ['unified-telegram-messages', limit],
+    queryKey: ['unified-telegram-messages', limit, selectedTopic],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from('telegram_messages')
         .select('*')
-        .order('timestamp', { ascending: false })
-        .limit(limit);
+        .order('timestamp', { ascending: false });
+
+      // Apply topic filter at database level if topic is selected
+      if (selectedTopic && selectedTopic !== 'all') {
+        query = query.eq('topic_name', selectedTopic);
+      }
+
+      const { data, error } = await query.limit(limit);
 
       if (error) {
+        console.error('Error fetching messages:', error);
         throw error;
       }
 
-      return (data || []) as any; // Type assertion for schema mismatch
+      console.log(`🔍 Fetched ${data?.length || 0} messages for topic "${selectedTopic || 'all'}"`);
+      return (data || []) as any;
     },
-    refetchInterval: 30000, // Poll every 30 seconds for new messages
-    staleTime: 10000, // Data is fresh for 10 seconds
+    refetchInterval: 30000,
+    staleTime: 10000,
     refetchOnWindowFocus: true,
   });
 
@@ -77,27 +85,27 @@ export function useUnifiedTelegramChat(limit: number = 50) {
     refetchOnWindowFocus: false,
   });
 
-  // Filter messages by selected topic
-  const filteredMessages = selectedTopic 
-    ? messages.filter(message => {
-        console.log(`Filtering message with topic_name: "${message.topic_name}", selectedTopic: "${selectedTopic}"`);
-        return message.topic_name === selectedTopic;
-      })
-    : messages;
+  // Messages are already filtered at database level, so use them directly
+  const filteredMessages = messages;
 
-  // Debug logging for STOCKS & OPTIONS
-  useEffect(() => {
-    if (selectedTopic === 'STOCKS & OPTIONS') {
-      console.log('🔍 Debugging STOCKS & OPTIONS:');
-      console.log('Total messages:', messages.length);
-      console.log('Available topic names:', [...new Set(messages.map(m => m.topic_name).filter(Boolean))]);
-      console.log('Messages with STOCKS & OPTIONS:', messages.filter(m => m.topic_name === 'STOCKS & OPTIONS').length);
-      console.log('Sample message topics:', messages.slice(0, 5).map(m => ({ id: m.id, topic_name: m.topic_name })));
-    }
-  }, [selectedTopic, messages]);
+  // Get available topic names from all messages (fetch separately for topic list)
+  const { data: allMessagesForTopics = [] } = useQuery({
+    queryKey: ['all-telegram-messages-topics'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('telegram_messages')
+        .select('topic_name')
+        .not('topic_name', 'is', null)
+        .order('timestamp', { ascending: false })
+        .limit(1000); // Get more messages just for topic discovery
 
-  // Get available topic names from messages
-  const availableTopics = [...new Set(messages.map(m => m.topic_name).filter(Boolean))];
+      if (error) throw error;
+      return data || [];
+    },
+    staleTime: 60000, // Cache topic list for 1 minute
+  });
+
+  const availableTopics = [...new Set(allMessagesForTopics.map(m => m.topic_name).filter(Boolean))];
 
   // Get selected topic details
   const selectedTopicDetails = selectedTopic 
