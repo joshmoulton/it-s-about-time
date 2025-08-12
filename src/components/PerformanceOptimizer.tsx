@@ -37,60 +37,8 @@ export const PerformanceOptimizer = memo(() => {
 
   // Enhanced monitoring with Web Vitals and optimizations
   useEffect(() => {
-    let interval: NodeJS.Timeout;
-    
-    // Only monitor in development and with reasonable frequency
-    if (process.env.NODE_ENV === 'development') {
-      interval = setInterval(() => {
-        try {
-          const metrics: Partial<PerformanceMetrics> = {};
-          
-          // Memory monitoring
-          if ('memory' in performance) {
-            const memoryInfo = (performance as any).memory;
-            metrics.memoryUsage = Math.round(memoryInfo.usedJSHeapSize / 1024 / 1024);
-          }
-
-          // Get navigation timing for LCP approximation
-          const navigation = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming;
-          if (navigation) {
-            metrics.lcp = navigation.loadEventEnd - navigation.loadEventStart;
-          }
-
-          setPerformanceData(prev => ({
-            ...prev,
-            ...metrics,
-            renderCount: prev.renderCount + 1,
-            lastRenderTime: Date.now()
-          }));
-
-          // Enhanced memory warning with suggestions
-          if (metrics.memoryUsage && metrics.memoryUsage > 150) {
-            logger.warn('⚠️ High memory usage detected:', metrics.memoryUsage, 'MB');
-            logger.info('💡 Performance tip: Consider implementing React.memo for expensive components');
-          }
-
-          // Monitor long tasks
-          if (navigation && navigation.loadEventEnd > 3000) {
-            logger.warn('🐌 Slow page load detected:', navigation.loadEventEnd + 'ms');
-          }
-
-          logPerformance({ 
-            ...metrics, 
-            timestamp: Date.now(),
-            slowComponents: Array.from(slowComponentsRef.current.entries())
-          });
-        } catch (error) {
-          // Silently handle errors to avoid performance impact
-        }
-      }, 90000); // Optimized: Check every 90 seconds for less impact
-    }
-
-    return () => {
-      if (interval) {
-        clearInterval(interval);
-      }
-    };
+    // Temporarily disable performance monitoring to fix slow loading issue
+    return;
   }, [logPerformance]);
 
   // Cleanup unused components
