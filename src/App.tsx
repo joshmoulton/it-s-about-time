@@ -51,7 +51,7 @@ const App = () => {
             <AccessibilityProvider>
               <Toaster />
               <Sonner />
-              <MobilePerfOptimizer />
+              {/* <MobilePerfOptimizer /> */}
               <DeveloperProvider>
                 <EnhancedAuthProvider>
                 <DeveloperToggle />
