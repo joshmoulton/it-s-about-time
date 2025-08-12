@@ -122,6 +122,15 @@ export function DegenCallAlertsWidget({
     return `${multiplier.toFixed(1)}x`;
   };
 
+  // Convert risk percentage to descriptive labels
+  const formatRiskLevel = (riskPercentage?: number): string => {
+    if (!riskPercentage) return 'N/A';
+    
+    if (riskPercentage <= 3) return 'Low';
+    if (riskPercentage <= 7) return 'Medium';
+    return 'High';
+  };
+
   const formatTimeAgo = (timestamp: string) => {
     const now = new Date();
     const callTime = new Date(timestamp);
@@ -240,9 +249,9 @@ export function DegenCallAlertsWidget({
                     <div className="flex items-center gap-1">
                       <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
                       <span className="text-orange-200/80">Risk:</span>
-                      <span className="text-white font-medium">
-                        {call.risk_percentage ? `${call.risk_percentage}%` : 'N/A'}
-                      </span>
+                       <span className="text-white font-medium">
+                         {formatRiskLevel(call.risk_percentage)}
+                       </span>
                     </div>
                   </div>
 
