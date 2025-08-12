@@ -80,26 +80,29 @@ export function FullDegenCallAlertsView({ subscriber }: FullDegenCallAlertsViewP
 
   return (
     <div className="space-y-6">
-      <Card className="bg-gradient-to-br from-orange-900/20 via-red-900/10 to-slate-800/50 border-orange-500/20">
-        <CardHeader className="relative flex flex-row items-center justify-between">
-            <CardTitle className="text-white">Recent Degen Calls</CardTitle>
-            <div className="flex items-center gap-3">
-              <Badge
-                variant="outline"
-                className="absolute left-1/2 -translate-x-1/2 top-2 px-3 py-1.5 text-sm font-extrabold uppercase tracking-wider bg-orange-400/20 border-orange-300/60 text-orange-100 shadow-md backdrop-blur-sm pulse"
-                aria-live="polite"
-              >
-                Currently in test mode — please disregard
-              </Badge>
-              <Button size="sm" variant="ghost" onClick={refreshData}>
-                <RefreshCw className="w-4 h-4 mr-1" /> Refresh
-              </Button>
-            </div>
-        </CardHeader>
-        <CardContent>
-          <DegenCallsList />
-        </CardContent>
-      </Card>
+      {/* Header with refresh button */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-red-500 rounded-lg flex items-center justify-center shadow-sm">
+            <Bell className="h-5 w-5 text-white" />
+          </div>
+          <h1 className="text-2xl font-bold text-white">Recent Degen Calls</h1>
+        </div>
+        <div className="flex items-center gap-3">
+          <Badge
+            variant="outline"
+            className="px-3 py-1.5 text-sm font-extrabold uppercase tracking-wider bg-orange-400/20 border-orange-300/60 text-orange-100 shadow-md backdrop-blur-sm animate-pulse"
+            aria-live="polite"
+          >
+            TESTING ONLY — DISREGARD
+          </Badge>
+          <Button size="sm" variant="ghost" onClick={refreshData} className="text-orange-300 hover:text-white hover:bg-orange-800/30">
+            <RefreshCw className="w-4 h-4 mr-1" /> Refresh
+          </Button>
+        </div>
+      </div>
+
+      <DegenCallsList />
 
       <DegenCallSettingsModal isOpen={showSettings} onClose={() => setShowSettings(false)} />
     </div>
@@ -141,7 +144,7 @@ function DegenCallsList() {
   };
 
   return (
-    <div className="space-y-3">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
       {calls.map(call => (
         <div key={call.id} className="bg-orange-900/25 border border-orange-500/30 rounded-xl px-4 py-3.5 hover:border-orange-400/40 hover:bg-orange-900/35 transition-all duration-200 shadow-sm leading-relaxed tracking-wide">
           {/* Header with ticker, direction, and timestamp */}
