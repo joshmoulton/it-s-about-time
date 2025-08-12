@@ -30,11 +30,9 @@ export function DegenCallAlertsWidget({
     isLoading
   } = useDegenCallAlerts(1); // Last 1 call for consistent height with other widgets
 
-  // Get tickers for price fetching
-  const tickers = degenCalls?.map(call => call.coin) || [];
-  const {
-    data: cryptoPrices
-  } = useCryptoPrices(tickers);
+  // Remove real-time crypto price fetching - we only want price at call time
+  // const tickers = degenCalls?.map(call => call.coin) || [];
+  // const { data: cryptoPrices } = useCryptoPrices(tickers);
   const queryClient = useQueryClient();
   useEffect(() => {
     const KEY = 'ww_backfill_degen_2025_08_11';
@@ -159,9 +157,10 @@ export function DegenCallAlertsWidget({
     if (price >= 0.01) return `$${price.toFixed(4)}`;
     return `$${price.toFixed(8)}`;
   };
-  const getPriceForTicker = (ticker: string) => {
-    return cryptoPrices?.find(p => p.ticker === ticker.toUpperCase());
-  };
+  // Remove real-time price functions since we only show call-time price
+  // const getPriceForTicker = (ticker: string) => {
+  //   return cryptoPrices?.find(p => p.ticker === ticker.toUpperCase());
+  // };
   return <ModernCard className="h-full min-h-[300px] flex flex-col bg-gradient-to-br from-orange-900/20 via-red-900/10 to-slate-800/50 border-orange-500/20 hover:border-orange-400/30 transition-all duration-200" interactive data-tour="degen-calls-widget">
       {!hideHeader && <ModernCardHeader className="pb-2 pt-3 flex-shrink-0 px-4">
           <div className="flex items-center justify-between">
@@ -218,24 +217,20 @@ export function DegenCallAlertsWidget({
                       <span className="text-xs text-white font-medium">{call.analyst_name}</span>
                     </div>}
 
-                  {/* Current Price Section */}
-                  <div className="bg-black/20 rounded-md p-1.5">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-1.5">
-                        <DollarSign className="w-3 h-3 text-blue-400" />
-                        <span className="text-xs text-orange-200/80">Current Price:</span>
+                  {/* Call-time Price Section (if available) */}
+                  {call.entry_price && call.entry_price !== 'Market' && (
+                    <div className="bg-black/20 rounded-md p-1.5">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-1.5">
+                          <DollarSign className="w-3 h-3 text-blue-400" />
+                          <span className="text-xs text-orange-200/80">Call Price:</span>
+                        </div>
+                        <span className="text-white font-semibold text-sm">
+                          {formatPrice(Number(call.entry_price))}
+                        </span>
                       </div>
-                       {(() => {
-                  const priceData = getPriceForTicker(call.coin);
-                  if (priceData?.price_usd != null) {
-                    return <span className="text-white font-semibold text-sm">
-                                {formatPrice(priceData.price_usd)}
-                              </span>;
-                  }
-                  return <span className="text-orange-300 font-medium text-xs">Loading...</span>;
-                })()}
                     </div>
-                  </div>
+                  )}
 
                   {/* Trading details */}
                   <div className="space-y-1">
