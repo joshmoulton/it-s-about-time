@@ -166,7 +166,7 @@ export function DashboardContent({
             {/* Degen Call Alerts Widget - Premium only */}
             <FreemiumWidgetWrapper
               featureName="Degen Call Alerts"
-              className="h-[300px] sm:h-[340px] overflow-hidden sm:col-span-2 lg:col-span-1"
+              className="h-[300px] sm:h-[340px] overflow-hidden"
               gradientTheme="orange"
               showTeaserStats={true}
               teaserStats={{

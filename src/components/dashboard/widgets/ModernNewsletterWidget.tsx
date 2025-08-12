@@ -28,8 +28,8 @@ export function ModernNewsletterWidget({
     isLoading
   } = useNewsletters(10); // Get more items to separate by type
 
-  // Separate newsletters and articles
-  const latestNewsletter = newsletters?.find(item => item.metadata?.content_type === 'newsletter');
+  // Get the latest 2 newsletters (similar to how videos shows 2)
+  const latestNewsletters = newsletters?.filter(item => item.metadata?.content_type === 'newsletter').slice(0, 2) || [];
   const latestArticle = newsletters?.find(item => item.metadata?.content_type === 'article');
 
   const [timeLeft, setTimeLeft] = React.useState({
@@ -114,64 +114,36 @@ export function ModernNewsletterWidget({
             </div>
           ) : (
             <div className="space-y-2">
-              {/* Latest Newsletter */}
-              {latestNewsletter ? (
-                <div 
-                  className="bg-blue-900/20 rounded-lg p-2.5 border border-blue-500/20 hover:bg-blue-800/30 transition-all duration-200 cursor-pointer"
-                  onClick={() => {
-                    const slug = latestNewsletter.title.toLowerCase().replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-').trim();
-                    window.open(`https://newsletter.weeklywizdom.com/p/${slug}`, '_blank');
-                  }}
-                >
-                  <div className="space-y-1.5">
-                    <div className="flex items-center gap-2 mb-0.5">
-                      <Badge variant="default" className="text-xs bg-blue-500/20 text-blue-300 border-blue-500/30">
-                        📧 Latest Newsletter
-                      </Badge>
-                    </div>
-                    <h4 className="font-medium text-sm text-white line-clamp-1 leading-tight">
-                      {latestNewsletter.title}
-                    </h4>
-                    {latestNewsletter.published_at && (
-                      <div className="flex items-center gap-2 text-blue-200/60 text-xs">
-                        <Calendar className="w-3 h-3" />
-                        <span>{format(new Date(latestNewsletter.published_at), 'MMM dd')}</span>
+              {/* Latest Newsletters - Show 2 like videos widget */}
+              {latestNewsletters && latestNewsletters.length > 0 ? 
+                latestNewsletters.map((newsletter, index) => (
+                  <div 
+                    key={newsletter.id}
+                    className="bg-blue-900/20 rounded-lg p-2.5 border border-blue-500/20 hover:bg-blue-800/30 transition-all duration-200 cursor-pointer"
+                    onClick={() => {
+                      const slug = newsletter.title.toLowerCase().replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-').trim();
+                      window.open(`https://newsletter.weeklywizdom.com/p/${slug}`, '_blank');
+                    }}
+                  >
+                    <div className="space-y-1.5">
+                      <div className="flex items-center gap-2 mb-0.5">
+                        <Badge variant="default" className="text-xs bg-blue-500/20 text-blue-300 border-blue-500/30">
+                          {index === 0 ? '📧 Latest Newsletter' : '📰 Newsletter'}
+                        </Badge>
                       </div>
-                    )}
-                  </div>
-                </div>
-              ) : null}
-
-              {/* Latest Article */}
-              {latestArticle ? (
-                <div 
-                  className="bg-green-900/20 rounded-lg p-2.5 border border-green-500/20 hover:bg-green-800/30 transition-all duration-200 cursor-pointer"
-                  onClick={() => {
-                    const slug = latestArticle.title.toLowerCase().replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-').trim();
-                    window.open(`https://newsletter.weeklywizdom.com/p/${slug}`, '_blank');
-                  }}
-                >
-                  <div className="space-y-1.5">
-                    <div className="flex items-center gap-2 mb-0.5">
-                      <Badge variant="secondary" className="text-xs bg-green-500/20 text-green-300 border-green-500/30">
-                        📄 Latest Article
-                      </Badge>
+                      <h4 className="font-medium text-sm text-white line-clamp-1 leading-tight">
+                        {newsletter.title}
+                      </h4>
+                      {newsletter.published_at && (
+                        <div className="flex items-center gap-2 text-blue-200/60 text-xs">
+                          <Calendar className="w-3 h-3" />
+                          <span>{format(new Date(newsletter.published_at), 'MMM dd')}</span>
+                        </div>
+                      )}
                     </div>
-                    <h4 className="font-medium text-sm text-white line-clamp-1 leading-tight">
-                      {latestArticle.title}
-                    </h4>
-                    {latestArticle.published_at && (
-                      <div className="flex items-center gap-2 text-green-200/60 text-xs">
-                        <Calendar className="w-3 h-3" />
-                        <span>{format(new Date(latestArticle.published_at), 'MMM dd')}</span>
-                      </div>
-                    )}
                   </div>
-                </div>
-              ) : null}
-
-              {/* Fallback when no content */}
-              {!latestNewsletter && !latestArticle && (
+                )) 
+              : (
                 <div className="bg-blue-900/20 rounded-lg p-2.5 border border-blue-500/20 text-center">
                   <Sparkles className="w-5 h-5 text-blue-400 mx-auto mb-1.5" />
                   <p className="text-xs text-blue-300/60">Next issue coming soon!</p>
