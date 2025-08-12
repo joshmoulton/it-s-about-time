@@ -56,7 +56,7 @@ export function UnifiedChatWidget({
   };
   const showTopicFeatures = true; // Temporarily enabled for testing
 
-  return <Card className={`${isExpanded ? 'h-full' : 'h-96'} flex flex-col overflow-hidden bg-slate-800/50 border-slate-700/50 hover:bg-slate-800/70 transition-all duration-200`}>
+  return <Card className={`${isExpanded ? 'h-full' : 'h-96'} flex flex-col overflow-hidden bg-slate-800/50 border-slate-700/50 hover:bg-slate-800/70 transition-all duration-200 relative`}>
       
       {/* Header with Topic Selector and Controls */}
       <CardHeader className="pb-2 pt-3 flex-shrink-0 px-4">

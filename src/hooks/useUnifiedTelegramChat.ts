@@ -52,9 +52,9 @@ export function useUnifiedTelegramChat(limit: number = 50) {
 
       return (data || []) as any; // Type assertion for schema mismatch
     },
-    refetchInterval: false, // Disabled - external bot handles updates
-    staleTime: Infinity,
-    refetchOnWindowFocus: false,
+    refetchInterval: 30000, // Poll every 30 seconds for new messages
+    staleTime: 10000, // Data is fresh for 10 seconds
+    refetchOnWindowFocus: true,
   });
 
   // Fetch topic mappings
@@ -72,8 +72,8 @@ export function useUnifiedTelegramChat(limit: number = 50) {
 
       return (data || []) as any; // Type assertion for schema mismatch
     },
-    refetchInterval: false, // Disabled - external bot handles updates
-    staleTime: Infinity,
+    refetchInterval: 60000, // Poll every 60 seconds for topic mappings
+    staleTime: 30000, // Topic mappings are fresh for 30 seconds
     refetchOnWindowFocus: false,
   });
 

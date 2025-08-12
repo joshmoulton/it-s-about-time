@@ -33,10 +33,10 @@ export function TopicSelector({ selectedTopic, onTopicChange }: TopicSelectorPro
 
   return (
     <Select value={selectedTopic || 'Money Glitch'} onValueChange={(value) => onTopicChange(value)}>
-      <SelectTrigger className="w-40 h-8 text-xs bg-slate-700 text-white border-slate-600 focus:border-blue-500 z-50">
+      <SelectTrigger className="w-40 h-8 text-xs bg-slate-700 text-white border-slate-600 focus:border-blue-500">
         <SelectValue placeholder="Money Glitch" />
       </SelectTrigger>
-      <SelectContent className="z-50 bg-slate-800 border-slate-700 text-white backdrop-blur-sm shadow-lg">
+      <SelectContent className="z-[100] bg-slate-800 border-slate-700 text-white backdrop-blur-sm shadow-lg" position="popper" sideOffset={4}>
         {workingTopics.map((topic) => (
           <SelectItem 
             key={topic.id} 
