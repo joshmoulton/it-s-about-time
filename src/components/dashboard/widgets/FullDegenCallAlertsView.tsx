@@ -197,20 +197,21 @@ function DegenCallsList() {
             </div>
           )}
 
-          {/* Call-time Price Section (if available) */}
-          {call.entry_price && call.entry_price !== 'Market' && (
-            <div className="bg-black/20 rounded-md p-1.5">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-1.5">
-                  <DollarSign className="w-3 h-3 text-blue-400" />
-                  <span className="text-xs text-orange-200/80">Call Price:</span>
-                </div>
-                <span className="text-white font-semibold text-sm">
-                  {call.entry_price ? `$${Number(call.entry_price).toLocaleString()}` : 'N/A'}
-                </span>
+          {/* Call-time Price Section */}
+          <div className="bg-black/20 rounded-md p-1.5">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-1.5">
+                <DollarSign className="w-3 h-3 text-blue-400" />
+                <span className="text-xs text-orange-200/80">Call Price:</span>
               </div>
+              <span className="text-white font-semibold text-sm">
+                {call.entry_price && call.entry_price !== 'Market' 
+                  ? `$${Number(call.entry_price).toLocaleString()}`
+                  : 'Market'
+                }
+              </span>
             </div>
-          )}
+          </div>
 
           {/* Trading details */}
           <div className="space-y-1">
