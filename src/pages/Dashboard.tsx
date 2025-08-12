@@ -10,6 +10,7 @@ import { LazyLoadWrapper } from '@/components/LazyLoadWrapper';
 import { useConnectionStatus } from '@/hooks/useConnectionStatus';
 import { useRenderTracker } from '@/components/PerformanceOptimizer';
 import { SEOManager } from '@/components/SEOManager';
+import { DegenCommandTester } from '@/components/DegenCommandTester';
 
 // Lazy load the heavy dashboard content
 const DashboardContent = lazy(() => 
@@ -125,6 +126,11 @@ const Dashboard = () => {
           subscriber={subscriberForComponents!} 
           onStartTour={() => tourController.startTour('dashboard')}
         />
+      </div>
+      
+      {/* Debug: Degen Command Tester */}
+      <div className="fixed top-20 right-4 z-50">
+        <DegenCommandTester />
       </div>
       
       {/* Content Layer - z-index: 10 */}
