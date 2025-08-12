@@ -46,7 +46,7 @@ export const EnhancedChatHighlights: React.FC = () => {
           id,
           priority_score,
           assigned_at,
-          telegram_messages!telegram_message_id (
+          telegram_messages (
             id,
             message_text,
             username,
@@ -55,7 +55,7 @@ export const EnhancedChatHighlights: React.FC = () => {
             topic_name,
             likes_count
           ),
-          chat_highlight_rules!rule_id (
+          chat_highlight_rules (
             rule_name,
             highlight_color,
             priority
@@ -69,20 +69,23 @@ export const EnhancedChatHighlights: React.FC = () => {
       }
 
       const { data, error } = await query;
-      if (error) throw error;
+      if (error) {
+        console.error('Chat highlights query error:', error);
+        throw error;
+      }
 
       return (data || []).map((item: any) => ({
         id: item.id,
-        message_text: item.telegram_messages.message_text,
-        username: item.telegram_messages.username,
-        first_name: item.telegram_messages.first_name,
-        timestamp: item.telegram_messages.timestamp,
-        topic_name: item.telegram_messages.topic_name,
-        rule_name: item.chat_highlight_rules.rule_name,
-        highlight_color: item.chat_highlight_rules.highlight_color,
+        message_text: item.telegram_messages?.message_text || '',
+        username: item.telegram_messages?.username || '',
+        first_name: item.telegram_messages?.first_name || '',
+        timestamp: item.telegram_messages?.timestamp || '',
+        topic_name: item.telegram_messages?.topic_name || '',
+        rule_name: item.chat_highlight_rules?.rule_name || '',
+        highlight_color: item.chat_highlight_rules?.highlight_color || '#fbbf24',
         priority_score: item.priority_score,
-        likes_count: item.telegram_messages.likes_count || 0,
-        engagement_score: item.priority_score + (item.telegram_messages.likes_count || 0) * 2,
+        likes_count: item.telegram_messages?.likes_count || 0,
+        engagement_score: item.priority_score + (item.telegram_messages?.likes_count || 0) * 2,
       }));
     },
     staleTime: 30000, // Cache for 30 seconds 
