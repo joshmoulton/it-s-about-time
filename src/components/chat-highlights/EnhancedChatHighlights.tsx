@@ -36,17 +36,6 @@ export const EnhancedChatHighlights: React.FC = () => {
   const [selectedTopic, setSelectedTopic] = useState<string>('all');
   const [sortBy, setSortBy] = useState<'recent' | 'engagement' | 'priority'>('priority');
 
-  // Fetch topic statistics
-  const { data: topicStats } = useQuery<TopicStats[]>({
-    queryKey: ['topic-stats'],
-    queryFn: async () => {
-      const { data, error } = await supabase.rpc('get_topic_statistics');
-      if (error) throw error;
-      return data || [];
-    },
-    refetchInterval: 30000,
-  });
-
   // Fetch enhanced highlights with more data
   const { data: highlights, isLoading } = useQuery<EnhancedHighlight[]>({
     queryKey: ['enhanced-highlights', selectedTopic, sortBy],
@@ -120,6 +109,33 @@ export const EnhancedChatHighlights: React.FC = () => {
 
   // Get unique topics for filter
   const availableTopics = Array.from(new Set(highlights?.map(h => h.topic_name).filter(Boolean))) || [];
+
+  // Calculate topic statistics from highlights data
+  const topicStats = highlights ? highlights.reduce((acc, highlight) => {
+    const existing = acc.find(stat => stat.topic_name === highlight.topic_name);
+    if (existing) {
+      existing.message_count++;
+      existing.unique_users_set.add(highlight.username || '');
+      existing.unique_users = existing.unique_users_set.size;
+    } else {
+      const uniqueUsersSet = new Set([highlight.username || '']);
+      acc.push({
+        topic_name: highlight.topic_name,
+        message_count: 1,
+        last_message: highlight.timestamp,
+        unique_users: uniqueUsersSet.size,
+        unique_users_set: uniqueUsersSet,
+        trending_score: 1
+      });
+    }
+    return acc;
+  }, [] as Array<TopicStats & { unique_users_set: Set<string> }>).map(stat => ({
+    topic_name: stat.topic_name,
+    message_count: stat.message_count,
+    last_message: stat.last_message,
+    unique_users: stat.unique_users,
+    trending_score: stat.message_count * 0.7 + stat.unique_users * 0.3
+  })).sort((a, b) => b.trending_score - a.trending_score) : [];
 
   const getTopicBadgeColor = (topicName: string) => {
     switch (topicName) {

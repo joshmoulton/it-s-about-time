@@ -3889,6 +3889,16 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: Json
       }
+      get_topic_statistics: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          topic_name: string
+          message_count: number
+          last_message: string
+          unique_users: number
+          trending_score: number
+        }[]
+      }
       get_user_role: {
         Args: { _user_id: string }
         Returns: Database["public"]["Enums"]["app_role"]
