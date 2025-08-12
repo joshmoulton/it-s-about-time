@@ -4,8 +4,9 @@ import { useNavigate } from 'react-router-dom';
 import { ModernCard, ModernCardHeader, ModernCardTitle, ModernCardContent } from '@/components/ui/modern-card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Zap, ExternalLink, TrendingUp, DollarSign, Clock } from 'lucide-react';
+import { Zap, ExternalLink, TrendingUp, DollarSign, Clock, ArrowUp, ArrowDown } from 'lucide-react';
 import { useDegenCallAlerts } from '@/hooks/useDegenCallAlerts';
+import { useCryptoPrices } from '@/hooks/useCryptoPrices';
 import { supabase } from '@/integrations/supabase/client';
 import { useQueryClient } from '@tanstack/react-query';
 
@@ -32,6 +33,10 @@ export function DegenCallAlertsWidget({
     data: degenCalls,
     isLoading
   } = useDegenCallAlerts(1); // Last 1 call for consistent height with other widgets
+
+  // Get tickers for price fetching
+  const tickers = degenCalls?.map(call => call.coin) || [];
+  const { data: cryptoPrices } = useCryptoPrices(tickers);
 
   const queryClient = useQueryClient();
 
@@ -141,6 +146,16 @@ export function DegenCallAlertsWidget({
     return `${Math.floor(diffMinutes / 1440)}d ago`;
   };
 
+  const formatPrice = (price: number) => {
+    if (price >= 1) return `$${price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    if (price >= 0.01) return `$${price.toFixed(4)}`;
+    return `$${price.toFixed(8)}`;
+  };
+
+  const getPriceForTicker = (ticker: string) => {
+    return cryptoPrices?.find(p => p.ticker === ticker.toUpperCase());
+  };
+
   return (
     <ModernCard className="h-full min-h-[300px] flex flex-col bg-gradient-to-br from-orange-900/20 via-red-900/10 to-slate-800/50 border-orange-500/20 hover:border-orange-400/30 transition-all duration-200" interactive data-tour="degen-calls-widget">
       {!hideHeader && (
@@ -203,8 +218,16 @@ export function DegenCallAlertsWidget({
                         )}
                       </div>
                     </div>
-                    <div className="text-xs text-orange-200/80">
-                      {formatTimeAgo(call.created_at)}
+                    <div className="flex items-center gap-2 text-xs text-orange-200/80">
+                      <Clock className="w-3 h-3" />
+                      <span>{formatTimeAgo(call.created_at)}</span>
+                      <span className="text-orange-300/60">•</span>
+                      <span>{new Date(call.created_at).toLocaleDateString('en-US', { 
+                        month: 'short', 
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      })}</span>
                     </div>
                   </div>
 
@@ -218,12 +241,44 @@ export function DegenCallAlertsWidget({
 
                   {/* Trading details grid */}
                   <div className="grid grid-cols-2 gap-2 text-xs">
+                    {/* Current Price */}
+                    <div className="flex items-center gap-1">
+                      <DollarSign className="w-3 h-3 text-blue-400" />
+                      <span className="text-orange-200/80">Current:</span>
+                      {(() => {
+                        const priceData = getPriceForTicker(call.coin);
+                        if (priceData) {
+                          return (
+                            <div className="flex items-center gap-1">
+                              <span className="text-white font-medium">
+                                {formatPrice(priceData.price_usd)}
+                              </span>
+                              {priceData.price_change_24h !== null && (
+                                <div className={`flex items-center gap-0.5 ${
+                                  priceData.price_change_24h >= 0 ? 'text-green-400' : 'text-red-400'
+                                }`}>
+                                  {priceData.price_change_24h >= 0 ? 
+                                    <ArrowUp className="w-2.5 h-2.5" /> : 
+                                    <ArrowDown className="w-2.5 h-2.5" />
+                                  }
+                                  <span className="text-xs">
+                                    {Math.abs(priceData.price_change_24h).toFixed(1)}%
+                                  </span>
+                                </div>
+                              )}
+                            </div>
+                          );
+                        }
+                        return <span className="text-orange-300 font-medium">Loading...</span>;
+                      })()}
+                    </div>
+
                     {/* Entry */}
                     <div className="flex items-center gap-1">
-                      <DollarSign className="w-3 h-3 text-orange-400" />
+                      <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
                       <span className="text-orange-200/80">Entry:</span>
                       <span className="text-white font-medium">
-                        {call.entry_price ? `$${Number(call.entry_price).toLocaleString()}` : 'N/A'}
+                        {call.entry_price && call.entry_price !== 'Market' ? `$${Number(call.entry_price).toLocaleString()}` : 'Market'}
                       </span>
                     </div>
 

@@ -1293,6 +1293,66 @@ export type Database = {
         }
         Relationships: []
       }
+      crypto_coin_mappings: {
+        Row: {
+          coin_name: string | null
+          coingecko_id: string
+          created_at: string
+          id: string
+          last_updated: string
+          ticker: string
+          updated_at: string
+        }
+        Insert: {
+          coin_name?: string | null
+          coingecko_id: string
+          created_at?: string
+          id?: string
+          last_updated?: string
+          ticker: string
+          updated_at?: string
+        }
+        Update: {
+          coin_name?: string | null
+          coingecko_id?: string
+          created_at?: string
+          id?: string
+          last_updated?: string
+          ticker?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      crypto_prices: {
+        Row: {
+          created_at: string
+          id: string
+          last_updated: string
+          price_change_24h: number | null
+          price_usd: number
+          ticker: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          last_updated?: string
+          price_change_24h?: number | null
+          price_usd: number
+          ticker: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          last_updated?: string
+          price_change_24h?: number | null
+          price_usd?: number
+          ticker?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       csp_violation_reports: {
         Row: {
           blocked_uri: string | null
