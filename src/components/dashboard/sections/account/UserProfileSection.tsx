@@ -11,6 +11,8 @@ import { useEnhancedAuth } from '@/contexts/EnhancedAuthContext';
 // import { useAdminStatus } from '@/hooks/useAdminStatus';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { authenticatedQuery } from '@/utils/supabaseAuthWrapper';
+
 
 export function UserProfileSection() {
   const { currentUser } = useEnhancedAuth();
@@ -42,11 +44,13 @@ export function UserProfileSection() {
       let query = supabase.from('user_profiles').select('*').limit(1);
 
       // Try to resolve subscriber_id from Beehiiv by email
-      const { data: subRow } = await supabase
-        .from('beehiiv_subscribers')
-        .select('id')
-        .eq('email', currentUser.email as string)
-        .maybeSingle();
+      const { data: subRow } = await authenticatedQuery(async () => 
+        supabase
+          .from('beehiiv_subscribers')
+          .select('id')
+          .eq('email', currentUser.email as string)
+          .maybeSingle()
+      );
       const subscriberId = subRow?.id as string | undefined;
 
       const isValidUUID = (id: string) =>
@@ -63,7 +67,7 @@ export function UserProfileSection() {
         query = query.or(orFilter);
       }
 
-      const { data, error } = await query.maybeSingle();
+      const { data, error } = await authenticatedQuery(async () => query.maybeSingle());
 
       if (error) {
         console.error('Error loading profile:', error);
@@ -199,16 +203,13 @@ export function UserProfileSection() {
 
       console.log('Saving profile data:', profileData);
 
-      const conflictTarget = (subscriberId && isValidUUID(subscriberId))
-        ? 'subscriber_id'
-        : (currentUser.user_type === 'whop_user'
-            ? 'whop_email'
-            : (currentUser.id && isValidUUID(currentUser.id) ? 'user_id' : 'user_email'));
-
-      const { data, error } = await supabase
-        .from('user_profiles')
-        .upsert(profileData, { onConflict: conflictTarget })
-        .select();
+      const { data, error } = await authenticatedQuery(async () =>
+        supabase.rpc('upsert_user_profile_basic', {
+          p_display_name: formData.displayName || null,
+          p_avatar_url: formData.avatarUrl || null,
+          p_tour_disabled: null as any
+        })
+      );
 
       if (error) {
         console.error('Supabase error:', error);

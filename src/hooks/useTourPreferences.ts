@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { authenticatedQuery } from '@/utils/supabaseAuthWrapper';
 
 // Global cache to prevent redundant database calls
 const tourPreferencesCache = new Map<string, { disabled: boolean; timestamp: number }>();
@@ -45,11 +46,13 @@ export const useTourPreferences = (userEmail: string | null) => {
 
         // Query database with optimized query
         console.log('🔍 Checking database for tour preference...');
-        const { data: profile, error } = await supabase
-          .from('user_profiles')
-          .select('tour_disabled')
-          .eq('user_email', email)
-          .maybeSingle();
+        const { data: profile, error } = await authenticatedQuery(async () =>
+          supabase
+            .from('user_profiles')
+            .select('tour_disabled')
+            .eq('user_email', email)
+            .maybeSingle()
+        );
 
         if (error && error.code !== 'PGRST116') {
           console.warn('Error loading tour preferences:', error);
@@ -193,12 +196,10 @@ export const useTourPreferences = (userEmail: string | null) => {
 
     // Update database asynchronously
     supabase
-      .from('user_profiles')
-      .upsert({
-        user_email: userEmail,
-        tour_disabled: false
-      }, {
-        onConflict: 'user_email'
+      .rpc('upsert_user_profile_basic', {
+        p_display_name: null,
+        p_avatar_url: null,
+        p_tour_disabled: false
       })
       .then(({ error }) => {
         if (error) {

@@ -2,6 +2,7 @@
 // Manages hybrid local storage + database sync for authenticated users
 
 import { supabase } from '@/integrations/supabase/client';
+import { authenticatedQuery } from '@/utils/supabaseAuthWrapper';
 
 
 export interface UserPreference {
@@ -47,12 +48,14 @@ class UserPreferencesSync {
 
       // If authenticated, try database
       if (this.currentUserEmail && this.isOnline) {
-        const { data, error } = await supabase
-          .from('user_preferences')
-          .select('preference_data')
-          .eq('user_email', this.currentUserEmail)
-          .eq('preference_type', type)
-          .single();
+        const { data, error } = await authenticatedQuery(async () =>
+          supabase
+            .from('user_preferences')
+            .select('preference_data')
+            .eq('user_email', this.currentUserEmail)
+            .eq('preference_type', type)
+            .single()
+        );
 
         if (!error && data) {
           // Cache in localStorage for next time
@@ -121,10 +124,12 @@ class UserPreferencesSync {
     if (!this.currentUserEmail || !this.isOnline) return;
 
     try {
-      const { data, error } = await supabase
-        .from('user_preferences')
-        .select('preference_type, preference_data')
-        .eq('user_email', this.currentUserEmail);
+      const { data, error } = await authenticatedQuery(async () =>
+        supabase
+          .from('user_preferences')
+          .select('preference_type, preference_data')
+          .eq('user_email', this.currentUserEmail)
+      );
 
       if (!error && data) {
         data.forEach(pref => {
