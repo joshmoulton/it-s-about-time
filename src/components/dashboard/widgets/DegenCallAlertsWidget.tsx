@@ -122,12 +122,12 @@ export function DegenCallAlertsWidget({
     return `${multiplier.toFixed(1)}x`;
   };
 
-  // Convert risk percentage to descriptive labels
+  // Convert risk percentage to descriptive labels only when present
   const formatRiskLevel = (riskPercentage?: number): string => {
     if (!riskPercentage) return 'N/A';
     
     if (riskPercentage <= 3) return 'Low';
-    if (riskPercentage <= 7) return 'Medium';
+    if (riskPercentage <= 7) return 'Med';
     return 'High';
   };
 
