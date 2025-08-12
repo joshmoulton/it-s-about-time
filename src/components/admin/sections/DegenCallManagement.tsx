@@ -4,8 +4,9 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Loader2, Users, Bell, TrendingUp, CheckCircle, XCircle, AlertTriangle } from 'lucide-react';
+import { Loader2, Users, Bell, TrendingUp, CheckCircle, XCircle, AlertTriangle, Ban, Clock } from 'lucide-react';
 import { useDegenCallManagement } from '@/hooks/useDegenCallManagement';
+import { useSignalManagement } from '@/hooks/useSignalManagement';
 import { formatDistanceToNow } from 'date-fns';
 
 export function DegenCallManagement() {
@@ -20,6 +21,12 @@ export function DegenCallManagement() {
     activeSubscribers,
     totalNotifications
   } = useDegenCallManagement();
+
+  const {
+    signals,
+    isLoading: signalsLoading,
+    updateSignalStatus
+  } = useSignalManagement();
 
   const renderSubscriptionStatus = (isActive: boolean) => (
     <Badge variant={isActive ? "default" : "secondary"}>
@@ -102,6 +109,7 @@ export function DegenCallManagement() {
         <TabsList>
           <TabsTrigger value="subscriptions">Subscriptions</TabsTrigger>
           <TabsTrigger value="notifications">Notifications</TabsTrigger>
+          <TabsTrigger value="signals">Active Signals</TabsTrigger>
         </TabsList>
 
         <TabsContent value="subscriptions" className="space-y-4">
@@ -210,6 +218,80 @@ export function DegenCallManagement() {
                           <strong>Errors:</strong> {notification.error_message}
                         </div>
                       )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="signals" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Active Degen Signals</CardTitle>
+              <CardDescription>
+                Manage active trading signals and manually close them if needed
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {signalsLoading ? (
+                <div className="flex items-center justify-center py-8">
+                  <Loader2 className="h-8 w-8 animate-spin" />
+                </div>
+              ) : !signals || signals.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  No active signals found
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {signals
+                    .filter(signal => signal.status === 'active')
+                    .map((signal) => (
+                    <div
+                      key={signal.id}
+                      className="flex items-center justify-between p-4 border rounded-lg"
+                    >
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium text-lg">{signal.ticker}</span>
+                          <Badge variant={signal.status === 'active' ? 'default' : 'secondary'}>
+                            {signal.status}
+                          </Badge>
+                          <Badge variant="outline">{signal.market}</Badge>
+                          <Badge variant="outline">{signal.trade_direction}</Badge>
+                        </div>
+                        <div className="text-sm text-muted-foreground">
+                          By {signal.analyst_name} • 
+                          {signal.entry_price ? ` Entry: $${signal.entry_price}` : ' Market Entry'} •
+                          Risk: {signal.risk_percentage}%
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          Created {formatDistanceToNow(new Date(signal.created_at))} ago
+                          {signal.posted_to_telegram && (
+                            <span className="ml-2 text-green-600">• Posted to Telegram</span>
+                          )}
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {signal.status === 'active' && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => updateSignalStatus(signal.id, 'closed')}
+                            className="flex items-center gap-1"
+                          >
+                            <Ban className="h-3 w-3" />
+                            Close Signal
+                          </Button>
+                        )}
+                        {signal.status === 'closed' && (
+                          <div className="flex items-center gap-1 text-muted-foreground text-sm">
+                            <Clock className="h-3 w-3" />
+                            Closed
+                          </div>
+                        )}
+                      </div>
                     </div>
                   ))}
                 </div>
