@@ -20,8 +20,7 @@ export const optimizeForMobile = () => {
     
     // Preload critical images with high priority
     const criticalImages = [
-      'https://wrvvlmevpvcenauglcyz.supabase.co/storage/v1/object/public/assets/Property%201=Black%20(3).png',
-      '/lovable-uploads/a8eaa39b-22e5-4a3c-a288-fe43b8619eab.png'
+      'https://wrvvlmevpvcenauglcyz.supabase.co/storage/v1/object/public/assets/Property%201=Black%20(3).png'
     ];
     
     criticalImages.forEach(src => {
