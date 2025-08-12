@@ -101,8 +101,8 @@ export function ModernNewsletterWidget({
           </div>
         </ModernCardHeader>}
 
-      <ModernCardContent className={`flex-1 flex flex-col ${hideHeader ? 'pt-0' : 'pt-0'} px-4 pb-4`}>
-        <div className="flex-1 space-y-2 mb-3">
+      <ModernCardContent className={`flex-1 flex flex-col justify-between ${hideHeader ? 'pt-0' : 'pt-0'} px-4 pb-4`}>
+        <div className="flex-1 space-y-2">{/* Remove mb-3 to use all available space */}
           {isLoading ? (
             <div className="space-y-2">
               <div className="bg-blue-900/20 rounded-lg p-2.5 border border-blue-500/20">
@@ -154,8 +154,8 @@ export function ModernNewsletterWidget({
         </div>
 
 
-        {/* Fixed position button */}
-        <div className="mt-auto pt-1">
+        {/* Fixed position button - always at bottom */}
+        <div className="pt-3">{/* Add padding top for spacing */}
           <Button size="sm" className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl h-12 text-sm font-medium shadow-sm transition-all duration-200" onClick={() => navigate('/newsletters')}>
             <ExternalLink className="h-4 w-4 mr-2 flex-shrink-0" />
             View All Newsletters
