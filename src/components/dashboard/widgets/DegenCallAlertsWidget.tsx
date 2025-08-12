@@ -279,9 +279,7 @@ export function DegenCallAlertsWidget({
                   </div>
 
                   {/* Status badge */}
-                  {call.status && <div className="pt-0.5">
-                      <span className="text-xs text-orange-300 lowercase">{call.status}</span>
-                    </div>}
+                  {call.status}
                 </div>)}
 
               <div className="pt-1">
