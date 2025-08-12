@@ -73,7 +73,7 @@ export function ModernNewsletterWidget({
 
     return () => clearInterval(timer);
   }, []);
-  return <ModernCard interactive className="h-full flex flex-col bg-gradient-to-br from-blue-900/20 via-indigo-900/10 to-slate-800/50 border-blue-500/20 hover:border-blue-400/30 transition-all duration-200 cursor-pointer" data-tour="newsletter-widget">
+  return <ModernCard interactive className="h-full min-h-[300px] flex flex-col bg-gradient-to-br from-blue-900/20 via-indigo-900/10 to-slate-800/50 border-blue-500/20 hover:border-blue-400/30 transition-all duration-200 cursor-pointer" data-tour="newsletter-widget">
       {!hideHeader && <ModernCardHeader className="pb-2 pt-3 flex-shrink-0 px-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
