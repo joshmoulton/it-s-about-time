@@ -22,11 +22,16 @@ export class AnalystCallDetector {
     this.supabase = supabase;
   }
 
-  async detectAnalystCall(messageText: string, chatId: string, telegramMessageId: string): Promise<AnalystCallDetection | null> {
+  async detectAnalystCall(messageText: string, chatId: string, telegramMessageId: string, username?: string): Promise<AnalystCallDetection | null> {
     try {
       console.log('🔍 Analyzing message for analyst call patterns...');
 
-      // Get channel configuration
+      // First check if this is a close command
+      if (messageText.trim().toLowerCase().match(/^!close\s+/)) {
+        return await this.handleCloseCommand(messageText, chatId, telegramMessageId, username);
+      }
+
+      // Get channel configuration for regular analyst calls
       const channelConfig = await this.getChannelConfig(chatId);
       if (!channelConfig?.isMonitoringEnabled) {
         console.log('⏭️ Channel monitoring disabled for chat:', chatId);
@@ -92,7 +97,7 @@ export class AnalystCallDetector {
     };
   }
 
-  private async getActivePatterns(analystId: string) {
+  private async getActivePatterns(analystId?: string) {
     const { data, error } = await this.supabase
       .from('analyst_call_patterns')
       .select('*')
@@ -280,6 +285,123 @@ export class AnalystCallDetector {
     } catch (error) {
       console.error('Error triggering notification:', error);
       return false;
+    }
+  }
+
+  private async handleCloseCommand(messageText: string, chatId: string, telegramMessageId: string, username?: string): Promise<AnalystCallDetection | null> {
+    try {
+      console.log('🚫 Processing close command:', messageText);
+
+      // Extract ticker from close command
+      const closeMatch = messageText.trim().match(/^!close\s+([A-Za-z]+)/i);
+      if (!closeMatch) {
+        console.log('❌ Invalid close command format');
+        return null;
+      }
+
+      const ticker = closeMatch[1].toUpperCase();
+      console.log(`🎯 Looking for active ${ticker} calls to close`);
+
+      // Get close pattern from database
+      const { data: closePattern } = await this.supabase
+        .from('analyst_call_patterns')
+        .select('*')
+        .eq('pattern_name', 'Close Command Pattern')
+        .eq('is_active', true)
+        .single();
+
+      if (!closePattern) {
+        console.log('⚠️ No close command pattern found');
+        return null;
+      }
+
+      // Find active signals for this ticker
+      const { data: activeSignals, error: findError } = await this.supabase
+        .from('analyst_signals')
+        .select('id, ticker, analyst_name, created_at')
+        .eq('ticker', ticker)
+        .eq('status', 'active')
+        .order('created_at', { ascending: false });
+
+      if (findError) {
+        console.error('❌ Error finding active signals:', findError);
+        return null;
+      }
+
+      if (!activeSignals || activeSignals.length === 0) {
+        console.log(`⚠️ No active signals found for ticker: ${ticker}`);
+        return {
+          patternId: closePattern.id,
+          extractedData: {
+            ticker,
+            action: 'close',
+            result: 'no_active_signals',
+            message: `No active signals found for ${ticker}`
+          },
+          confidenceScore: 1.0,
+          requiresReview: false
+        };
+      }
+
+      // Check if the user is authorized to close these calls
+      // Only the original analyst or the same username can close
+      const authorizedSignals = activeSignals.filter(signal => 
+        signal.analyst_name === username || 
+        signal.analyst_name === `@${username}` ||
+        username === 'iamjoshmoulton' // Special case for main analyst
+      );
+
+      if (authorizedSignals.length === 0) {
+        console.log(`❌ User ${username} not authorized to close ${ticker} calls`);
+        return {
+          patternId: closePattern.id,
+          extractedData: {
+            ticker,
+            action: 'close',
+            result: 'unauthorized',
+            message: `Only the original caller can close ${ticker} signals. Found ${activeSignals.length} active signal(s) by: ${activeSignals.map(s => s.analyst_name).join(', ')}`
+          },
+          confidenceScore: 1.0,
+          requiresReview: false
+        };
+      }
+
+      // Close the authorized signals
+      const signalIds = authorizedSignals.map(s => s.id);
+      const { data: closedSignals, error: closeError } = await this.supabase
+        .from('analyst_signals')
+        .update({
+          status: 'closed',
+          updated_at: new Date().toISOString()
+        })
+        .in('id', signalIds)
+        .select('id, ticker, analyst_name');
+
+      if (closeError) {
+        console.error('❌ Error closing signals:', closeError);
+        return null;
+      }
+
+      const closedCount = closedSignals?.length || 0;
+      console.log(`✅ Closed ${closedCount} signals for ${ticker} by ${username}`);
+
+      return {
+        patternId: closePattern.id,
+        extractedData: {
+          ticker,
+          action: 'close',
+          result: 'success',
+          closed_count: closedCount,
+          closed_by: username,
+          message: `Successfully closed ${closedCount} ${ticker} signal(s)`
+        },
+        confidenceScore: 1.0,
+        requiresReview: false
+      };
+
+    } catch (error) {
+      console.error('❌ Error handling close command:', error);
+      return null;
     }
   }
 }

@@ -75,7 +75,8 @@ export async function processAndInsertMessageImproved(
           supabase,
           message.text || message.caption,
           message.chat.id.toString(),
-          message.message_id.toString()
+          message.message_id.toString(),
+          message.from?.username
         );
         
         if (detectionResult.detected) {

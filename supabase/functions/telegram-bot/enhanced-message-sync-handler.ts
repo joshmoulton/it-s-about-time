@@ -95,13 +95,14 @@ export async function handleAnalystCallDetection(
   supabase: ReturnType<typeof createClient>,
   messageText: string,
   chatId: string,
-  telegramMessageId: string
+  telegramMessageId: string,
+  username?: string
 ) {
   console.log('🔍 Handling analyst call detection for message:', telegramMessageId);
   
   try {
     const detector = new AnalystCallDetector(supabase);
-    const detection = await detector.detectAnalystCall(messageText, chatId, telegramMessageId);
+    const detection = await detector.detectAnalystCall(messageText, chatId, telegramMessageId, username);
     
     if (!detection) {
       return { detected: false };
