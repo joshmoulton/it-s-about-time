@@ -7,7 +7,6 @@ export { default as Login } from '../pages/Login';
 // Non-critical components - lazy loaded
 export const Dashboard = lazy(() => import('../pages/Dashboard'));
 export const Newsletters = lazy(() => import('../pages/Newsletters'));
-export const DegenCalls = lazy(() => import('../pages/DegenCalls'));
 export const Videos = lazy(() => import('../pages/Videos'));
 export const Articles = lazy(() => import('../pages/Articles'));
 export const SentimentAnalysis = lazy(() => import('../pages/SentimentAnalysis'));

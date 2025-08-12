@@ -19,7 +19,6 @@ import { Index, Login } from "@/components/LazyComponents";
 import {
   Dashboard,
   Newsletters,
-  DegenCalls,
   Videos,
   Articles,
   SentimentAnalysis,
@@ -75,14 +74,6 @@ const App = () => {
                   element={
                     <ProtectedRoute>
                       <Newsletters />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/degen-calls"
-                  element={
-                    <ProtectedRoute>
-                      <DegenCalls />
                     </ProtectedRoute>
                   }
                 />
