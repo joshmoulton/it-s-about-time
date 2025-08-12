@@ -202,6 +202,79 @@ serve(async (req) => {
           });
         }
       }
+
+      // Check if this is a custom external bot message (no action, has telegram_user_id)
+      if (!body.action && body.telegram_user_id && body.telegram_message && body.telegram_chat_id) {
+        console.log('🤖 Processing external bot message');
+        console.log('🤖 External bot data:', JSON.stringify(body, null, 2));
+        
+        try {
+          // Convert external bot format to standard Telegram message format
+          const telegramMessage = {
+            message_id: body.message_id,
+            chat: {
+              id: body.telegram_chat_id
+            },
+            from: {
+              id: body.telegram_user_id,
+              username: body.telegram_username,
+              first_name: body.telegram_full_name?.split(' ')[0] || body.telegram_username,
+              last_name: body.telegram_full_name?.split(' ').slice(1).join(' ') || null
+            },
+            text: body.telegram_message,
+            message_thread_id: body.telegram_topic_id,
+            date: Math.floor(new Date(body.timestamp_utc || new Date()).getTime() / 1000),
+            reply_to_message: body.reply_to_message_id ? { message_id: body.reply_to_message_id } : undefined,
+            // Add topic name from external bot if available
+            topic_name: body.telegram_topic_name
+          };
+
+          // Process using the improved message processor
+          const { processAndInsertMessageImproved } = await import('./improved-message-processor.ts');
+          const success = await processAndInsertMessageImproved(telegramMessage, supabase, botToken);
+          
+          if (success) {
+            console.log('✅ Successfully processed external bot message');
+            
+            // Trigger sentiment analysis in background
+            if (body.telegram_message && body.telegram_message.trim().length > 0) {
+              try {
+                const sentimentResponse = await supabase.functions.invoke('telegram-sentiment-analyzer', {
+                  body: {
+                    messageText: body.telegram_message,
+                    messageId: body.message_id?.toString(),
+                    batchMode: false
+                  }
+                });
+                
+                if (sentimentResponse.error) {
+                  console.error('❌ Sentiment analysis error:', sentimentResponse.error);
+                } else {
+                  console.log('✅ Sentiment analysis completed');
+                }
+              } catch (sentimentError) {
+                console.error('❌ Error in sentiment analysis:', sentimentError);
+              }
+            }
+            
+            return new Response(JSON.stringify({ success: true, message: 'Message processed successfully' }), {
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            });
+          } else {
+            console.log('⚠️ Failed to process external bot message');
+            return new Response(JSON.stringify({ success: false, error: 'Failed to process message' }), {
+              status: 400,
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            });
+          }
+        } catch (error) {
+          console.error('❌ External bot processing error:', error);
+          return new Response(JSON.stringify({ error: error.message }), {
+            status: 500,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+      }
       
       // Support path-based routing for insert_degen_call and backfill_degen_calls
       const { pathname } = new URL(req.url);
