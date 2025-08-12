@@ -95,6 +95,11 @@ const { data, error } = await authenticatedQuery(() =>
 );
 
       if (error) {
+        // Suppress RLS access errors for free users (expected behavior)
+        if (error.code === 'PGRST301' || error.message?.includes('RLS')) {
+          console.log('ℹ️ Premium chat access restricted for current user tier');
+          return [];
+        }
         console.error('❌ Database query error:', error);
         throw error;
       }

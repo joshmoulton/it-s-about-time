@@ -53,6 +53,11 @@ export function useActiveAlertsRest(): UseActiveAlertsRestReturn {
       const response = await fetch('https://tcchfpgmwqawcjtwicek.supabase.co/functions/v1/active-alerts-widget');
       
       if (!response.ok) {
+        // Suppress 401 errors for free users (expected behavior)
+        if (response.status === 401) {
+          console.log('ℹ️ Premium content access restricted for current user tier');
+          return { alerts: [], tradingCount: 0, awaitingCount: 0, totalCount: 0 };
+        }
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       

@@ -61,7 +61,12 @@ export function DegenCallAlertsWidget({
           .limit(50);
 
         if (msgsErr) {
-          console.error('❌ Fetch telegram_messages error:', msgsErr);
+          // Suppress RLS access errors for free users (expected behavior)
+          if (msgsErr.code === 'PGRST301' || msgsErr.message?.includes('RLS')) {
+            console.log('ℹ️ Premium chat access restricted for current user tier');
+          } else {
+            console.error('❌ Fetch telegram_messages error:', msgsErr);
+          }
         } else if (msgs && msgs.length) {
           const re = /^\s*!degen\s+(\$?[A-Za-z]{2,15})(?:\s+(here))?(?:\s+entry\s+([0-9]+(?:\.[0-9]+)?))?(?:\s+stop\s+([0-9]+(?:\.[0-9]+)?))?(?:\s+target\s+([0-9]+(?:\.[0-9]+)?))?(?:\s+risk\s+([A-Za-z]+|[0-9]+(?:\.[0-9]+)?%))?/i;
           const toNum = (v: any) => {
