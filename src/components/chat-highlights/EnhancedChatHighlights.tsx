@@ -46,7 +46,7 @@ export const EnhancedChatHighlights: React.FC = () => {
           id,
           priority_score,
           assigned_at,
-          telegram_messages!inner (
+          telegram_messages!telegram_message_id (
             id,
             message_text,
             username,
@@ -55,7 +55,7 @@ export const EnhancedChatHighlights: React.FC = () => {
             topic_name,
             likes_count
           ),
-          chat_highlight_rules!inner (
+          chat_highlight_rules!rule_id (
             rule_name,
             highlight_color,
             priority
