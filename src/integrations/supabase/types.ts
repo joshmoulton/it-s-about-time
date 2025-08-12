@@ -867,6 +867,20 @@ export type Database = {
             referencedRelation: "chat_highlight_rules"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "fk_auto_highlights_rule_id"
+            columns: ["rule_id"]
+            isOneToOne: false
+            referencedRelation: "chat_highlight_rules"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_auto_highlights_telegram_message_id"
+            columns: ["telegram_message_id"]
+            isOneToOne: false
+            referencedRelation: "telegram_messages"
+            referencedColumns: ["id"]
+          },
         ]
       }
       backup_history: {
