@@ -40,53 +40,73 @@ export const EnhancedChatHighlights: React.FC = () => {
   const { data: highlights, isLoading } = useQuery<EnhancedHighlight[]>({
     queryKey: ['enhanced-highlights', selectedTopic, sortBy],
     queryFn: async () => {
-      let query = supabase
+      // First get auto_highlights with their related data
+      const { data: autoHighlights, error: autoError } = await supabase
         .from('auto_highlights')
         .select(`
           id,
           priority_score,
           assigned_at,
-          telegram_messages (
-            id,
-            message_text,
-            username,
-            first_name,
-            timestamp,
-            topic_name,
-            likes_count
-          ),
-          chat_highlight_rules (
-            rule_name,
-            highlight_color,
-            priority
-          )
+          telegram_message_id,
+          rule_id
         `)
         .order('priority_score', { ascending: false })
         .limit(50);
 
-      if (selectedTopic !== 'all') {
-        query = query.eq('telegram_messages.topic_name', selectedTopic);
+      if (autoError) {
+        console.error('Auto highlights query error:', autoError);
+        throw autoError;
       }
 
-      const { data, error } = await query;
-      if (error) {
-        console.error('Chat highlights query error:', error);
-        throw error;
+      if (!autoHighlights?.length) {
+        return [];
       }
 
-      return (data || []).map((item: any) => ({
-        id: item.id,
-        message_text: item.telegram_messages?.message_text || '',
-        username: item.telegram_messages?.username || '',
-        first_name: item.telegram_messages?.first_name || '',
-        timestamp: item.telegram_messages?.timestamp || '',
-        topic_name: item.telegram_messages?.topic_name || '',
-        rule_name: item.chat_highlight_rules?.rule_name || '',
-        highlight_color: item.chat_highlight_rules?.highlight_color || '#fbbf24',
-        priority_score: item.priority_score,
-        likes_count: item.telegram_messages?.likes_count || 0,
-        engagement_score: item.priority_score + (item.telegram_messages?.likes_count || 0) * 2,
-      }));
+      // Get telegram message IDs and rule IDs
+      const messageIds = autoHighlights.map(h => h.telegram_message_id).filter(Boolean);
+      const ruleIds = autoHighlights.map(h => h.rule_id).filter(Boolean);
+
+      // Fetch telegram messages
+      const { data: messages, error: messagesError } = await supabase
+        .from('telegram_messages')
+        .select('id, message_text, username, first_name, timestamp, topic_name, likes_count')
+        .in('id', messageIds);
+
+      if (messagesError) {
+        console.error('Telegram messages query error:', messagesError);
+        throw messagesError;
+      }
+
+      // Fetch highlight rules
+      const { data: rules, error: rulesError } = await supabase
+        .from('chat_highlight_rules')
+        .select('id, rule_name, highlight_color, priority')
+        .in('id', ruleIds);
+
+      if (rulesError) {
+        console.error('Highlight rules query error:', rulesError);
+        throw rulesError;
+      }
+
+      // Combine the data
+      return autoHighlights.map((item: any) => {
+        const message = messages?.find(m => m.id === item.telegram_message_id);
+        const rule = rules?.find(r => r.id === item.rule_id);
+
+        return {
+          id: item.id,
+          message_text: message?.message_text || '',
+          username: message?.username || '',
+          first_name: message?.first_name || '',
+          timestamp: message?.timestamp || '',
+          topic_name: message?.topic_name || '',
+          rule_name: rule?.rule_name || '',
+          highlight_color: rule?.highlight_color || '#fbbf24',
+          priority_score: item.priority_score,
+          likes_count: message?.likes_count || 0,
+          engagement_score: item.priority_score + (message?.likes_count || 0) * 2,
+        };
+      }).filter(item => item.message_text); // Only include items with valid messages
     },
     staleTime: 30000, // Cache for 30 seconds 
     refetchInterval: 60000, // Reduce to every 1 minute instead of 10 seconds
