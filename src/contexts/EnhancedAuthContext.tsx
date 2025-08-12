@@ -13,7 +13,28 @@ const EnhancedAuthContext = createContext<AuthContextType | undefined>(undefined
 export const useEnhancedAuth = () => {
   const context = useContext(EnhancedAuthContext);
   if (context === undefined) {
-    throw new Error('useEnhancedAuth must be used within an EnhancedAuthProvider');
+    // Return a safe default during SSR or initial render instead of throwing
+    return {
+      isLoading: true,
+      isAuthenticated: false,
+      currentUser: null,
+      subscriber: null,
+      supabaseUser: null,
+      login: async () => false,
+      logout: async () => {},
+      refreshCurrentUser: async () => {},
+      setAuthenticatedUser: () => {},
+      authenticatedUser: null,
+      subscriberExists: false,
+      subscriberTier: 'free' as const,
+      originalTier: 'free' as const,
+      overrideTier: null,
+      isOverrideActive: false,
+      currentUserExists: false,
+      authMethod: null,
+      userEmail: null,
+      userType: null
+    };
   }
   return context;
 };
