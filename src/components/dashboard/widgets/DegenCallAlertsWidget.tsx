@@ -181,116 +181,69 @@ export function DegenCallAlertsWidget({
             </Badge>
           </div>
 
-          {isLoading ? <div className="flex-1 flex items-center justify-center">
+            {isLoading ? <div className="flex-1 flex items-center justify-center">
               <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-orange-500" />
-            </div> : degenCalls && degenCalls.length > 0 ? <div className="space-y-3">
-              {degenCalls.map(call => <div key={call.id} className="bg-orange-900/25 border border-orange-500/30 rounded-xl px-5 py-4 hover:border-orange-400/40 hover:bg-orange-900/35 transition-all duration-200 shadow-sm space-y-4">
+            </div> : degenCalls && degenCalls.length > 0 ? <div className="space-y-2">
+              {degenCalls.map(call => <div key={call.id} className="bg-orange-900/25 border border-orange-500/30 rounded-lg px-3 py-2.5 hover:border-orange-400/40 hover:bg-orange-900/35 transition-all duration-200 shadow-sm">
                   {/* Header with ticker, direction, and timestamp */}
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 bg-gradient-to-br from-orange-500 to-red-500 rounded-lg flex items-center justify-center">
-                        <Zap className="w-4 h-4 text-white" />
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      <div className="w-6 h-6 bg-gradient-to-br from-orange-500 to-red-500 rounded-md flex items-center justify-center">
+                        <Zap className="w-3 h-3 text-white" />
                       </div>
-                      <div className="flex items-center gap-3">
-                        <span className="text-white text-lg font-bold">{call.coin}</span>
-                        {call.direction && <Badge variant="outline" className={`text-sm px-3 py-1 border ${call.direction.toLowerCase() === 'long' ? 'border-green-400/50 text-green-200 bg-green-500/10' : 'border-red-400/50 text-red-200 bg-red-500/10'}`}>
-                            {call.direction.toUpperCase()}
-                          </Badge>}
-                      </div>
+                      <span className="text-white text-sm font-bold">{call.coin}</span>
+                      {call.direction && <Badge variant="outline" className={`text-xs px-2 py-0.5 border ${call.direction.toLowerCase() === 'long' ? 'border-green-400/50 text-green-200 bg-green-500/10' : 'border-red-400/50 text-red-200 bg-red-500/10'}`}>
+                          {call.direction.toUpperCase()}
+                        </Badge>}
                     </div>
                     <div className="text-right">
-                      <div className="flex items-center gap-2 text-xs text-orange-200/80 mb-1">
-                        <Clock className="w-3 h-3" />
-                        <span>{formatTimeAgo(call.created_at)}</span>
-                      </div>
-                      <div className="text-xs text-orange-300/60">
-                        {new Date(call.created_at).toLocaleDateString('en-US', {
-                    month: 'short',
-                    day: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit'
-                  })}
+                      <div className="text-xs text-orange-200/80">
+                        {formatTimeAgo(call.created_at)}
                       </div>
                     </div>
                   </div>
 
                   {/* Caller name */}
-                  {call.analyst_name && <div className="flex items-center gap-2 pb-2 border-b border-orange-500/20">
-                      <span className="text-sm text-orange-300">Called by:</span>
-                      <span className="text-sm text-white font-medium">{call.analyst_name}</span>
+                  {call.analyst_name && <div className="text-xs text-orange-300 mb-2">
+                      Called by: <span className="text-white font-medium">{call.analyst_name}</span>
                     </div>}
 
-                  {/* Current Price Section */}
-                  <div className="bg-black/20 rounded-lg p-3">
+                  {/* Current Price and Key Info */}
+                  <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
                     <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <DollarSign className="w-4 h-4 text-blue-400" />
-                        <span className="text-sm text-orange-200/80">Current Price:</span>
-                      </div>
+                      <span className="text-orange-200/80">Price:</span>
                       {(() => {
                   const priceData = getPriceForTicker(call.coin);
                   if (priceData) {
-                    return <div className="flex items-center gap-3">
-                              <span className="text-white font-semibold text-lg">
+                    return <span className="text-white font-medium">
                                 {formatPrice(priceData.price_usd)}
-                              </span>
-                              {priceData.price_change_24h !== null}
-                            </div>;
+                              </span>;
                   }
-                  return <span className="text-orange-300 font-medium">Loading...</span>;
+                  return <span className="text-orange-300">Loading...</span>;
                 })()}
                     </div>
-                  </div>
-
-                  {/* Trading details */}
-                  <div className="space-y-3">
-                    {/* Entry */}
+                    
                     <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-                        <span className="text-sm text-orange-200/80">Entry:</span>
-                      </div>
+                      <span className="text-orange-200/80">Entry:</span>
                       <span className="text-white font-medium">
                         {call.entry_price && call.entry_price !== 'Market' ? `$${Number(call.entry_price).toLocaleString()}` : 'Market'}
                       </span>
                     </div>
 
-                    {/* Stop Loss */}
                     <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-                        <span className="text-sm text-orange-200/80">Stop Loss:</span>
-                      </div>
-                      <span className="text-white font-medium">
-                        {call.stop_loss ? `$${Number(call.stop_loss).toLocaleString()}` : 'N/A'}
-                      </span>
-                    </div>
-
-                    {/* Target */}
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <TrendingUp className="w-3 h-3 text-green-400" />
-                        <span className="text-sm text-orange-200/80">Target:</span>
-                      </div>
+                      <span className="text-orange-200/80">Target:</span>
                       <span className="text-white font-medium">
                         {call.targets && call.targets.length > 0 ? `$${Number(call.targets[0]).toLocaleString()}` : 'N/A'}
                       </span>
                     </div>
 
-                    {/* Risk */}
                     <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
-                        <span className="text-sm text-orange-200/80">Risk Level:</span>
-                      </div>
+                      <span className="text-orange-200/80">Risk:</span>
                       <span className="text-white font-medium">
                         {formatRiskLevel(call.risk_percentage)}
                       </span>
                     </div>
                   </div>
-
-                  {/* Status badge */}
-                  {call.status}
                 </div>)}
 
               <div className="pt-1">
