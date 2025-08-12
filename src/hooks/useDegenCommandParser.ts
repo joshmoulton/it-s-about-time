@@ -64,20 +64,10 @@ export const useDegenCommandParser = () => {
 
     if (!match) return null;
 
-    let direction: string, ticker: string, additionalParams: string | undefined;
+    let direction: string, ticker: string, entryPrice: string | undefined, additionalParams: string | undefined;
     
     if (isDirectFormat) {
-      [, direction, ticker, , additionalParams] = match;
-      // For direct format, the third capture group is the entry price
-      const entryPrice = match[3];
-      if (entryPrice) {
-        const commandData: DegenCommandData = {
-          ticker: ticker.toUpperCase(),
-          direction: direction.toLowerCase() as 'long' | 'short',
-          entryPrice: parseFloat(entryPrice)
-        };
-        return commandData;
-      }
+      [, direction, ticker, entryPrice, additionalParams] = match;
     } else {
       [, direction, ticker, additionalParams] = match;
     }
@@ -86,6 +76,11 @@ export const useDegenCommandParser = () => {
       ticker: ticker.toUpperCase(),
       direction: direction.toLowerCase() as 'long' | 'short',
     };
+
+    // Set entry price if provided in direct format
+    if (isDirectFormat && entryPrice) {
+      commandData.entryPrice = parseFloat(entryPrice);
+    }
 
     // Parse additional parameters if provided
     if (additionalParams) {
