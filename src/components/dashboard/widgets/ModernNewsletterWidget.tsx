@@ -183,7 +183,7 @@ export function ModernNewsletterWidget({
 
 
         {/* Fixed position button */}
-        <div className="mt-auto">
+        <div className="mt-auto pt-1">
           <Button size="sm" className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl h-12 text-sm font-medium shadow-sm transition-all duration-200" onClick={() => navigate('/newsletters')}>
             <ExternalLink className="h-4 w-4 mr-2 flex-shrink-0" />
             View All Newsletters
