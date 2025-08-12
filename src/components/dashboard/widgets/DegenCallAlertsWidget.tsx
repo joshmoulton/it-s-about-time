@@ -267,9 +267,13 @@ export function DegenCallAlertsWidget({
               ))}
 
               <div className="pt-1">
-                <Button size="sm" variant="ghost" className="text-orange-300 hover:text-white hover:bg-orange-900/30" onClick={handleViewAllCalls}>
+                <Button 
+                  size="sm" 
+                  className="w-full bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 text-white rounded-xl h-12 text-sm font-medium shadow-sm transition-all duration-200" 
+                  onClick={handleViewAllCalls}
+                >
+                  <ExternalLink className="h-4 w-4 mr-2 flex-shrink-0" />
                   View all degen calls
-                  <ExternalLink className="w-3.5 h-3.5 ml-1" />
                 </Button>
               </div>
             </div>
