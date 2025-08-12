@@ -79,8 +79,22 @@ export function useUnifiedTelegramChat(limit: number = 50) {
 
   // Filter messages by selected topic
   const filteredMessages = selectedTopic 
-    ? messages.filter(message => message.topic_name === selectedTopic)
+    ? messages.filter(message => {
+        console.log(`Filtering message with topic_name: "${message.topic_name}", selectedTopic: "${selectedTopic}"`);
+        return message.topic_name === selectedTopic;
+      })
     : messages;
+
+  // Debug logging for STOCKS & OPTIONS
+  useEffect(() => {
+    if (selectedTopic === 'STOCKS & OPTIONS') {
+      console.log('🔍 Debugging STOCKS & OPTIONS:');
+      console.log('Total messages:', messages.length);
+      console.log('Available topic names:', [...new Set(messages.map(m => m.topic_name).filter(Boolean))]);
+      console.log('Messages with STOCKS & OPTIONS:', messages.filter(m => m.topic_name === 'STOCKS & OPTIONS').length);
+      console.log('Sample message topics:', messages.slice(0, 5).map(m => ({ id: m.id, topic_name: m.topic_name })));
+    }
+  }, [selectedTopic, messages]);
 
   // Get available topic names from messages
   const availableTopics = [...new Set(messages.map(m => m.topic_name).filter(Boolean))];
