@@ -24,6 +24,7 @@ export function useDegenCallAlerts(limit = 10) {
         .from('analyst_signals')
         .select('id, ticker, entry_price, trade_direction, entry_type, created_at, status, posted_to_telegram, stop_loss_price, targets, risk_percentage, analyst_name')
         .eq('posted_to_telegram', true)
+        .eq('status', 'active')
         .order('created_at', { ascending: false })
         .limit(limit);
 
