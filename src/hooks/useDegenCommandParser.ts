@@ -48,28 +48,39 @@ export const useDegenCommandParser = () => {
   };
 
   const parseDegenCommand = async (message: string): Promise<DegenCommandData | null> => {
+    // Clean up the message
+    const cleanMessage = message.trim();
+    console.log('Parsing degen command:', cleanMessage);
+    
     // Match patterns: 
     // !degen supporting long|short TICKER (optional entry/stop/target)
     // !degen long|short TICKER [entry] (optional stop/target)
     const supportingFormat = /!degen\s+supporting\s+(long|short)\s+([A-Za-z0-9]+)(?:\s+(.+))?/i;
     const directFormat = /!degen\s+(long|short)\s+([A-Za-z0-9]+)(?:\s+([0-9.]+))?(?:\s+(.+))?/i;
     
-    let match = message.match(supportingFormat);
+    let match = cleanMessage.match(supportingFormat);
     let isDirectFormat = false;
     
     if (!match) {
-      match = message.match(directFormat);
+      match = cleanMessage.match(directFormat);
       isDirectFormat = true;
     }
 
-    if (!match) return null;
+    if (!match) {
+      console.log('No match found for degen command');
+      return null;
+    }
+
+    console.log('Regex match:', match);
 
     let direction: string, ticker: string, entryPrice: string | undefined, additionalParams: string | undefined;
     
     if (isDirectFormat) {
       [, direction, ticker, entryPrice, additionalParams] = match;
+      console.log('Direct format parsed:', { direction, ticker, entryPrice, additionalParams });
     } else {
       [, direction, ticker, additionalParams] = match;
+      console.log('Supporting format parsed:', { direction, ticker, additionalParams });
     }
     
     const commandData: DegenCommandData = {
@@ -77,9 +88,12 @@ export const useDegenCommandParser = () => {
       direction: direction.toLowerCase() as 'long' | 'short',
     };
 
+    console.log('Base command data:', commandData);
+
     // Set entry price if provided in direct format
     if (isDirectFormat && entryPrice) {
       commandData.entryPrice = parseFloat(entryPrice);
+      console.log('Set entry price:', commandData.entryPrice);
     }
 
     // Parse additional parameters if provided
