@@ -66,6 +66,7 @@ export default {
           'neutral-40': 'hsl(var(--brand-neutral-40))', // #626364
           'neutral-60': 'hsl(var(--brand-neutral-60))', // #939496
           black: 'hsl(var(--brand-black))',         // #080808
+          'muted-text': 'hsl(var(--brand-neutral-40))', // #626364
         },
       },
       borderRadius: {
