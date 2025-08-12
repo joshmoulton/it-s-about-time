@@ -150,7 +150,8 @@ export function DegenCallAlertsWidget({
     if (diffMinutes < 1440) return `${Math.floor(diffMinutes / 60)}h ago`;
     return `${Math.floor(diffMinutes / 1440)}d ago`;
   };
-  const formatPrice = (price: number) => {
+  const formatPrice = (price: number | null | undefined) => {
+    if (price == null || isNaN(price)) return 'N/A';
     if (price >= 1) return `$${price.toLocaleString(undefined, {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2
@@ -224,9 +225,9 @@ export function DegenCallAlertsWidget({
                         <DollarSign className="w-3 h-3 text-blue-400" />
                         <span className="text-xs text-orange-200/80">Current Price:</span>
                       </div>
-                      {(() => {
+                       {(() => {
                   const priceData = getPriceForTicker(call.coin);
-                  if (priceData) {
+                  if (priceData?.price_usd != null) {
                     return <span className="text-white font-semibold text-sm">
                                 {formatPrice(priceData.price_usd)}
                               </span>;
