@@ -1,13 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { TrendingUp, MessageSquare, Users, Activity, Search, Filter, BarChart3 } from 'lucide-react';
-import { formatDistanceToNow } from 'date-fns';
+import { Search, Filter, BarChart3, MessageSquare } from 'lucide-react';
+import { StatsOverview } from './StatsOverview';
+import { HighlightCard } from './EnhancedHighlightCard';
 
 interface TopicStats {
   topic_name: string;
@@ -85,59 +85,87 @@ export const EnhancedChatHighlights: React.FC = () => {
         engagement_score: item.priority_score + (item.telegram_messages.likes_count || 0) * 2,
       }));
     },
-    refetchInterval: 10000,
+    staleTime: 30000, // Cache for 30 seconds 
+    refetchInterval: 60000, // Reduce to every 1 minute instead of 10 seconds
+    refetchOnWindowFocus: false, // Disable refetch on window focus for better performance
   });
 
-  // Filter and sort highlights
-  const filteredHighlights = highlights
-    ?.filter(highlight => 
-      searchTerm === '' || 
-      highlight.message_text.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      highlight.username?.toLowerCase().includes(searchTerm.toLowerCase())
-    )
-    .sort((a, b) => {
-      switch (sortBy) {
-        case 'recent':
-          return new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime();
-        case 'engagement':
-          return b.engagement_score - a.engagement_score;
-        case 'priority':
-        default:
-          return b.priority_score - a.priority_score;
-      }
-    });
-
-  // Get unique topics for filter
-  const availableTopics = Array.from(new Set(highlights?.map(h => h.topic_name).filter(Boolean))) || [];
-
-  // Calculate topic statistics from highlights data
-  const topicStats = highlights ? highlights.reduce((acc, highlight) => {
-    const existing = acc.find(stat => stat.topic_name === highlight.topic_name);
-    if (existing) {
-      existing.message_count++;
-      existing.unique_users_set.add(highlight.username || '');
-      existing.unique_users = existing.unique_users_set.size;
-    } else {
-      const uniqueUsersSet = new Set([highlight.username || '']);
-      acc.push({
-        topic_name: highlight.topic_name,
-        message_count: 1,
-        last_message: highlight.timestamp,
-        unique_users: uniqueUsersSet.size,
-        unique_users_set: uniqueUsersSet,
-        trending_score: 1
+  // Memoize filtered and sorted highlights to prevent unnecessary recalculations
+  const filteredHighlights = useMemo(() => {
+    if (!highlights) return [];
+    
+    return highlights
+      .filter(highlight => 
+        searchTerm === '' || 
+        highlight.message_text.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        highlight.username?.toLowerCase().includes(searchTerm.toLowerCase())
+      )
+      .sort((a, b) => {
+        switch (sortBy) {
+          case 'recent':
+            return new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime();
+          case 'engagement':
+            return b.engagement_score - a.engagement_score;
+          case 'priority':
+          default:
+            return b.priority_score - a.priority_score;
+        }
       });
-    }
-    return acc;
-  }, [] as Array<TopicStats & { unique_users_set: Set<string> }>).map(stat => ({
-    topic_name: stat.topic_name,
-    message_count: stat.message_count,
-    last_message: stat.last_message,
-    unique_users: stat.unique_users,
-    trending_score: stat.message_count * 0.7 + stat.unique_users * 0.3
-  })).sort((a, b) => b.trending_score - a.trending_score) : [];
+  }, [highlights, searchTerm, sortBy]);
 
-  const getTopicBadgeColor = (topicName: string) => {
+  // Memoize available topics calculation
+  const availableTopics = useMemo(() => {
+    if (!highlights) return [];
+    return Array.from(new Set(highlights.map(h => h.topic_name).filter(Boolean)));
+  }, [highlights]);
+
+  // Memoize topic statistics calculation to prevent expensive recalculations
+  const topicStats = useMemo(() => {
+    if (!highlights) return [];
+    
+    return highlights.reduce((acc, highlight) => {
+      const existing = acc.find(stat => stat.topic_name === highlight.topic_name);
+      if (existing) {
+        existing.message_count++;
+        existing.unique_users_set.add(highlight.username || '');
+        existing.unique_users = existing.unique_users_set.size;
+      } else {
+        const uniqueUsersSet = new Set([highlight.username || '']);
+        acc.push({
+          topic_name: highlight.topic_name,
+          message_count: 1,
+          last_message: highlight.timestamp,
+          unique_users: uniqueUsersSet.size,
+          unique_users_set: uniqueUsersSet,
+          trending_score: 1
+        });
+      }
+      return acc;
+    }, [] as Array<TopicStats & { unique_users_set: Set<string> }>).map(stat => ({
+      topic_name: stat.topic_name,
+      message_count: stat.message_count,
+      last_message: stat.last_message,
+      unique_users: stat.unique_users,
+      trending_score: stat.message_count * 0.7 + stat.unique_users * 0.3
+    })).sort((a, b) => b.trending_score - a.trending_score);
+  }, [highlights]);
+
+  // Memoize unique users count calculation
+  const uniqueUsersCount = useMemo(() => {
+    if (!highlights) return 0;
+    return new Set(highlights.map(h => h.username).filter(Boolean)).size;
+  }, [highlights]);
+
+  // Memoize average engagement calculation
+  const avgEngagement = useMemo(() => {
+    if (!highlights?.length) return 0;
+    return Math.round(
+      highlights.reduce((sum, h) => sum + h.engagement_score, 0) / highlights.length
+    );
+  }, [highlights]);
+
+  // Memoize badge color function to prevent recreation on every render
+  const getTopicBadgeColor = useCallback((topicName: string) => {
     switch (topicName) {
       case 'Money Glitch': return 'bg-green-500';
       case 'STOCKS & OPTIONS': return 'bg-blue-500';
@@ -145,58 +173,17 @@ export const EnhancedChatHighlights: React.FC = () => {
       case 'OFF-TOPIC': return 'bg-gray-500';
       default: return 'bg-purple-500';
     }
-  };
+  }, []);
 
   return (
     <div className="space-y-6">
       {/* Stats Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center space-x-2">
-              <MessageSquare className="h-4 w-4 text-blue-500" />
-              <span className="text-sm font-medium">Total Highlights</span>
-            </div>
-            <p className="text-2xl font-bold">{highlights?.length || 0}</p>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center space-x-2">
-              <TrendingUp className="h-4 w-4 text-green-500" />
-              <span className="text-sm font-medium">Active Topics</span>
-            </div>
-            <p className="text-2xl font-bold">{availableTopics.length}</p>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center space-x-2">
-              <Users className="h-4 w-4 text-purple-500" />
-              <span className="text-sm font-medium">Unique Users</span>
-            </div>
-            <p className="text-2xl font-bold">
-              {new Set(highlights?.map(h => h.username).filter(Boolean)).size || 0}
-            </p>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center space-x-2">
-              <Activity className="h-4 w-4 text-orange-500" />
-              <span className="text-sm font-medium">Avg Engagement</span>
-            </div>
-            <p className="text-2xl font-bold">
-              {highlights?.length ? Math.round(
-                highlights.reduce((sum, h) => sum + h.engagement_score, 0) / highlights.length
-              ) : 0}
-            </p>
-          </CardContent>
-        </Card>
-      </div>
+      <StatsOverview 
+        totalHighlights={highlights?.length || 0}
+        activeTopics={availableTopics.length}
+        uniqueUsers={uniqueUsersCount}
+        avgEngagement={avgEngagement}
+      />
 
       {/* Topic Statistics */}
       {topicStats && topicStats.length > 0 && (
@@ -280,56 +267,11 @@ export const EnhancedChatHighlights: React.FC = () => {
           </div>
         ) : filteredHighlights && filteredHighlights.length > 0 ? (
           filteredHighlights.map((highlight) => (
-            <Card key={highlight.id} className="hover:shadow-md transition-shadow">
-              <CardContent className="p-4">
-                <div className="space-y-3">
-                  {/* Header */}
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-center space-x-2">
-                      <Badge 
-                        className={getTopicBadgeColor(highlight.topic_name)}
-                        style={{ backgroundColor: highlight.highlight_color }}
-                      >
-                        {highlight.rule_name}
-                      </Badge>
-                      <Badge variant="outline" className={getTopicBadgeColor(highlight.topic_name)}>
-                        {highlight.topic_name}
-                      </Badge>
-                    </div>
-                    <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-                      <span>Priority: {highlight.priority_score}</span>
-                      {highlight.likes_count > 0 && (
-                        <span>❤️ {highlight.likes_count}</span>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Message Content */}
-                  <div className="space-y-2">
-                    <p className="text-sm leading-relaxed">{highlight.message_text}</p>
-                    
-                    <div className="flex items-center justify-between text-xs text-muted-foreground">
-                      <div className="flex items-center space-x-2">
-                        <span className="font-medium">{highlight.first_name}</span>
-                        {highlight.username && (
-                          <span>(@{highlight.username})</span>
-                        )}
-                      </div>
-                      <span>{formatDistanceToNow(new Date(highlight.timestamp), { addSuffix: true })}</span>
-                    </div>
-                  </div>
-
-                  {/* Engagement Metrics */}
-                  <div className="flex items-center justify-between pt-2 border-t">
-                    <div className="flex items-center space-x-4 text-xs text-muted-foreground">
-                      <span>Engagement Score: {highlight.engagement_score}</span>
-                      <span>•</span>
-                      <span>Topic: {highlight.topic_name}</span>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+            <HighlightCard 
+              key={highlight.id} 
+              highlight={highlight} 
+              getTopicBadgeColor={getTopicBadgeColor} 
+            />
           ))
         ) : (
           <Card>
