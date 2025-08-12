@@ -1,4 +1,5 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
 export interface DegenCall {
@@ -16,9 +17,54 @@ export interface DegenCall {
 }
 
 export function useDegenCallAlerts(limit = 10) {
+  const queryClient = useQueryClient();
+
+  // Set up real-time subscription for instant updates
+  useEffect(() => {
+    console.log('Setting up real-time subscription for degen calls...');
+    
+    const channel = supabase
+      .channel('analyst_signals_changes')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'analyst_signals',
+          filter: 'posted_to_telegram=eq.true'
+        },
+        (payload) => {
+          console.log('New degen call detected:', payload);
+          // Invalidate and refetch the query immediately
+          queryClient.invalidateQueries({ queryKey: ['degenCallAlerts'] });
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'analyst_signals',
+          filter: 'posted_to_telegram=eq.true'
+        },
+        (payload) => {
+          console.log('Degen call updated:', payload);
+          // Invalidate and refetch the query immediately
+          queryClient.invalidateQueries({ queryKey: ['degenCallAlerts'] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      console.log('Cleaning up real-time subscription');
+      supabase.removeChannel(channel);
+    };
+  }, [queryClient]);
+
   return useQuery<DegenCall[]>({
     queryKey: ['degenCallAlerts', limit],
     queryFn: async () => {
+      console.log('Fetching degen calls from database...');
       // Fetch latest active, posted signals with all needed fields
       const { data, error } = await supabase
         .from('analyst_signals')
@@ -55,10 +101,10 @@ export function useDegenCallAlerts(limit = 10) {
         };
       });
 
-      console.debug('useDegenCallAlerts fetched', { count: mapped.length, limit });
+      console.log('useDegenCallAlerts fetched', { count: mapped.length, limit, data: mapped });
       return mapped;
     },
-    staleTime: 10_000,
-    refetchInterval: 30_000,
+    staleTime: 5_000, // Reduced stale time for faster updates
+    refetchInterval: 15_000, // More frequent polling as backup
   });
 }
