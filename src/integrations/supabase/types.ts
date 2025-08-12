@@ -4197,6 +4197,18 @@ export type Database = {
           | { topic_id: number }
         Returns: undefined
       }
+      upsert_user_preference: {
+        Args: { p_preference_type: string; p_preference_data: Json }
+        Returns: Json
+      }
+      upsert_user_profile_basic: {
+        Args: {
+          p_display_name?: string
+          p_avatar_url?: string
+          p_tour_disabled?: boolean
+        }
+        Returns: Json
+      }
       user_has_paid_tier: {
         Args: Record<PropertyKey, never>
         Returns: boolean
