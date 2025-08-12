@@ -1,8 +1,9 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { ModernCard, ModernCardHeader, ModernCardTitle, ModernCardContent } from '@/components/ui/modern-card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { MessageCircle, Clock, ThumbsUp, RefreshCw, TrendingUp } from 'lucide-react';
+import { MessageCircle, Clock, ThumbsUp, RefreshCw, TrendingUp, ExternalLink } from 'lucide-react';
 import { useChatHighlights } from '@/hooks/useChatHighlights';
 import { useAutoHighlightsSummary } from '@/hooks/useAutoHighlightsSummary';
 interface Subscriber {
@@ -21,6 +22,7 @@ export function ModernChatHighlightsWidget({
   subscriber,
   hideHeader = false
 }: ModernChatHighlightsWidgetProps) {
+  const navigate = useNavigate();
   const {
     data: fallbackHighlights = [],
     isLoading: isFallbackLoading,
@@ -132,6 +134,18 @@ export function ModernChatHighlightsWidget({
               </div>
             );
           })()}
+        </div>
+        
+        {/* View Full Details Button */}
+        <div className="px-6 pb-4 pt-2 border-t border-purple-500/20">
+          <Button 
+            size="sm" 
+            className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-xl h-10 text-sm font-medium shadow-sm transition-all duration-200" 
+            onClick={() => navigate('/chat-highlights')}
+          >
+            <ExternalLink className="h-4 w-4 mr-2 flex-shrink-0" />
+            View Full Chat Highlights
+          </Button>
         </div>
       </ModernCardContent>
     </ModernCard>;
