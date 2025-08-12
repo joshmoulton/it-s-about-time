@@ -133,10 +133,12 @@ export function DashboardContent({
             {/* Newsletter Widget - Always accessible to all users with new gradient styling */}
             <div className="h-[300px] sm:h-[340px] overflow-hidden">
               <WidgetErrorBoundary widgetName="Newsletter">
-                <ModernNewsletterWidget 
-                  subscriber={subscriber} 
-                  hideHeader={false}
-                />
+                <div className="h-full">
+                  <ModernNewsletterWidget 
+                    subscriber={subscriber} 
+                    hideHeader={false}
+                  />
+                </div>
               </WidgetErrorBoundary>
             </div>
 
