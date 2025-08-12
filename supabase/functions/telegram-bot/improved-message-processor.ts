@@ -1,5 +1,4 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-import { handleAnalystCallDetection } from './enhanced-message-sync-handler.ts';
 
 const TARGET_CHAT_ID = -1002083186778;
 
@@ -68,25 +67,7 @@ export async function processAndInsertMessageImproved(
       });
     }
 
-    // Check for analyst call detection if message has text
-    if (message.text || message.caption) {
-      try {
-        const detectionResult = await handleAnalystCallDetection(
-          supabase,
-          message.text || message.caption,
-          message.chat.id.toString(),
-          message.message_id.toString(),
-          message.from?.username
-        );
-        
-        if (detectionResult.detected) {
-          console.log(`🎯 Analyst call detected in message ${message.message_id}:`, detectionResult);
-        }
-      } catch (detectionError) {
-        console.error('⚠️ Error in analyst call detection:', detectionError);
-        // Don't fail the entire message processing if detection fails
-      }
-    }
+    // Analyst call detection removed - handled in Telegram side
 
     console.log(`✅ Successfully processed message ${message.message_id} with ID: ${messageId}`);
     return true;
