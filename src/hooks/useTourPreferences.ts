@@ -63,12 +63,12 @@ export const useTourPreferences = (userEmail: string | null) => {
         } else {
           // Create profile with default tour setting (don't wait for completion)
           supabase
-            .from('user_profiles')
-            .insert({
-              user_email: email,
-              tour_disabled: false
+            .rpc('upsert_user_profile_basic', {
+              p_display_name: null,
+              p_avatar_url: null,
+              p_tour_disabled: false
             })
-            .then(({ error: insertError }) => {
+             .then(({ error: insertError }) => {
               if (insertError) {
                 console.warn('Error creating user profile:', insertError);
               }
@@ -154,12 +154,10 @@ export const useTourPreferences = (userEmail: string | null) => {
 
     // Update database asynchronously (don't await to prevent blocking)
     supabase
-      .from('user_profiles')
-      .upsert({
-        user_email: userEmail,
-        tour_disabled: true
-      }, {
-        onConflict: 'user_email'
+      .rpc('upsert_user_profile_basic', {
+        p_display_name: null,
+        p_avatar_url: null,
+        p_tour_disabled: true
       })
       .then(({ error, data }) => {
         if (error) {

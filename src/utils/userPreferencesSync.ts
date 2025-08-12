@@ -97,13 +97,9 @@ class UserPreferencesSync {
 
     try {
       const { error } = await supabase
-        .from('user_preferences')
-        .upsert({
-          user_email: this.currentUserEmail,
-          preference_type: type,
-          preference_data: data
-        }, {
-          onConflict: 'user_email,preference_type'
+        .rpc('upsert_user_preference', {
+          p_preference_type: type,
+          p_preference_data: data
         });
 
       if (error) {
