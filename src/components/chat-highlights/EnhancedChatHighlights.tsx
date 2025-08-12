@@ -277,25 +277,28 @@ export const EnhancedChatHighlights: React.FC = () => {
         </div>
       </div>
 
-      {/* Enhanced Highlights List - Widget Style */}
-      <div className="space-y-3">
+      {/* Enhanced Highlights List - Compact Card Style */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         {isLoading ? (
-          <div className="text-center py-8">
+          <div className="col-span-full text-center py-8">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500 mx-auto"></div>
             <p className="text-sm text-purple-300/60 mt-2">Analyzing highlights...</p>
           </div>
         ) : filteredHighlights && filteredHighlights.length > 0 ? (
           filteredHighlights.map((highlight) => (
-            <div key={highlight.id} className="p-4 bg-purple-900/30 rounded-xl border border-purple-500/20 hover:border-purple-400/40 hover:bg-purple-900/40 transition-all duration-200">
-              <div className="flex items-start gap-3">
-                <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white text-sm font-medium flex-shrink-0">
-                  {highlight.first_name?.[0] || highlight.username?.[0] || 'U'}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="font-medium text-sm text-white">
+            <div key={highlight.id} className="p-3 bg-purple-900/30 rounded-xl border border-purple-500/20 hover:border-purple-400/40 hover:bg-purple-900/40 transition-all duration-200">
+              <div className="space-y-2">
+                {/* Header row with user and topic */}
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="w-6 h-6 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white text-xs font-medium flex-shrink-0">
+                      {highlight.first_name?.[0] || highlight.username?.[0] || 'U'}
+                    </div>
+                    <span className="font-medium text-sm text-white truncate">
                       {highlight.username ? `@${highlight.username}` : highlight.first_name}
                     </span>
+                  </div>
+                  <div className="flex items-center gap-1">
                     {highlight.topic_name && (
                       <Badge 
                         className={`text-xs px-2 py-0.5 ${getTopicBadgeColor(highlight.topic_name)} text-white`}
@@ -303,14 +306,17 @@ export const EnhancedChatHighlights: React.FC = () => {
                         {highlight.topic_name}
                       </Badge>
                     )}
-                    <span className="text-xs text-purple-300/60 ml-auto">
-                      {formatTimeAgo(highlight.timestamp)}
-                    </span>
                   </div>
-                  <p className="text-sm text-purple-200/80 leading-relaxed mb-2">
-                    {highlight.message_text}
-                  </p>
-                  <div className="flex items-center gap-4 text-xs text-purple-300/60">
+                </div>
+
+                {/* Message content */}
+                <p className="text-sm text-purple-200/80 leading-relaxed line-clamp-3">
+                  {highlight.message_text}
+                </p>
+
+                {/* Footer with stats */}
+                <div className="flex items-center justify-between text-xs text-purple-300/60">
+                  <div className="flex items-center gap-3">
                     <div className="flex items-center gap-1">
                       <BarChart3 className="h-3 w-3" />
                       <span>Priority: {highlight.priority_score}</span>
@@ -322,12 +328,15 @@ export const EnhancedChatHighlights: React.FC = () => {
                       </div>
                     )}
                   </div>
+                  <span className="text-xs text-purple-300/60">
+                    {formatTimeAgo(highlight.timestamp)}
+                  </span>
                 </div>
               </div>
             </div>
           ))
         ) : (
-          <div className="text-center py-12 bg-purple-900/30 rounded-xl border border-purple-500/20">
+          <div className="col-span-full text-center py-12 bg-purple-900/30 rounded-xl border border-purple-500/20">
             <MessageSquare className="h-12 w-12 mx-auto text-purple-400 mb-4" />
             <h3 className="text-lg font-semibold text-white mb-2">No highlights found</h3>
             <p className="text-purple-300/60">
