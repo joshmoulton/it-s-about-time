@@ -135,12 +135,15 @@ function DegenCallsList() {
     return `${Math.floor(diffMinutes / 1440)}d ago`;
   };
 
-  const formatRiskLevel = (riskPercentage?: number): string => {
-    if (!riskPercentage) return 'N/A';
-    
-    if (riskPercentage <= 3) return 'Low';
-    if (riskPercentage <= 7) return 'Med';
-    return 'High';
+  const formatSizeLevel = (size?: string): string => {
+    if (!size) return 'N/A';
+    const sizeStr = size.toLowerCase();
+    if (sizeStr === 'tiny') return 'Tiny';
+    if (sizeStr === 'low') return 'Low';
+    if (sizeStr === 'med') return 'Med';
+    if (sizeStr === 'high') return 'High';
+    if (sizeStr === 'huge') return 'Huge';
+    return size; // Return original if not recognized
   };
 
   return (
@@ -211,12 +214,12 @@ function DegenCallsList() {
               </span>
             </div>
 
-            {/* Risk */}
+            {/* Size */}
             <div className="flex items-center gap-1">
               <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
-              <span className="text-orange-200/80">Risk:</span>
+              <span className="text-orange-200/80">Size:</span>
               <span className="text-white font-medium">
-                {formatRiskLevel(call.risk_percentage)}
+                {formatSizeLevel(call.size || call.risk_management)}
               </span>
             </div>
           </div>

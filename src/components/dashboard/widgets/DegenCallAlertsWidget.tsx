@@ -70,7 +70,7 @@ export function DegenCallAlertsWidget({
             console.error('❌ Fetch telegram_messages error:', msgsErr);
           }
         } else if (msgs && msgs.length) {
-          const re = /^\s*!degen\s+(\$?[A-Za-z]{2,15})(?:\s+(here))?(?:\s+entry\s+([0-9]+(?:\.[0-9]+)?))?(?:\s+stop\s+([0-9]+(?:\.[0-9]+)?))?(?:\s+target\s+([0-9]+(?:\.[0-9]+)?))?(?:\s+risk\s+([A-Za-z]+|[0-9]+(?:\.[0-9]+)?%))?/i;
+          const re = /^\s*!degen\s+(\$?[A-Za-z]{2,15})(?:\s+(here))?(?:\s+entry\s+([0-9]+(?:\.[0-9]+)?))?(?:\s+stop\s+([0-9]+(?:\.[0-9]+)?))?(?:\s+target\s+([0-9]+(?:\.[0-9]+)?))?(?:\s+size\s+(tiny|low|med|high|huge))?/i;
           const toNum = (v: any) => {
             const n = typeof v === 'number' ? v : parseFloat(String(v));
             return Number.isFinite(n) ? n : null;
@@ -84,7 +84,7 @@ export function DegenCallAlertsWidget({
             const entry = toNum(match[3]);
             const stop = toNum(match[4]);
             const target = toNum(match[5]);
-            const risk = match[6] || null;
+            const size = match[6] || null;
             await supabase.functions.invoke('telegram-bot', {
               body: {
                 action: 'insert_degen_call',
@@ -93,7 +93,8 @@ export function DegenCallAlertsWidget({
                   entry,
                   stop,
                   target,
-                  risk
+                  size,
+                  risk: size // Map size to risk field for compatibility
                 },
                 message: {
                   message_id: m.telegram_message_id,
@@ -129,12 +130,16 @@ export function DegenCallAlertsWidget({
     return `${multiplier.toFixed(1)}x`;
   };
 
-  // Convert risk percentage to descriptive labels only when present
-  const formatRiskLevel = (riskPercentage?: number): string => {
-    if (!riskPercentage) return 'N/A';
-    if (riskPercentage <= 3) return 'Low';
-    if (riskPercentage <= 7) return 'Med';
-    return 'High';
+  // Convert size to display labels
+  const formatSizeLevel = (size?: string): string => {
+    if (!size) return 'N/A';
+    const sizeStr = size.toLowerCase();
+    if (sizeStr === 'tiny') return 'Tiny';
+    if (sizeStr === 'low') return 'Low';
+    if (sizeStr === 'med') return 'Med';
+    if (sizeStr === 'high') return 'High';
+    if (sizeStr === 'huge') return 'Huge';
+    return size; // Return original if not recognized
   };
   const formatTimeAgo = (timestamp: string) => {
     const now = new Date();
@@ -266,14 +271,14 @@ export function DegenCallAlertsWidget({
                       </span>
                     </div>
 
-                    {/* Risk */}
+                    {/* Size */}
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-1.5">
                         <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
-                        <span className="text-xs text-orange-200/80">Risk Level:</span>
+                        <span className="text-xs text-orange-200/80">Size:</span>
                       </div>
                       <span className="text-white font-medium text-xs">
-                        {formatRiskLevel(call.risk_percentage)}
+                        {formatSizeLevel(call.size || call.risk_management)}
                       </span>
                     </div>
                   </div>

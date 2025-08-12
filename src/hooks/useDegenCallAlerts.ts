@@ -13,6 +13,8 @@ export interface DegenCall {
   stop_loss?: string;
   targets?: number[];
   risk_percentage?: number;
+  size?: string; // New size field (tiny, low, med, high, huge)
+  risk_management?: string; // Keep for backwards compatibility
   analyst_name?: string;
 }
 
@@ -68,7 +70,7 @@ export function useDegenCallAlerts(limit = 10) {
       // Fetch latest active, posted signals with all needed fields
       const { data, error } = await supabase
         .from('analyst_signals')
-        .select('id, ticker, entry_price, trade_direction, entry_type, created_at, status, posted_to_telegram, stop_loss_price, targets, risk_percentage, analyst_name')
+        .select('id, ticker, entry_price, trade_direction, entry_type, created_at, status, posted_to_telegram, stop_loss_price, targets, risk_percentage, risk_management, analyst_name')
         .eq('posted_to_telegram', true)
         .eq('status', 'active')
         .order('created_at', { ascending: false })
@@ -97,6 +99,8 @@ export function useDegenCallAlerts(limit = 10) {
           stop_loss: row.stop_loss_price != null ? String(row.stop_loss_price) : undefined,
           targets: row.targets ? (Array.isArray(row.targets) ? row.targets : [row.targets]) : undefined,
           risk_percentage: row.risk_percentage || undefined,
+          size: row.risk_management || undefined, // Map risk_management to size for display
+          risk_management: row.risk_management || undefined,
           analyst_name: row.analyst_name || undefined,
         };
       });
