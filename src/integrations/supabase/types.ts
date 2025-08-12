@@ -3673,7 +3673,7 @@ export type Database = {
         Returns: undefined
       }
       calculate_detection_confidence: {
-        Args: { message_text: string; extracted_data: Json }
+        Args: { message_text: string; extracted_data?: Json }
         Returns: number
       }
       can_manage_admin_role: {
@@ -3810,7 +3810,7 @@ export type Database = {
         Returns: string
       }
       extract_analyst_call_data: {
-        Args: { message_text: string; pattern_config: Json }
+        Args: { message_text: string; pattern_config?: Json }
         Returns: Json
       }
       find_duplicate_messages: {
