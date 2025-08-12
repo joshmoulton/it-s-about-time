@@ -68,7 +68,9 @@ export function DegenCallAlertsWidget({
             console.error('❌ Fetch telegram_messages error:', msgsErr);
           }
         } else if (msgs && msgs.length) {
-          const re = /^\s*!degen\s+(\$?[A-Za-z]{2,15})(?:\s+(here))?(?:\s+entry\s+([0-9]+(?:\.[0-9]+)?))?(?:\s+stop\s+([0-9]+(?:\.[0-9]+)?))?(?:\s+target\s+([0-9]+(?:\.[0-9]+)?))?(?:\s+size\s+(tiny|low|med|high|huge))?/i;
+          // Updated regex to handle both formats:
+          // !degen TICKER [params] OR !degen DIRECTION TICKER [params]
+          const re = /^\s*!degen\s+(?:(long|short)\s+)?(\$?[A-Za-z]{2,15})(?:\s+(here))?(?:\s+entry\s+([0-9]+(?:\.[0-9]+)?))?(?:\s+stop\s+([0-9]+(?:\.[0-9]+)?))?(?:\s+target\s+([0-9]+(?:\.[0-9]+)?))?(?:\s+size\s+(tiny|low|med|high|huge))?/i;
           const toNum = (v: any) => {
             const n = typeof v === 'number' ? v : parseFloat(String(v));
             return Number.isFinite(n) ? n : null;
@@ -77,17 +79,19 @@ export function DegenCallAlertsWidget({
             const text = m.message_text || '';
             const match = text.match(re);
             if (!match) continue;
-            const rawTicker = match[1] || '';
+            const direction = match[1] || 'long'; // Default to long if not specified
+            const rawTicker = match[2] || '';
             const ticker = rawTicker.replace(/^\$/, '').toUpperCase().trim();
-            const entry = toNum(match[3]);
-            const stop = toNum(match[4]);
-            const target = toNum(match[5]);
-            const size = match[6] || null;
+            const entry = toNum(match[4]);
+            const stop = toNum(match[5]);
+            const target = toNum(match[6]);
+            const size = match[7] || null;
             await supabase.functions.invoke('telegram-bot', {
               body: {
                 action: 'insert_degen_call',
                 degen_call: {
                   ticker,
+                  direction,
                   entry,
                   stop,
                   target,
