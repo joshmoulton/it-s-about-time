@@ -1,13 +1,10 @@
 import React, { useState, useMemo, useCallback } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Search, Filter, BarChart3, MessageSquare } from 'lucide-react';
-import { StatsOverview } from './StatsOverview';
-import { HighlightCard } from './EnhancedHighlightCard';
 
 interface TopicStats {
   topic_name: string;
@@ -198,116 +195,147 @@ export const EnhancedChatHighlights: React.FC = () => {
     }
   }, []);
 
+  // Time formatting function
+  const formatTimeAgo = useCallback((timestamp: string) => {
+    const now = new Date();
+    const messageTime = new Date(timestamp);
+    const diffMinutes = Math.floor((now.getTime() - messageTime.getTime()) / (1000 * 60));
+    if (diffMinutes < 1) return 'just now';
+    if (diffMinutes < 60) return `${diffMinutes}m ago`;
+    if (diffMinutes < 1440) return `${Math.floor(diffMinutes / 60)}h ago`;
+    return `${Math.floor(diffMinutes / 1440)}d ago`;
+  }, []);
+
   return (
-    <div className="space-y-6">
-      {/* Stats Overview */}
-      <StatsOverview 
-        totalHighlights={highlights?.length || 0}
-        activeTopics={availableTopics.length}
-        uniqueUsers={uniqueUsersCount}
-        avgEngagement={avgEngagement}
-      />
+    <div className="bg-gradient-to-br from-purple-900/20 via-pink-900/10 to-slate-800/50 border border-purple-500/20 rounded-2xl p-6 space-y-6">
+      {/* Header */}
+      <div className="flex items-center gap-3 mb-6">
+        <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg flex items-center justify-center shadow-sm">
+          <MessageSquare className="h-5 w-5 text-white" />
+        </div>
+        <h1 className="text-2xl font-bold text-white">Chat Highlights</h1>
+      </div>
 
-      {/* Topic Statistics */}
-      {topicStats && topicStats.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <BarChart3 className="h-5 w-5" />
-              Topic Activity Overview
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {topicStats.slice(0, 6).map((topic) => (
-                <div key={topic.topic_name} className="p-3 border rounded-lg">
-                  <div className="flex items-center justify-between mb-2">
-                    <Badge className={getTopicBadgeColor(topic.topic_name)}>
-                      {topic.topic_name}
-                    </Badge>
-                    <span className="text-sm text-muted-foreground">
-                      {topic.message_count} msgs
-                    </span>
-                  </div>
-                  <div className="text-xs text-muted-foreground">
-                    {topic.unique_users} unique users
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Filters and Search */}
-      <Card>
-        <CardContent className="p-4">
-          <div className="flex flex-wrap gap-4 items-center">
-            <div className="flex-1 min-w-[200px]">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search highlights..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
-                />
+      {/* Topic Activity Overview - Widget Style */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        {topicStats.slice(0, 4).map((topic) => (
+          <div key={topic.topic_name} className="p-4 bg-purple-900/30 rounded-xl border border-purple-500/20">
+            <div className="flex items-center justify-between mb-2">
+              <span className="font-medium text-sm text-white truncate">{topic.topic_name}</span>
+              <div className="flex items-center gap-1">
+                <BarChart3 className="h-3 w-3 text-purple-400" />
+                <span className="text-sm font-bold text-purple-300">
+                  {topic.message_count}
+                </span>
               </div>
             </div>
-            
-            <Select value={selectedTopic} onValueChange={setSelectedTopic}>
-              <SelectTrigger className="w-[180px]">
-                <Filter className="h-4 w-4 mr-2" />
-                <SelectValue placeholder="Filter by topic" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Topics</SelectItem>
-                {availableTopics.map((topic) => (
-                  <SelectItem key={topic} value={topic}>{topic}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            
-            <Select value={sortBy} onValueChange={(value: 'recent' | 'engagement' | 'priority') => setSortBy(value)}>
-              <SelectTrigger className="w-[150px]">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="priority">Priority</SelectItem>
-                <SelectItem value="engagement">Engagement</SelectItem>
-                <SelectItem value="recent">Most Recent</SelectItem>
-              </SelectContent>
-            </Select>
+            <div className="text-xs text-purple-200/60">
+              {topic.unique_users} unique users
+            </div>
           </div>
-        </CardContent>
-      </Card>
+        ))}
+      </div>
 
-      {/* Enhanced Highlights List */}
+      {/* Filters and Search - Widget Style */}
+      <div className="bg-purple-900/30 rounded-xl border border-purple-500/20 p-4">
+        <div className="flex flex-wrap gap-4 items-center">
+          <div className="flex-1 min-w-[200px]">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-purple-300" />
+              <Input
+                placeholder="Search highlights..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10 bg-purple-800/30 border-purple-500/30 text-white placeholder-purple-300/60 focus:border-purple-400"
+              />
+            </div>
+          </div>
+          
+          <Select value={selectedTopic} onValueChange={setSelectedTopic}>
+            <SelectTrigger className="w-[180px] bg-purple-800/30 border-purple-500/30 text-white">
+              <Filter className="h-4 w-4 mr-2" />
+              <SelectValue placeholder="Filter by topic" />
+            </SelectTrigger>
+            <SelectContent className="bg-purple-900 border-purple-500/30">
+              <SelectItem value="all">All Topics</SelectItem>
+              {availableTopics.map((topic) => (
+                <SelectItem key={topic} value={topic}>{topic}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          
+          <Select value={sortBy} onValueChange={(value: 'recent' | 'engagement' | 'priority') => setSortBy(value)}>
+            <SelectTrigger className="w-[150px] bg-purple-800/30 border-purple-500/30 text-white">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent className="bg-purple-900 border-purple-500/30">
+              <SelectItem value="priority">Priority</SelectItem>
+              <SelectItem value="engagement">Engagement</SelectItem>
+              <SelectItem value="recent">Most Recent</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      {/* Enhanced Highlights List - Widget Style */}
       <div className="space-y-3">
         {isLoading ? (
-          <div className="flex justify-center py-8">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          <div className="text-center py-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500 mx-auto"></div>
+            <p className="text-sm text-purple-300/60 mt-2">Analyzing highlights...</p>
           </div>
         ) : filteredHighlights && filteredHighlights.length > 0 ? (
           filteredHighlights.map((highlight) => (
-            <HighlightCard 
-              key={highlight.id} 
-              highlight={highlight} 
-              getTopicBadgeColor={getTopicBadgeColor} 
-            />
+            <div key={highlight.id} className="p-4 bg-purple-900/30 rounded-xl border border-purple-500/20 hover:border-purple-400/40 hover:bg-purple-900/40 transition-all duration-200">
+              <div className="flex items-start gap-3">
+                <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white text-sm font-medium flex-shrink-0">
+                  {highlight.first_name?.[0] || highlight.username?.[0] || 'U'}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="font-medium text-sm text-white">
+                      {highlight.username ? `@${highlight.username}` : highlight.first_name}
+                    </span>
+                    {highlight.topic_name && (
+                      <Badge 
+                        className={`text-xs px-2 py-0.5 ${getTopicBadgeColor(highlight.topic_name)} text-white`}
+                      >
+                        {highlight.topic_name}
+                      </Badge>
+                    )}
+                    <span className="text-xs text-purple-300/60 ml-auto">
+                      {formatTimeAgo(highlight.timestamp)}
+                    </span>
+                  </div>
+                  <p className="text-sm text-purple-200/80 leading-relaxed mb-2">
+                    {highlight.message_text}
+                  </p>
+                  <div className="flex items-center gap-4 text-xs text-purple-300/60">
+                    <div className="flex items-center gap-1">
+                      <BarChart3 className="h-3 w-3" />
+                      <span>Priority: {highlight.priority_score}</span>
+                    </div>
+                    {highlight.likes_count > 0 && (
+                      <div className="flex items-center gap-1">
+                        <MessageSquare className="h-3 w-3" />
+                        <span>{highlight.likes_count} likes</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
           ))
         ) : (
-          <Card>
-            <CardContent className="p-8 text-center">
-              <MessageSquare className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-              <h3 className="text-lg font-semibold mb-2">No highlights found</h3>
-              <p className="text-muted-foreground">
-                {searchTerm || selectedTopic !== 'all' 
-                  ? 'Try adjusting your filters or search terms.' 
-                  : 'Highlights will appear here as messages are analyzed.'}
-              </p>
-            </CardContent>
-          </Card>
+          <div className="text-center py-12 bg-purple-900/30 rounded-xl border border-purple-500/20">
+            <MessageSquare className="h-12 w-12 mx-auto text-purple-400 mb-4" />
+            <h3 className="text-lg font-semibold text-white mb-2">No highlights found</h3>
+            <p className="text-purple-300/60">
+              {searchTerm || selectedTopic !== 'all' 
+                ? 'Try adjusting your filters or search terms.' 
+                : 'Highlights will appear here as messages are analyzed.'}
+            </p>
+          </div>
         )}
       </div>
     </div>

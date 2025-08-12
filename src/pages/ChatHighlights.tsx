@@ -8,14 +8,14 @@ export default function ChatHighlights() {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
       <div className="container mx-auto px-4 py-6">
         {/* Header */}
         <div className="mb-8">
           <Button 
             variant="outline" 
             onClick={() => navigate('/dashboard')}
-            className="mb-6 bg-slate-800/50 border-slate-700 text-slate-300 hover:bg-slate-700 hover:text-white transition-colors"
+            className="mb-6 bg-purple-900/30 border-purple-500/30 text-purple-200 hover:bg-purple-800/50 hover:text-white transition-colors"
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Dashboard
