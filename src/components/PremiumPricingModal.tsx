@@ -122,25 +122,25 @@ const PremiumPricingModal: React.FC<PremiumPricingModalProps> = ({
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="inset-0 m-auto translate-x-0 translate-y-0 z-[10001] p-0 border-border bg-card overflow-hidden w-[95vw] sm:w-[95vw] max-w-6xl max-h-[90svh] md:max-h-[90dvh] sm:rounded-lg">
-          <div className="min-h-0 overflow-y-auto overscroll-contain max-h-[100svh] md:max-h-[100dvh] pb-[env(safe-area-inset-bottom)]" style={{ WebkitOverflowScrolling: 'touch' }}>
-          <DialogHeader className="sticky top-0 z-10 text-center pb-4 pt-6 px-4 sm:px-6 bg-card/90 backdrop-blur supports-[backdrop-filter]:bg-card/80 border-b border-border/50">
-            <div className="flex items-center justify-center gap-3 mb-6">
+        <DialogContent className="inset-0 m-auto translate-x-0 translate-y-0 z-[10001] p-0 border-border bg-card overflow-hidden w-[95vw] sm:w-[95vw] max-w-6xl max-h-[85vh] sm:rounded-lg">
+          <div className="h-full overflow-y-auto overscroll-contain" style={{ WebkitOverflowScrolling: 'touch' }}>
+          <DialogHeader className="sticky top-0 z-10 text-center pb-3 pt-4 px-4 sm:px-6 bg-card/90 backdrop-blur supports-[backdrop-filter]:bg-card/80 border-b border-border/50">
+            <div className="flex items-center justify-center gap-3 mb-4">
               <div className="relative">
                 <Sparkles className="h-10 w-10 text-brand-primary" />
                 <div className="absolute inset-0 h-10 w-10 bg-brand-primary/20 rounded-full blur-xl"></div>
               </div>
-              <DialogTitle className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-brand-primary via-brand-primary to-brand-navy bg-clip-text text-transparent">
+              <DialogTitle className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-brand-primary via-brand-primary to-brand-navy bg-clip-text text-transparent">
                 Upgrade to Premium
               </DialogTitle>
             </div>
-            <DialogDescription className="text-muted-foreground text-base md:text-lg max-w-3xl mx-auto leading-relaxed">
+            <DialogDescription className="text-muted-foreground text-sm md:text-base max-w-3xl mx-auto leading-relaxed">
               Choose your premium subscription plan to get actionable insights from crypto, equity, commodities and more every week. Trusted by 1,000s of serious investors.
             </DialogDescription>
           </DialogHeader>
 
             {/* Payment Method Toggle */}
-            <div className="flex justify-center mb-8 px-6">
+            <div className="flex justify-center mb-6 px-6">
             <div className="bg-muted/50 backdrop-blur-sm rounded-full p-1.5 border border-border/50 shadow-lg">
               <div className="flex">
                 <button 
@@ -162,9 +162,9 @@ const PremiumPricingModal: React.FC<PremiumPricingModalProps> = ({
           </div>
 
             {/* Pricing Plans */}
-            <div className={`grid gap-6 mb-8 px-6 ${paymentMethod === 'card' ? 'grid-cols-1 md:grid-cols-2 max-w-4xl mx-auto' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 max-w-5xl mx-auto'}`}>
+            <div className={`grid gap-4 mb-6 px-6 ${paymentMethod === 'card' ? 'grid-cols-1 md:grid-cols-2 max-w-4xl mx-auto' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 max-w-5xl mx-auto'}`}>
             {(paymentMethod === 'card' ? cardPlans : cryptoPlans).map((plan, index) => (
-              <div key={index} className={`group relative p-6 rounded-2xl transition-all duration-300 hover:scale-[1.02] border flex flex-col backdrop-blur-sm ${plan.popular ? 'bg-gradient-to-br from-brand-primary/5 via-background to-background border-brand-primary border-2 shadow-xl shadow-brand-primary/10' : 'bg-card/80 border-border hover:border-brand-primary/50 hover:shadow-lg'}`}>
+              <div key={index} className={`group relative p-4 rounded-2xl transition-all duration-300 hover:scale-[1.02] border flex flex-col backdrop-blur-sm ${plan.popular ? 'bg-gradient-to-br from-brand-primary/5 via-background to-background border-brand-primary border-2 shadow-xl shadow-brand-primary/10' : 'bg-card/80 border-border hover:border-brand-primary/50 hover:shadow-lg'}`}>
                 {plan.popular && (
                   <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 z-10">
                     <Badge className="bg-gradient-to-r from-brand-primary to-brand-primary/80 text-white px-4 py-1.5 text-xs font-bold shadow-lg rounded-full border border-white/20">
@@ -174,12 +174,12 @@ const PremiumPricingModal: React.FC<PremiumPricingModalProps> = ({
                 )}
                 
                 <div className="text-center flex-grow flex flex-col pt-2">
-                  <h4 className="text-xl font-bold mb-3 text-foreground">{plan.title}</h4>
-                  <p className="text-muted-foreground text-sm mb-6">{plan.description}</p>
+                  <h4 className="text-lg font-bold mb-2 text-foreground">{plan.title}</h4>
+                  <p className="text-muted-foreground text-xs mb-4">{plan.description}</p>
                   
-                  <div className="mb-8 flex-grow flex flex-col justify-center">
+                  <div className="mb-6 flex-grow flex flex-col justify-center">
                     <div className="flex items-baseline justify-center gap-1">
-                      <span className="text-4xl md:text-5xl font-bold text-foreground">{plan.price}</span>
+                      <span className="text-3xl md:text-4xl font-bold text-foreground">{plan.price}</span>
                       <span className="text-muted-foreground text-lg">{plan.period}</span>
                     </div>
                     
@@ -193,7 +193,7 @@ const PremiumPricingModal: React.FC<PremiumPricingModalProps> = ({
                   
                   <Button 
                     onClick={() => handleCheckout(plan.productId, plan.title)} 
-                    className={`w-full h-12 font-semibold transition-all duration-300 group-hover:scale-105 mt-auto ${plan.popular ? 'bg-brand-primary hover:bg-brand-primary/90 text-white shadow-lg shadow-brand-primary/25' : 'bg-background hover:bg-brand-primary hover:text-white text-foreground border-2 border-brand-primary/20 hover:border-brand-primary'}`} 
+                    className={`w-full h-10 font-semibold transition-all duration-300 group-hover:scale-105 mt-auto ${plan.popular ? 'bg-brand-primary hover:bg-brand-primary/90 text-white shadow-lg shadow-brand-primary/25' : 'bg-background hover:bg-brand-primary hover:text-white text-foreground border-2 border-brand-primary/20 hover:border-brand-primary'}`} 
                     variant={plan.popular ? 'default' : 'outline'}
                   >
                     Choose {plan.title}
