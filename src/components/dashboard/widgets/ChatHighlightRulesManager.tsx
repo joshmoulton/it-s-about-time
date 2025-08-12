@@ -46,11 +46,24 @@ export function ChatHighlightRulesManager({ isAdmin = false }: ChatHighlightRule
   });
 
   const ruleTypeOptions = [
-    { value: 'user' as const, label: 'User-based' },
+    { value: 'user' as const, label: 'User-based (Analysts/Callers)' },
     { value: 'keyword' as const, label: 'Keyword-based' },
     { value: 'topic' as const, label: 'Topic-based' },
     { value: 'engagement' as const, label: 'Engagement-based' },
   ];
+
+  const priorityLabels = {
+    10: 'Critical (Analysts/VIP)',
+    9: 'High Priority (Callers)',
+    8: 'Important (Verified Users)',
+    7: 'Elevated',
+    6: 'Above Normal',
+    5: 'Normal',
+    4: 'Below Normal',
+    3: 'Low',
+    2: 'Minimal',
+    1: 'Background'
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -112,14 +125,24 @@ export function ChatHighlightRulesManager({ isAdmin = false }: ChatHighlightRule
     switch (formData.rule_type) {
       case 'user':
         return (
-          <div className="space-y-2">
-            <Label htmlFor="username">Username (without @)</Label>
-            <Input
-              id="username"
-              value={(formData.rule_config as RuleConfigMap['user']).username || ''}
-              onChange={(e) => updateRuleConfig('username', e.target.value)}
-              placeholder="Enter username"
-            />
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="username">Username (without @)</Label>
+              <Input
+                id="username"
+                value={(formData.rule_config as RuleConfigMap['user']).username || ''}
+                onChange={(e) => updateRuleConfig('username', e.target.value)}
+                placeholder="Enter username"
+              />
+            </div>
+            <div className="p-3 bg-muted/50 rounded-lg">
+              <p className="text-sm text-muted-foreground">
+                💡 <strong>Priority Suggestions:</strong><br/>
+                • Analysts/VIP Callers: Priority 9-10<br/>
+                • Verified Traders: Priority 7-8<br/>
+                • Regular Contributors: Priority 5-6
+              </p>
+            </div>
           </div>
         );
       case 'keyword':
@@ -235,15 +258,27 @@ export function ChatHighlightRulesManager({ isAdmin = false }: ChatHighlightRule
 
               <div className="grid grid-cols-3 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="priority">Priority (1-10)</Label>
-                  <Input
-                    id="priority"
-                    type="number"
-                    min="1"
-                    max="10"
-                    value={formData.priority}
-                    onChange={(e) => setFormData(prev => ({ ...prev, priority: parseInt(e.target.value) || 5 }))}
-                  />
+                  <Label htmlFor="priority">Priority Level</Label>
+                  <Select
+                    value={formData.priority.toString()}
+                    onValueChange={(value) => setFormData(prev => ({ ...prev, priority: parseInt(value) }))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {Object.entries(priorityLabels)
+                        .sort(([a], [b]) => parseInt(b) - parseInt(a))
+                        .map(([value, label]) => (
+                          <SelectItem key={value} value={value}>
+                            {value} - {label}
+                          </SelectItem>
+                        ))}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground">
+                    Higher numbers = higher priority in chat highlights
+                  </p>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="highlight_color">Highlight Color</Label>
