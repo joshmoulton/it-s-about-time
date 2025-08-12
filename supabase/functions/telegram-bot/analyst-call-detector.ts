@@ -98,12 +98,18 @@ export class AnalystCallDetector {
   }
 
   private async getActivePatterns(analystId?: string) {
-    const { data, error } = await this.supabase
+    let query = this.supabase
       .from('analyst_call_patterns')
       .select('*')
-      .eq('analyst_id', analystId)
       .eq('is_active', true)
       .order('priority', { ascending: false });
+
+    // If analystId is provided, filter by it, otherwise get all patterns
+    if (analystId) {
+      query = query.eq('analyst_id', analystId);
+    }
+
+    const { data, error } = await query;
 
     if (error) {
       console.error('Error fetching patterns:', error);
