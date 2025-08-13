@@ -119,7 +119,8 @@ const TICKER_TO_COINGECKO_ID: Record<string, string> = {
   'HOGE': 'hoge-finance',
   'SAFEMOON': 'safemoon',
   'BABYDOGE': 'baby-doge-coin',
-  'FART': 'fartcoin',
+  'FART': 'fartcoin', // Main Fartcoin (FARTCOIN symbol, rank #112)
+  'FARTCOIN': 'fartcoin',
   
   // Solana ecosystem
   'JUP': 'jupiter-exchange-solana',
