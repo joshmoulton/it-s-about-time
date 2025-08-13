@@ -49,6 +49,22 @@ const TICKER_TO_COINGECKO_ID: Record<string, string> = {
   'SPELL': 'spell-token',
   'CRO': 'crypto-com-chain',
   'SUI': 'sui',
+  
+  // Major stablecoins and wrapped tokens
+  'USDT': 'tether',
+  'USDC': 'usd-coin',
+  'BUSD': 'binance-usd',
+  'DAI': 'dai',
+  'FRAX': 'frax',
+  'WBTC': 'wrapped-bitcoin',
+  'WETH': 'weth',
+  'STETH': 'staked-ether',
+  
+  // Layer 2 and scaling solutions
+  'OP': 'optimism',
+  'METIS': 'metis-token',
+  'LRC': 'loopring',
+  'IMX': 'immutable-x',
   'FTT': 'ftx-token',
   'SRM': 'serum',
   'RAY': 'raydium',
@@ -209,17 +225,24 @@ async function searchCoinGeckoId(ticker: string): Promise<string | null> {
   }
 }
 
+// Enhanced case-insensitive lookup function
+function getCoinGeckoIdFromMapping(ticker: string): string | null {
+  const cleanTicker = ticker.toUpperCase().trim();
+  return TICKER_TO_COINGECKO_ID[cleanTicker] || null;
+}
+
 async function getCoinGeckoId(ticker: string): Promise<string | null> {
   console.log(`🎯 Getting CoinGecko ID for ticker: ${ticker}`)
   
-  // First check our manual mapping
-  const mappedId = TICKER_TO_COINGECKO_ID[ticker.toUpperCase()]
+  // First check our manual mapping with case-insensitive lookup
+  const mappedId = getCoinGeckoIdFromMapping(ticker);
   if (mappedId) {
-    console.log(`📍 Found manual mapping: ${ticker} -> ${mappedId}`)
+    console.log(`📍 Found manual mapping: ${ticker.toUpperCase()} -> ${mappedId}`)
     return mappedId
   }
   
-  // Fallback to search
+  // Fallback to search API
+  console.log(`🔍 No manual mapping found for ${ticker}, trying search API...`)
   return await searchCoinGeckoId(ticker)
 }
 
