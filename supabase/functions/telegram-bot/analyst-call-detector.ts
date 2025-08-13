@@ -420,9 +420,9 @@ export class AnalystCallDetector {
     try {
       console.log('🎯 Processing degen command:', messageText);
 
-      // Parse degen command format: !degen [supporting] long|short TICKER [entry] [stop] [target]
+      // Parse degen command format: !degen [supporting] long|short TICKER [entry X] [stop Y] [target Z] [risk level]
       const supportingFormat = /!degen\s+supporting\s+(long|short)\s+([A-Za-z0-9]+)(?:\s+(.+))?/i;
-      const directFormat = /!degen\s+(long|short)\s+([A-Za-z0-9]+)(?:\s+entry\s+([0-9.]+))?(?:\s+stop\s+([0-9.]+))?(?:\s+target\s+([0-9.]+))?(?:\s+(.+))?/i;
+      const directFormat = /!degen\s+(long|short)\s+([A-Za-z0-9]+)(?:\s+(.+))?/i;
       
       let match = messageText.match(supportingFormat);
       let isDirectFormat = false;
@@ -437,46 +437,71 @@ export class AnalystCallDetector {
         return null;
       }
 
-      let direction: string, ticker: string, entryPrice: string | undefined, additionalParams: string | undefined;
+      let direction: string, ticker: string, additionalParams: string | undefined;
       
       if (isDirectFormat) {
-        [, direction, ticker, entryPrice, , , additionalParams] = match;
+        [, direction, ticker, additionalParams] = match;
       } else {
         [, direction, ticker, additionalParams] = match;
       }
 
       ticker = ticker.toUpperCase();
       console.log(`🎯 Parsed degen command: ${direction} ${ticker}`);
+      console.log(`📝 Additional params: ${additionalParams}`);
 
-      // Parse additional parameters
+      // Initialize variables
+      let entryPrice: number | undefined;
       let stopLoss: number | undefined;
       let targets: number[] = [];
       let riskLevel = 2.5; // Default risk
 
+      // Parse additional parameters if provided
       if (additionalParams) {
-        const params = additionalParams.toLowerCase();
+        const params = additionalParams.trim();
+        console.log(`🔍 Parsing params: "${params}"`);
         
-        // Look for entry price if not already set
-        if (!entryPrice) {
-          const entryMatch = params.match(/entry[:\s]+([0-9.]+)/);
-          if (entryMatch) {
-            entryPrice = entryMatch[1];
-          }
+        // Look for entry price - matches "entry 3.47" or "entry: 3.47"
+        const entryMatch = params.match(/entry[:\s]+([0-9.]+)/i);
+        if (entryMatch) {
+          entryPrice = parseFloat(entryMatch[1]);
+          console.log(`📊 Found entry price: ${entryPrice}`);
         }
 
-        // Look for stop loss
-        const stopMatch = params.match(/stop[:\s]+([0-9.]+)/);
+        // Look for stop loss - matches "stop 2.94" or "stop: 2.94"
+        const stopMatch = params.match(/stop[:\s]+([0-9.]+)/i);
         if (stopMatch) {
           stopLoss = parseFloat(stopMatch[1]);
+          console.log(`🛑 Found stop loss: ${stopLoss}`);
         }
 
-        // Look for targets
-        const targetMatch = params.match(/target[s]?[:\s]+([0-9.,\s]+)/);
+        // Look for targets - matches "target 4.28" or "targets: 4.28, 5.0"
+        const targetMatch = params.match(/targets?[:\s]+([0-9.,\s]+)/i);
         if (targetMatch) {
           targets = targetMatch[1]
             .split(/[,\s]+/)
             .map(t => parseFloat(t.trim()))
             .filter(t => !isNaN(t));
+          console.log(`🎯 Found targets: ${targets}`);
+        }
+
+        // Look for risk level - matches "risk high" or "risk: 5%"
+        const riskMatch = params.match(/risk[:\s]+(high|medium|low|[0-9.]+%?)/i);
+        if (riskMatch) {
+          const riskValue = riskMatch[1].toLowerCase();
+          if (riskValue === 'high') {
+            riskLevel = 5.0;
+          } else if (riskValue === 'medium') {
+            riskLevel = 2.5;
+          } else if (riskValue === 'low') {
+            riskLevel = 1.0;
+          } else {
+            // Parse numeric risk
+            const numericRisk = parseFloat(riskValue.replace('%', ''));
+            if (!isNaN(numericRisk)) {
+              riskLevel = numericRisk;
+            }
+          }
+          console.log(`⚖️ Found risk level: ${riskLevel}`);
         }
       }
 
@@ -494,7 +519,7 @@ export class AnalystCallDetector {
 
           if (!error && data?.success && data?.prices?.length > 0) {
             currentPrice = data.prices[0].price;
-            entryPrice = currentPrice.toString();
+            entryPrice = currentPrice;
             console.log(`✅ Fetched current price for ${ticker}: $${currentPrice}`);
           } else {
             console.error(`❌ Could not fetch price for ${ticker}:`, error);
@@ -513,7 +538,7 @@ export class AnalystCallDetector {
         ticker: ticker,
         risk_percentage: riskLevel,
         entry_type: 'market' as any,
-        entry_price: entryPrice ? parseFloat(entryPrice) : undefined,
+        entry_price: entryPrice,
         risk_management: 'stop_loss' as any,
         stop_loss_price: stopLoss,
         targets: targets.map(t => t.toString()),
@@ -546,7 +571,7 @@ export class AnalystCallDetector {
         extractedData: {
           ticker,
           direction,
-          entryPrice: entryPrice ? parseFloat(entryPrice) : undefined,
+          entryPrice: entryPrice,
           stopLoss,
           targets,
           currentPrice,
@@ -562,8 +587,8 @@ export class AnalystCallDetector {
     }
   }
 
-  private generateFormattedOutput(ticker: string, direction: string, entryPrice?: string, stopLoss?: number, targets?: number[], currentPrice?: number): string {
-    const entryDisplay = entryPrice || 'Market';
+  private generateFormattedOutput(ticker: string, direction: string, entryPrice?: number, stopLoss?: number, targets?: number[], currentPrice?: number): string {
+    const entryDisplay = entryPrice?.toString() || 'Market';
     const stopDisplay = stopLoss?.toString() || 'N/A';
     const targetsDisplay = targets && targets.length > 0 ? targets.join(', ') : 'N/A';
 
