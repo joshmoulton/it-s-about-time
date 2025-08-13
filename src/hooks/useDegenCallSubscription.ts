@@ -27,29 +27,52 @@ export function useDegenCallSubscription() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
+  const getCurrentUserEmail = async (): Promise<string | null> => {
+    // Try Supabase Auth first
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user?.email) return user.email;
+    
+    // Fallback to enhanced auth context
+    try {
+      const { data, error } = await supabase.rpc('get_current_user_email_optimized');
+      if (error) throw error;
+      return data;
+    } catch {
+      return null;
+    }
+  };
+
   // Get current user's subscription status
-  const { data: subscription, isLoading: subscriptionLoading } = useQuery({
+  const { data: subscription, isLoading: subscriptionLoading, error: subscriptionError } = useQuery({
     queryKey: ['degen-call-subscription'],
     queryFn: async (): Promise<DegenCallSubscription | null> => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user?.email) return null;
-
-      console.log('Fetching degen call subscription for:', user.email);
+      const userEmail = await getCurrentUserEmail();
+      if (!userEmail) return null;
 
       const { data, error } = await supabase
         .from('degen_call_subscriptions')
         .select('*')
-        .eq('user_email', user.email)
+        .eq('user_email', userEmail)
         .order('created_at', { ascending: false })
         .limit(1)
         .maybeSingle();
 
-      if (error) throw error;
+      if (error) {
+        // Translate RLS errors to user-friendly messages
+        if (error.message.includes('violates row-level security policy')) {
+          throw new Error('Access denied. Please ensure you are properly authenticated.');
+        }
+        throw new Error('Failed to load subscription settings. Please try again.');
+      }
       
-      console.log('Fetched subscription data:', data);
       return data;
     },
     staleTime: 1000 * 60 * 5, // 5 minutes
+    retry: (failureCount, error: any) => {
+      // Don't retry RLS errors
+      if (error?.message?.includes('Access denied')) return false;
+      return failureCount < 2;
+    }
   });
 
   // Get recent notifications
@@ -85,21 +108,21 @@ export function useDegenCallSubscription() {
       telegramUserId?: number;
       telegramUsername?: string;
     }) => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user?.email) throw new Error('User not authenticated');
+      const userEmail = await getCurrentUserEmail();
+      if (!userEmail) throw new Error('Please log in to continue');
 
       // Get user's subscription tier from secure system
       const { data: whopUser } = await supabase
         .from('whop_authenticated_users')
         .select('subscription_tier')
-        .eq('user_email', user.email)
+        .eq('user_email', userEmail)
         .single();
 
       // Use upsert to avoid duplicates
       const { error } = await supabase
         .from('degen_call_subscriptions')
         .upsert({
-          user_email: user.email,
+          user_email: userEmail,
           telegram_user_id: telegramUserId,
           telegram_username: telegramUsername,
           is_active: true,
@@ -108,18 +131,27 @@ export function useDegenCallSubscription() {
           onConflict: 'user_email'
         });
 
-      if (error) throw error;
+      if (error) {
+        // Translate RLS errors to user-friendly messages
+        if (error.message.includes('violates row-level security policy')) {
+          throw new Error('Access denied. Please ensure you have proper permissions.');
+        }
+        if (error.message.includes('duplicate key')) {
+          throw new Error('Subscription already exists. Please try updating your settings instead.');
+        }
+        throw new Error('Failed to save subscription. Please try again.');
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['degen-call-subscription'] });
       toast({
-        title: "Subscribed!",
-        description: "You're now subscribed to degen call alerts.",
+        title: "Settings Saved!",
+        description: "Your Telegram notification settings have been updated.",
       });
     },
     onError: (error) => {
       toast({
-        title: "Subscription Failed",
+        title: "Save Failed",
         description: error.message,
         variant: "destructive",
       });
@@ -129,48 +161,60 @@ export function useDegenCallSubscription() {
   // Unsubscribe from degen calls
   const unsubscribeMutation = useMutation({
     mutationFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user?.email) throw new Error('User not authenticated');
+      const userEmail = await getCurrentUserEmail();
+      if (!userEmail) throw new Error('Please log in to continue');
 
       const { error } = await supabase
         .from('degen_call_subscriptions')
         .update({ is_active: false })
-        .eq('user_email', user.email);
+        .eq('user_email', userEmail);
 
-      if (error) throw error;
+      if (error) {
+        // Translate RLS errors to user-friendly messages
+        if (error.message.includes('violates row-level security policy')) {
+          throw new Error('Access denied. Please ensure you have proper permissions.');
+        }
+        throw new Error('Failed to disable notifications. Please try again.');
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['degen-call-subscription'] });
       toast({
-        title: "Unsubscribed",
-        description: "You've been unsubscribed from degen call alerts.",
+        title: "Notifications Disabled",
+        description: "You've disabled Telegram notifications.",
       });
     },
     onError: (error) => {
       toast({
-        title: "Unsubscribe Failed",
+        title: "Update Failed",
         description: error.message,
         variant: "destructive",
       });
     }
   });
 
+  // Update subscription with telegram data
+  const updateSubscription = async (telegramData: {
+    telegramUserId?: number;
+    telegramUsername?: string;
+  }) => {
+    await subscribeMutation.mutateAsync(telegramData);
+  };
+
   // Toggle subscription
   const toggleSubscription = async (telegramData?: {
     telegramUserId?: number;
     telegramUsername?: string;
   }) => {
-    console.log('Toggling subscription. Current state:', subscription?.is_active);
     try {
       if (subscription?.is_active) {
-        console.log('Unsubscribing from degen calls');
         await unsubscribeMutation.mutateAsync();
       } else {
-        console.log('Subscribing to degen calls');
         await subscribeMutation.mutateAsync(telegramData || {});
       }
     } catch (error) {
-      console.error('Error toggling subscription:', error);
+      // Error handling is done in mutation callbacks
+      throw error;
     }
   };
 
@@ -180,7 +224,9 @@ export function useDegenCallSubscription() {
     isSubscribed: subscription?.is_active || false,
     subscriptionLoading,
     notificationsLoading,
+    subscriptionError,
     toggleSubscription,
+    updateSubscription,
     isToggling: subscribeMutation.isPending || unsubscribeMutation.isPending,
   };
 }

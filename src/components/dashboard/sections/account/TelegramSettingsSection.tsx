@@ -17,11 +17,15 @@ export function TelegramSettingsSection() {
   const [telegramUsername, setTelegramUsername] = useState('');
   const [isTestingMessage, setIsTestingMessage] = useState(false);
   const [hasStartedConversation, setHasStartedConversation] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   
   const {
     subscription,
     isSubscribed,
+    subscriptionLoading,
+    subscriptionError,
     toggleSubscription,
+    updateSubscription,
     isToggling
   } = useDegenCallSubscription();
 
@@ -34,11 +38,22 @@ export function TelegramSettingsSection() {
     }
   }, [subscription]);
 
-  const handleEnableNotifications = async (enabled: boolean) => {
-    console.log('Handling notification enable/disable:', enabled);
+  const validateTelegramData = (chatId: string, telegramUsername: string) => {
+    if (!chatId && !telegramUsername) {
+      toast.error('Please enter either your Chat ID or Telegram username');
+      return false;
+    }
     
-    if (enabled && !chatId && !telegramUsername) {
-      toast.error('Please enter your Chat ID or Telegram username first');
+    if (chatId && isNaN(parseInt(chatId))) {
+      toast.error('Chat ID must be a valid number');
+      return false;
+    }
+    
+    return true;
+  };
+
+  const handleEnableNotifications = async (enabled: boolean) => {
+    if (enabled && !validateTelegramData(chatId, telegramUsername)) {
       return;
     }
 
@@ -49,43 +64,29 @@ export function TelegramSettingsSection() {
 
     try {
       await toggleSubscription(telegramData);
-      console.log('Notification toggle completed successfully');
     } catch (error) {
-      console.error('Failed to toggle notifications:', error);
+      // Error handling is done in the hook
     }
   };
 
   const handleSaveSettings = async () => {
-    if (!chatId && !telegramUsername) {
-      toast.error('Please enter either your Chat ID or Telegram username');
+    if (!validateTelegramData(chatId, telegramUsername)) {
       return;
     }
 
-    if (!currentUser?.email) {
-      toast.error('User email not found');
-      return;
-    }
-
+    setIsSaving(true);
     try {
-      const { error } = await supabase
-        .from('degen_call_subscriptions')
-        .upsert({
-          user_email: currentUser.email,
-          telegram_user_id: chatId ? parseInt(chatId) : null,
-          telegram_username: telegramUsername ? (telegramUsername.startsWith('@') ? telegramUsername : `@${telegramUsername}`) : null,
-          is_active: isSubscribed,
-          subscription_tier: currentUser.subscription_tier
-        }, {
-          onConflict: 'user_email'
-        });
+      const telegramData = {
+        telegramUserId: chatId ? parseInt(chatId) : undefined,
+        telegramUsername: telegramUsername ? (telegramUsername.startsWith('@') ? telegramUsername : `@${telegramUsername}`) : undefined
+      };
 
-      if (error) throw error;
-
-      toast.success('Telegram settings saved successfully!');
+      await updateSubscription(telegramData);
       setHasStartedConversation(!!chatId);
     } catch (error) {
-      console.error('Error saving telegram settings:', error);
-      toast.error('Failed to save settings. Please try again.');
+      // Error handling is done in the hook
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -110,18 +111,47 @@ export function TelegramSettingsSection() {
         }
       });
 
-      if (error) throw error;
+      if (error) {
+        throw new Error('Failed to send test message. Please verify your Chat ID and try again.');
+      }
 
       toast.success('Test message sent! Check your Telegram.');
-    } catch (error) {
-      console.error('Error sending test message:', error);
-      toast.error('Failed to send test message. Please check your Chat ID.');
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to send test message. Please check your Chat ID.');
     } finally {
       setIsTestingMessage(false);
     }
   };
 
   const hasAccess = currentUser?.subscription_tier === 'paid' || currentUser?.subscription_tier === 'premium';
+
+  // Show loading state
+  if (subscriptionLoading) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h2 className="text-3xl font-bold mb-2 text-white">Telegram Notifications</h2>
+          <p className="text-muted-foreground">Loading your settings...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state
+  if (subscriptionError) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h2 className="text-3xl font-bold mb-2 text-white">Telegram Notifications</h2>
+          <Alert className="border-destructive/50 text-destructive dark:border-destructive [&>svg]:text-destructive">
+            <AlertDescription>
+              Unable to load your Telegram settings. Please refresh the page or contact support if the issue persists.
+            </AlertDescription>
+          </Alert>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -217,8 +247,12 @@ export function TelegramSettingsSection() {
               </p>
             </div>
 
-            <Button onClick={handleSaveSettings} className="w-full h-11">
-              Save Telegram Settings
+            <Button 
+              onClick={handleSaveSettings} 
+              className="w-full h-11"
+              disabled={isSaving || subscriptionLoading}
+            >
+              {isSaving ? 'Saving...' : 'Save Telegram Settings'}
             </Button>
           </div>
 
