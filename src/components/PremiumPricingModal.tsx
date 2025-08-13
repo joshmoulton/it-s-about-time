@@ -30,10 +30,28 @@ const PremiumPricingModal: React.FC<PremiumPricingModalProps> = ({
     productId: null,
   });
 
-  // Minimal setup when modal opens - avoid aggressive prefetching
+  // Modal state management and performance optimization
   useEffect(() => {
     if (open) {
       console.log('PremiumPricingModal opened');
+      
+      // Add modal-open class to body to manage conflicting CSS
+      document.body.classList.add('modal-open');
+      
+      // Disable problematic transforms on page elements
+      const disableTransforms = () => {
+        const problematicElements = document.querySelectorAll('main, .dashboard, .page, #__next, #root');
+        problematicElements.forEach(el => {
+          if (el instanceof HTMLElement) {
+            el.style.setProperty('transform', 'none', 'important');
+            el.style.setProperty('perspective', 'none', 'important');
+            el.style.setProperty('filter', 'none', 'important');
+          }
+        });
+      };
+      
+      disableTransforms();
+      
       // Only add essential DNS preconnection without CORS issues
       const addPreconnect = (domain: string) => {
         if (!document.querySelector(`link[rel="preconnect"][href="${domain}"]`)) {
@@ -46,6 +64,19 @@ const PremiumPricingModal: React.FC<PremiumPricingModalProps> = ({
 
       // Only preconnect to essential Whop domains
       addPreconnect('https://whop.com');
+      
+      return () => {
+        // Cleanup: restore body classes and styles
+        document.body.classList.remove('modal-open');
+        const problematicElements = document.querySelectorAll('main, .dashboard, .page, #__next, #root');
+        problematicElements.forEach(el => {
+          if (el instanceof HTMLElement) {
+            el.style.removeProperty('transform');
+            el.style.removeProperty('perspective');
+            el.style.removeProperty('filter');
+          }
+        });
+      };
     }
   }, [open]);
 
@@ -132,9 +163,9 @@ const PremiumPricingModal: React.FC<PremiumPricingModalProps> = ({
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="fixed top-[50%] left-[50%] z-[100] h-auto w-[95vw] max-w-6xl translate-x-[-50%] translate-y-[-50%] gap-4 border bg-background p-0 shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 sm:rounded-lg md:w-full max-h-[95vh] overflow-hidden">
-          <div className="h-full max-h-[95vh] overflow-y-auto overscroll-contain">
-            <DialogHeader className="sticky top-0 z-10 text-center pb-3 pt-4 px-4 sm:px-6 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/90 border-b border-border/50">
+        <DialogContent className="modal-allowed fixed inset-0 z-[99] flex items-center justify-center p-4 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95">
+          <div className="modal-allowed relative w-full max-w-6xl max-h-[calc(100dvh-2rem)] overflow-y-auto overscroll-contain bg-background border shadow-2xl rounded-2xl" style={{'--modal-transform': 'scale(1)'} as React.CSSProperties}>
+            <DialogHeader className="sticky top-0 z-20 text-center pb-3 pt-6 px-6 bg-background/98 backdrop-blur-md border-b border-border/50">
               <div className="flex items-center justify-center gap-3 mb-4">
                 <div className="relative">
                   <Sparkles className="h-10 w-10 text-brand-primary" />
