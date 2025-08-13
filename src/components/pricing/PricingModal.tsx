@@ -84,23 +84,25 @@ export const PricingModal: React.FC<PricingModalProps> = ({ open, onOpenChange }
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-xl w-full max-h-[80vh] flex flex-col">
-          <DialogHeader className="text-center space-y-3 flex-shrink-0">
-            <DialogTitle className="text-2xl font-bold flex items-center justify-center gap-2">
-              <Sparkles className="h-6 w-6 text-primary" />
+        <DialogContent className="w-[95vw] sm:w-full sm:max-w-xl max-h-[90vh] sm:max-h-[80vh] flex flex-col p-4 sm:p-6 safe-area-inset">
+          <DialogHeader className="text-center space-y-2 sm:space-y-3 flex-shrink-0">
+            <DialogTitle className="text-xl sm:text-2xl font-bold flex items-center justify-center gap-2">
+              <Sparkles className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
               Upgrade to Premium
             </DialogTitle>
-            <DialogDescription>
+            <DialogDescription className="text-sm sm:text-base">
               Choose your premium subscription plan and unlock all features
             </DialogDescription>
-            <PaymentToggle 
-              paymentMethod={paymentMethod} 
-              onPaymentMethodChange={setPaymentMethod} 
-            />
+            <div className="pt-2">
+              <PaymentToggle 
+                paymentMethod={paymentMethod} 
+                onPaymentMethodChange={setPaymentMethod} 
+              />
+            </div>
           </DialogHeader>
 
-          <div className="flex-1 overflow-y-auto space-y-6 px-1">
-            <div className="space-y-4">
+          <div className="flex-1 overflow-y-auto space-y-4 sm:space-y-6 px-1 py-2">
+            <div className="space-y-3 sm:space-y-4">
               {currentPlans.map((plan, index) => (
                 <PricingCard
                   key={index}
@@ -113,8 +115,8 @@ export const PricingModal: React.FC<PricingModalProps> = ({ open, onOpenChange }
             <PremiumFeatures />
           </div>
 
-          <div className="text-center p-4 bg-muted/30 rounded-lg flex-shrink-0 border-t">
-            <p className="text-sm text-muted-foreground">
+          <div className="text-center p-3 sm:p-4 bg-muted/30 rounded-lg flex-shrink-0 border-t">
+            <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
               {paymentMethod === 'card' ? 'Secure credit card processing' : 'Pay with USDC cryptocurrency'} • Start today • Cancel anytime
             </p>
           </div>
