@@ -12,20 +12,11 @@ export class TierAccessManager {
   static canAccess(subscriber: Subscriber | null, requiredTier: 'free' | 'paid' | 'premium'): boolean {
     // If no subscriber, default to free tier (no access to paid features)
     if (!subscriber) {
-      console.log('🔍 TierAccessManager: No subscriber, defaulting to free tier');
       return requiredTier === 'free';
     }
 
     const userLevel = this.getTierLevel(subscriber.subscription_tier || 'free');
     const requiredLevel = this.getTierLevel(requiredTier);
-    
-    console.log('🔍 TierAccessManager: Access check', {
-      subscriberTier: subscriber.subscription_tier,
-      userLevel,
-      requiredTier,
-      requiredLevel,
-      hasAccess: userLevel >= requiredLevel
-    });
     
     return userLevel >= requiredLevel;
   }
@@ -33,25 +24,13 @@ export class TierAccessManager {
   static shouldShowFreemiumOverlay(subscriber: Subscriber | null, widgetType?: string): boolean {
     // Newsletter is always free - no overlay
     if (widgetType === 'newsletter') {
-      console.log('🔍 TierAccessManager: Newsletter is free - no overlay');
       return false;
     }
 
     // Show overlay if no subscriber or if subscription_tier is free/undefined
-    const shouldShow = !subscriber || 
-                      !subscriber.subscription_tier || 
-                      subscriber.subscription_tier === 'free';
-    
-    console.log('🔍 TierAccessManager: Freemium overlay check', {
-      widgetType,
-      subscriber: subscriber ? {
-        tier: subscriber.subscription_tier,
-        exists: true
-      } : { exists: false },
-      shouldShow
-    });
-    
-    return shouldShow;
+    return !subscriber || 
+           !subscriber.subscription_tier || 
+           subscriber.subscription_tier === 'free';
   }
 
   static getChatLimits(subscriber: Subscriber) {

@@ -202,21 +202,9 @@ export const FreemiumWidgetWrapper: React.FC<FreemiumWidgetWrapperProps> = ({
 const { subscriber, isLoading } = useEnhancedAuth();
 const [showUpgradeModal, setShowUpgradeModal] = useState(false);
 const { isAdmin } = useAdminCheck();
-  console.log('🔍 FreemiumWidgetWrapper Debug:', {
-    featureName,
-    widgetType,
-    subscriber: subscriber ? {
-      email: subscriber.email,
-      subscription_tier: subscriber.subscription_tier,
-      status: subscriber.status
-    } : null,
-    isLoading,
-    subscriberExists: !!subscriber
-  });
 
 // Admins always have access (bypass overlay)
 if (isAdmin) {
-  console.log('✅ Admin detected: bypassing freemium overlay');
   return <>{children}</>;
 }
 
@@ -224,23 +212,12 @@ if (isAdmin) {
 const shouldShowOverlay = TierAccessManager.shouldShowFreemiumOverlay(subscriber, widgetType);
 const hasAccess = !shouldShowOverlay;
 
-console.log('🔍 FreemiumWidgetWrapper Logic:', {
-  shouldShowOverlay,
-  hasAccess,
-  reason: !subscriber ? 'No subscriber object' : 
-          subscriber.subscription_tier === 'free' ? 'Free tier' :
-          !subscriber.subscription_tier ? 'No subscription tier' :
-          widgetType === 'newsletter' ? 'Newsletter is always free' :
-          `Tier: ${subscriber.subscription_tier}`
-});
-
   // Get widget header and mock content
   const widgetHeader = getWidgetHeader(widgetType);
   const widgetMockContent = getWidgetMockContent(widgetType);
 
   // During loading, show overlay for premium features to prevent flashing
   if (isLoading && widgetType !== 'newsletter') {
-    console.log('🔍 FreemiumWidgetWrapper: Showing overlay during loading');
     return (
       <div className={`relative ${className} min-h-[300px]`}>
         {/* Widget Header - Only show for non-alerts widgets during loading */}
@@ -276,12 +253,10 @@ console.log('🔍 FreemiumWidgetWrapper Logic:', {
 
   // If user has access (premium/paid or feature is free), show content directly without any freemium elements
   if (hasAccess) {
-    console.log('✅ FreemiumWidgetWrapper: User has access, showing content directly');
     return <>{children}</>;
   }
 
   // For free users on premium features, show freemium overlay
-  console.log('🚫 FreemiumWidgetWrapper: Showing freemium overlay');
   return (
     <div className={`relative ${className} min-h-[300px]`}>
       {/* Widget Header - Only show for non-alerts widgets */}
