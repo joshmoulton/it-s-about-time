@@ -279,7 +279,7 @@ export function DegenCallAlertsWidget({
                         <span className="text-xs text-orange-200/80">Size:</span>
                       </div>
                       <span className="text-white font-medium text-xs">
-                        {formatSizeLevel(call.size || call.risk_management)}
+                        {formatSizeLevel(call.size)}
                       </span>
                     </div>
                   </div>
