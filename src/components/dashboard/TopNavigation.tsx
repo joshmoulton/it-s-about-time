@@ -11,7 +11,7 @@ import { useAdminStatus } from '@/hooks/useAdminStatus';
 import { useTierOverride } from '@/hooks/useTierOverride';
 import { Link } from 'react-router-dom';
 import { Badge } from '@/components/ui/badge';
-import PremiumPricingModal from '@/components/PremiumPricingModal';
+import { PricingModal } from '@/components/pricing/PricingModal';
 
 interface Subscriber {
   id: string;
@@ -114,7 +114,7 @@ export function TopNavigation({
       
       {/* Pricing Modal */}
       {showPricingModal && (
-        <PremiumPricingModal 
+        <PricingModal 
           open={showPricingModal}
           onOpenChange={(open) => {
             console.log('Modal open state changing to:', open);

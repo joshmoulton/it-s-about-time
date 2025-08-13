@@ -4,7 +4,7 @@ import { useEnhancedAuth } from "@/contexts/EnhancedAuthContext";
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
 import AuthOptionsModal from "@/components/AuthOptionsModal";
-import PremiumPricingModal from "@/components/PremiumPricingModal";
+import { PricingModal } from "@/components/pricing/PricingModal";
 import ReorganizedHeroSection from "@/components/ReorganizedHeroSection";
 import FeaturesRowSection from "@/components/FeaturesRowSection";
 import PricingSection from "@/components/PricingSection";
@@ -101,7 +101,7 @@ const Index = () => {
       minHeight: '100vh',
       WebkitOverflowScrolling: 'touch'
     }}>
-      <PremiumPricingModal 
+      <PricingModal 
         open={premiumModalOpen} 
         onOpenChange={(open) => {
           setPremiumModalOpen(open);

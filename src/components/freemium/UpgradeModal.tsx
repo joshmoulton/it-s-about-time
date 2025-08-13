@@ -1,5 +1,5 @@
 import React from 'react';
-import PremiumPricingModal from '@/components/PremiumPricingModal';
+import { PricingModal } from '@/components/pricing/PricingModal';
 
 interface UpgradeModalProps {
   isOpen: boolean;
@@ -9,7 +9,7 @@ interface UpgradeModalProps {
 
 export function UpgradeModal({ isOpen, onClose, featureName = "this feature" }: UpgradeModalProps) {
   return (
-    <PremiumPricingModal 
+    <PricingModal 
       open={isOpen} 
       onOpenChange={onClose}
     />

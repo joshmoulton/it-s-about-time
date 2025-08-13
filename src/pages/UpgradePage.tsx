@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Crown } from 'lucide-react';
-import PremiumPricingModal from '@/components/PremiumPricingModal';
+import { PricingModal } from '@/components/pricing/PricingModal';
 
 export default function UpgradePage() {
   const navigate = useNavigate();
@@ -138,7 +138,7 @@ export default function UpgradePage() {
       </main>
 
       {/* Pricing Modal */}
-      <PremiumPricingModal 
+      <PricingModal 
         open={showPricingModal} 
         onOpenChange={(open) => {
           setShowPricingModal(open);

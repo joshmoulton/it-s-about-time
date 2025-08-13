@@ -21,5 +21,5 @@ export const Admin = lazy(() => import('../pages/Admin'));
 
 // Heavy components - lazy loaded
 export const TestimonialsSection = lazy(() => import('./TestimonialsSection').then(module => ({ default: module.default })));
-export const PremiumPricingModal = lazy(() => import('./PremiumPricingModal'));
+export const PremiumPricingModal = lazy(() => import('./pricing/PricingModal').then(module => ({ default: module.PricingModal })));
 export const WeeklyWizAlertsWidget = lazy(() => import('./dashboard/widgets/WeeklyWizAlertsWidget'));
