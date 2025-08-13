@@ -67,10 +67,10 @@ export function useDegenCallAlerts(limit = 10) {
     queryKey: ['degenCallAlerts', limit],
     queryFn: async () => {
       console.log('Fetching degen calls from database...');
-      // Fetch latest active signals - for degen calls, show regardless of posted_to_telegram status
+      // Fetch latest active signals - include entry_conditions for size info
       const { data, error } = await supabase
         .from('analyst_signals')
-        .select('id, ticker, entry_price, trade_direction, entry_type, created_at, status, posted_to_telegram, stop_loss_price, targets, risk_percentage, risk_management, analyst_name')
+        .select('id, ticker, entry_price, trade_direction, entry_type, created_at, status, posted_to_telegram, stop_loss_price, targets, risk_percentage, risk_management, analyst_name, entry_conditions')
         .eq('status', 'active')
         .order('created_at', { ascending: false })
         .limit(limit);
@@ -98,7 +98,7 @@ export function useDegenCallAlerts(limit = 10) {
           stop_loss: row.stop_loss_price != null ? String(row.stop_loss_price) : undefined,
           targets: row.targets ? (Array.isArray(row.targets) ? row.targets : [row.targets]) : undefined,
           risk_percentage: row.risk_percentage || undefined,
-          size: undefined, // Size is not stored in risk_management field
+          size: row.entry_conditions || undefined, // Size is stored in entry_conditions
           risk_management: row.risk_management || undefined,
           analyst_name: row.analyst_name || undefined,
         };

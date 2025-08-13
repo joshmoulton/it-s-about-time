@@ -508,7 +508,7 @@ export class AnalystCallDetector {
         }
       }
 
-      // Create analyst signal
+      // Create analyst signal with size stored in entry_conditions field
       const signalData = {
         analyst_name: username || 'Degen Caller',
         market: 'crypto' as any,
@@ -522,6 +522,7 @@ export class AnalystCallDetector {
         stop_loss_price: stopLoss,
         targets: targets.map(t => t.toString()),
         full_description: `Degen call for ${ticker} ${direction}`,
+        entry_conditions: sizeLevel, // Store the original size here
         formatted_output: this.generateFormattedOutput(ticker, direction, entryPrice, stopLoss, targets, currentPrice),
         status: 'active',
         posted_to_telegram: false

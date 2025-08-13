@@ -48,6 +48,7 @@ const TICKER_TO_COINGECKO_ID: Record<string, string> = {
   'GRT': 'the-graph',
   'SPELL': 'spell-token',
   'CRO': 'crypto-com-chain',
+  'SUI': 'sui',
   'FTT': 'ftx-token',
   'SRM': 'serum',
   'RAY': 'raydium',
