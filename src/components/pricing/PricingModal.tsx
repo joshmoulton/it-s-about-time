@@ -84,8 +84,8 @@ export const PricingModal: React.FC<PricingModalProps> = ({ open, onOpenChange }
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-xl w-full max-h-[90vh] overflow-y-auto">
-          <DialogHeader className="text-center space-y-3">
+        <DialogContent className="max-w-xl w-full max-h-[80vh] flex flex-col">
+          <DialogHeader className="text-center space-y-3 flex-shrink-0">
             <DialogTitle className="text-2xl font-bold flex items-center justify-center gap-2">
               <Sparkles className="h-6 w-6 text-primary" />
               Upgrade to Premium
@@ -93,14 +93,13 @@ export const PricingModal: React.FC<PricingModalProps> = ({ open, onOpenChange }
             <DialogDescription>
               Choose your premium subscription plan and unlock all features
             </DialogDescription>
-          </DialogHeader>
-
-          <div className="space-y-6">
             <PaymentToggle 
               paymentMethod={paymentMethod} 
               onPaymentMethodChange={setPaymentMethod} 
             />
+          </DialogHeader>
 
+          <div className="flex-1 overflow-y-auto space-y-6 px-1">
             <div className="space-y-4">
               {currentPlans.map((plan, index) => (
                 <PricingCard
@@ -111,13 +110,13 @@ export const PricingModal: React.FC<PricingModalProps> = ({ open, onOpenChange }
               ))}
             </div>
 
-            <div className="text-center p-4 bg-muted/30 rounded-lg">
-              <p className="text-sm text-muted-foreground">
-                {paymentMethod === 'card' ? 'Secure credit card processing' : 'Pay with USDC cryptocurrency'} • Start today • Cancel anytime
-              </p>
-            </div>
-
             <PremiumFeatures />
+          </div>
+
+          <div className="text-center p-4 bg-muted/30 rounded-lg flex-shrink-0 border-t">
+            <p className="text-sm text-muted-foreground">
+              {paymentMethod === 'card' ? 'Secure credit card processing' : 'Pay with USDC cryptocurrency'} • Start today • Cancel anytime
+            </p>
           </div>
         </DialogContent>
       </Dialog>
