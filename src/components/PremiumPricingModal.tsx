@@ -163,9 +163,9 @@ const PremiumPricingModal: React.FC<PremiumPricingModalProps> = ({
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="fixed inset-4 z-[100] m-0 max-w-none w-auto h-auto max-h-[calc(100vh-2rem)] overflow-hidden rounded-lg">
-          <div className="h-full overflow-y-auto p-6">
-            <DialogHeader className="text-center pb-4">
+        <DialogContent className="w-full max-w-2xl max-h-[90vh] overflow-hidden">
+          <div className="overflow-y-auto p-6">
+            <DialogHeader className="text-center pb-6">
               <DialogTitle className="text-2xl font-bold flex items-center justify-center gap-2">
                 <Sparkles className="h-6 w-6 text-primary" />
                 Upgrade to Premium
@@ -175,9 +175,9 @@ const PremiumPricingModal: React.FC<PremiumPricingModalProps> = ({
               </DialogDescription>
             </DialogHeader>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6 lg:gap-8">
+          <div className="space-y-6">
             {/* Pricing Plans Section */}
-            <div className="xl:col-span-2 space-y-6">
+            <div className="space-y-6">
               {/* Payment Method Toggle */}
               <div className="flex justify-center">
                 <div className="bg-muted p-1 rounded-lg flex">
@@ -198,8 +198,8 @@ const PremiumPricingModal: React.FC<PremiumPricingModalProps> = ({
                 </div>
               </div>
 
-              {/* Pricing Cards - Responsive Grid */}
-              <div className={`grid gap-4 lg:gap-6 ${paymentMethod === 'card' ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3'}`}>
+              {/* Pricing Cards - Single Column */}
+              <div className="grid grid-cols-1 gap-4 max-w-md mx-auto">
                 {(paymentMethod === 'card' ? cardPlans : cryptoPlans).map((plan, index) => (
                   <div key={index} className={`relative p-6 rounded-xl border transition-all duration-200 hover:shadow-lg ${plan.popular ? 'ring-2 ring-primary border-primary shadow-lg scale-105' : 'border hover:border-primary/50'}`}>
                     {plan.popular && (
@@ -245,8 +245,8 @@ const PremiumPricingModal: React.FC<PremiumPricingModalProps> = ({
             </div>
 
             {/* Features Section */}
-            <div className="xl:col-span-1">
-              <div className="bg-muted/30 rounded-lg p-6 h-full">
+            <div>
+              <div className="bg-muted/30 rounded-lg p-6">
                 <h3 className="font-semibold text-lg mb-4 text-center">Premium Features</h3>
                 <div className="grid grid-cols-1 gap-3">
                   {premiumFeatures.map((feature, index) => (
