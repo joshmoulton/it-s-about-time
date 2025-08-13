@@ -521,6 +521,39 @@ export class AnalystCallDetector {
         }
       }
 
+      // Before creating a new signal, close any existing active signals for this ticker
+      console.log(`🔍 Checking for existing active signals for ${tickerUpper}...`);
+      
+      const { data: existingSignals, error: findError } = await this.supabase
+        .from('analyst_signals')
+        .select('id, analyst_name, created_at')
+        .eq('ticker', tickerUpper)
+        .eq('status', 'active');
+
+      if (findError) {
+        console.error('❌ Error finding existing signals:', findError);
+      } else if (existingSignals && existingSignals.length > 0) {
+        console.log(`🚫 Found ${existingSignals.length} existing active signal(s) for ${tickerUpper}, closing them...`);
+        
+        // Close existing signals
+        const signalIds = existingSignals.map(s => s.id);
+        const { error: closeError } = await this.supabase
+          .from('analyst_signals')
+          .update({
+            status: 'closed',
+            updated_at: new Date().toISOString()
+          })
+          .in('id', signalIds);
+
+        if (closeError) {
+          console.error('❌ Error closing existing signals:', closeError);
+        } else {
+          console.log(`✅ Closed ${existingSignals.length} existing signal(s) for ${tickerUpper}`);
+        }
+      } else {
+        console.log(`✅ No existing active signals found for ${tickerUpper}`);
+      }
+
       // Create analyst signal with size stored in entry_conditions field
       const signalData = {
         analyst_name: username || 'Degen Caller',
