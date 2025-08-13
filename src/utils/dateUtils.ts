@@ -1,4 +1,13 @@
-import { format, isValid, parseISO } from 'date-fns';
+import { format, parseISO } from 'date-fns';
+
+/**
+ * Check if a date is valid
+ * @param date - The date to check
+ * @returns true if the date is valid, false otherwise
+ */
+function isValidDate(date: Date): boolean {
+  return date instanceof Date && !isNaN(date.getTime());
+}
 
 /**
  * Safely formats a date value, handling invalid dates gracefully
@@ -22,14 +31,14 @@ export function safeFormatDate(
     if (typeof dateValue === 'string') {
       // Try to parse ISO string first, then fall back to regular Date constructor
       date = parseISO(dateValue);
-      if (!isValid(date)) {
+      if (!isValidDate(date)) {
         date = new Date(dateValue);
       }
     } else {
       date = dateValue;
     }
 
-    if (!isValid(date)) {
+    if (!isValidDate(date)) {
       console.warn(`Invalid date value detected:`, dateValue);
       return fallback;
     }

@@ -29,7 +29,6 @@ import { NotificationTemplates } from './sections/NotificationTemplates';
 import { EmailTemplateManager } from './sections/EmailTemplateManager';
 import { FeedbackManagement } from './sections/FeedbackManagement';
 import { AnalystCallManagement } from './sections/AnalystCallManagement';
-import { AnalystDetectionManagement } from './sections/AnalystDetectionManagement';
 import { LiveAlertsManagement } from './sections/LiveAlertsManagement';
 import { XMonitoringDashboard } from './sections/XMonitoringDashboard';
 import { TelegramMonitoring } from './sections/TelegramMonitoring';
@@ -210,8 +209,7 @@ export function AdminContent({ adminUser, subscriber }: AdminContentProps) {
           <Route path="/telegram-topics" element={<TelegramTopicManagement />} />
           <Route path="/x-monitoring" element={<XMonitoringDashboard />} />
           <Route path="/degen-calls" element={<DegenCallManagement />} />
-          <Route path="/analyst-call-management" element={<AnalystCallManagement />} />
-          <Route path="/analyst-detection" element={<AnalystDetectionManagement />} />
+          <Route path="/analyst-detection" element={<AnalystCallManagement />} />
           <Route path="/webhooks" element={<ComingSoonPlaceholder title="Webhook Management" description="Enterprise webhook orchestration and monitoring" />} />
           <Route path="/api-management" element={<ComingSoonPlaceholder title="API Management" description="Advanced API rate limiting, analytics, and security" />} />
           
