@@ -21,6 +21,8 @@ const DashboardContent = lazy(() =>
 );
 
 const Dashboard = () => {
+  useRenderTracker('Dashboard');
+  
   // Enable mobile performance optimizations
   useMobilePerformance();
   
@@ -49,7 +51,7 @@ const Dashboard = () => {
   }, [sectionFromUrl, isContentRoute]);
 
   // Memoize currentUser to prevent unnecessary re-renders
-  const memoizedCurrentUser = useMemo(() => currentUser, [currentUser?.id || '', currentUser?.email || '', JSON.stringify(currentUser?.metadata || {})]);
+  const memoizedCurrentUser = useMemo(() => currentUser, [currentUser?.id, currentUser?.email, currentUser?.metadata]);
   
   // Convert currentUser to subscriber format for components that expect it
   const subscriberForComponents = memoizedCurrentUser ? {
@@ -62,32 +64,28 @@ const Dashboard = () => {
     metadata: memoizedCurrentUser.metadata || {}
   } : null;
 
-  // Memoized tour controller to prevent re-initialization
-  const tourController = useMemo(() => {
-    if (!subscriberForComponents) return null;
-    return GuidedTourController({
-      subscriber: subscriberForComponents,
-      activeSection,
-      setActiveSection,
-    });
-  }, [subscriberForComponents?.id || '', activeSection || '']);
+  // Simplified tour initialization without delays for admin users
+  const tourController = GuidedTourController({
+    subscriber: subscriberForComponents,
+    activeSection,
+    setActiveSection,
+  });
 
-  // Tour initialization - optimized to prevent multiple calls
+  // Tour initialization - auto-start for all users unless they chose never show again
   useEffect(() => {
-    if (!isLoading && memoizedCurrentUser && tourController && 
-        memoizedCurrentUser.user_type !== 'supabase_admin') {
+    if (!isLoading && memoizedCurrentUser && memoizedCurrentUser.user_type !== 'supabase_admin') {
+      const shouldShowTour = tourController.shouldShowOnboarding();
       
-      // Debounce tour initialization to prevent multiple calls
-      const timer = setTimeout(() => {
-        const shouldShowTour = tourController.shouldShowOnboarding();
-        if (shouldShowTour) {
+      if (shouldShowTour) {
+        // Auto-start tour for all users who haven't opted out
+        const timer = setTimeout(() => {
           tourController.startTour('dashboard');
-        }
-      }, 100); // Reduced delay
-      
-      return () => clearTimeout(timer);
+        }, 500);
+        
+        return () => clearTimeout(timer);
+      }
     }
-  }, [isLoading, memoizedCurrentUser?.id || '', !!tourController]); // Ensure id is never undefined
+  }, [isLoading, memoizedCurrentUser?.user_type]);
 
   if (isLoading) {
     return <DashboardLoader />;
@@ -97,7 +95,11 @@ const Dashboard = () => {
     return <DashboardLoader />;
   }
 
-  // Remove debug logging in production for better performance
+  console.log('🎨 Dashboard CSS Debug:', {
+    brandNavy: getComputedStyle(document.documentElement).getPropertyValue('--brand-navy'),
+    background: getComputedStyle(document.documentElement).getPropertyValue('--background'),
+    isDarkMode: document.documentElement.classList.contains('dark')
+  });
   
   return (
     <div className="min-h-screen flex flex-col w-full relative" style={{ backgroundColor: 'hsl(0 0% 3%)' }}>
@@ -126,7 +128,7 @@ const Dashboard = () => {
       <div className="relative" style={{ zIndex: 30 }}>
         <TopNavigation 
           subscriber={subscriberForComponents!} 
-          onStartTour={() => tourController?.startTour('dashboard')}
+          onStartTour={() => tourController.startTour('dashboard')}
         />
       </div>
       
@@ -154,8 +156,8 @@ const Dashboard = () => {
             <DashboardContent 
               subscriber={subscriberForComponents!} 
               activeSection={activeSection}
-              onStartTour={tourController?.startTour}
-              onForceRestartTour={tourController?.forceRestartTour}
+              onStartTour={tourController.startTour}
+              onForceRestartTour={tourController.forceRestartTour}
             />
           </LazyLoadWrapper>
         </VirtualizedWrapper>
@@ -163,7 +165,7 @@ const Dashboard = () => {
       
       {/* Tour component - z-index: 40 */}
       <div style={{ zIndex: 40 }}>
-        {tourController?.tourComponent}
+        {tourController.tourComponent}
       </div>
     </div>
   );
