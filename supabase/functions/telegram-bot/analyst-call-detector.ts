@@ -492,17 +492,16 @@ export class AnalystCallDetector {
           console.log(`💰 Fetching current price for ${ticker}...`);
           const { data, error } = await this.supabase.functions.invoke('crypto-pricing', {
             body: { 
-              action: 'fetch_prices',
-              tickers: [ticker] 
+              ticker: ticker.toUpperCase()
             }
           });
 
-          if (!error && data?.success && data?.prices?.length > 0) {
-            currentPrice = data.prices[0].price;
+          if (!error && data?.price) {
+            currentPrice = data.price;
             entryPrice = currentPrice;
             console.log(`✅ Fetched current price for ${ticker}: $${currentPrice}`);
           } else {
-            console.error(`❌ Could not fetch price for ${ticker}:`, error);
+            console.error(`❌ Could not fetch price for ${ticker}:`, error || data);
           }
         } catch (priceError) {
           console.error(`❌ Error fetching price for ${ticker}:`, priceError);
