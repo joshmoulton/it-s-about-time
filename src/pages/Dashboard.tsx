@@ -10,6 +10,8 @@ import { LazyLoadWrapper } from '@/components/LazyLoadWrapper';
 import { useConnectionStatus } from '@/hooks/useConnectionStatus';
 import { useRenderTracker } from '@/components/PerformanceOptimizer';
 import { SEOManager } from '@/components/SEOManager';
+import { useMobilePerformance } from '@/hooks/useMobilePerformance';
+import VirtualizedWrapper from '@/components/VirtualizedWrapper';
 
 // Lazy load the heavy dashboard content
 const DashboardContent = lazy(() => 
@@ -20,6 +22,9 @@ const DashboardContent = lazy(() =>
 
 const Dashboard = () => {
   useRenderTracker('Dashboard');
+  
+  // Enable mobile performance optimizations
+  useMobilePerformance();
   
   const { currentUser, isLoading } = useEnhancedAuth();
   const [searchParams] = useSearchParams();
@@ -129,31 +134,33 @@ const Dashboard = () => {
       
       {/* Content Layer - z-index: 10 */}
       <div className="relative" style={{ zIndex: 10 }}>
-        <LazyLoadWrapper
-          fallback={
-            <div className="flex-1 p-3 sm:p-6 flex items-center justify-center">
-              <div className="flex flex-col items-center space-y-4">
-                <Loader2 className="h-6 w-6 animate-spin text-primary" />
-                <p className="text-sm text-muted-foreground">
-                  {connectionStatus.isOffline ? 'Offline mode' : 'Loading content...'}
-                </p>
-                {connectionStatus.isSlowConnection && (
-                  <p className="text-xs text-muted-foreground">
-                    Slow connection detected, optimizing experience...
+        <VirtualizedWrapper height={600}>
+          <LazyLoadWrapper
+            fallback={
+              <div className="flex-1 p-3 sm:p-6 flex items-center justify-center">
+                <div className="flex flex-col items-center space-y-4">
+                  <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                  <p className="text-sm text-muted-foreground">
+                    {connectionStatus.isOffline ? 'Offline mode' : 'Loading content...'}
                   </p>
-                )}
+                  {connectionStatus.isSlowConnection && (
+                    <p className="text-xs text-muted-foreground">
+                      Slow connection detected, optimizing experience...
+                    </p>
+                  )}
+                </div>
               </div>
-            </div>
-          }
-          height="500px"
-        >
-          <DashboardContent 
-            subscriber={subscriberForComponents!} 
-            activeSection={activeSection}
-            onStartTour={tourController.startTour}
-            onForceRestartTour={tourController.forceRestartTour}
-          />
-        </LazyLoadWrapper>
+            }
+            height="500px"
+          >
+            <DashboardContent 
+              subscriber={subscriberForComponents!} 
+              activeSection={activeSection}
+              onStartTour={tourController.startTour}
+              onForceRestartTour={tourController.forceRestartTour}
+            />
+          </LazyLoadWrapper>
+        </VirtualizedWrapper>
       </div>
       
       {/* Tour component - z-index: 40 */}

@@ -1,5 +1,5 @@
 
-import { Suspense } from "react";
+import { Suspense, useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -11,6 +11,8 @@ import { DeveloperProvider, DeveloperToggle } from "@/components/dev/DeveloperTo
 import { AccessibilityProvider } from "@/components/AccessibilityProvider";
 import { MobilePerfOptimizer } from "@/components/MobilePerfOptimizer";
 import MobileScrollGuard from "@/components/MobileScrollGuard";
+import { MobileTouchOptimizer } from "@/components/MobileTouchOptimizer";
+import { optimizeFontDisplay, enableLayoutShiftPrevention } from "@/utils/performanceUtils";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 // Critical components (loaded immediately)
@@ -44,6 +46,12 @@ const PageLoader = () => (
 const queryClient = new QueryClient();
 
 const App = () => {
+  // Apply safe performance optimizations on load
+  useEffect(() => {
+    optimizeFontDisplay();
+    enableLayoutShiftPrevention();
+  }, []);
+
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
@@ -53,6 +61,7 @@ const App = () => {
                 <Toaster />
                 <Sonner />
                 <MobileScrollGuard />
+                <MobileTouchOptimizer />
                 {/* <MobilePerfOptimizer /> */}
                 <DeveloperProvider>
                 <EnhancedAuthProvider>
