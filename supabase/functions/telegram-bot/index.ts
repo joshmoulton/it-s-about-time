@@ -276,6 +276,69 @@ serve(async (req) => {
         }
       }
       
+      // Support manual close command for debugging
+      if (body.action === 'manual_close' && body.ticker) {
+        console.log(`🚫 Manual close command for ticker: ${body.ticker}`);
+        try {
+          const { data: activeSignals, error: findError } = await supabase
+            .from('analyst_signals')
+            .select('id, ticker, analyst_name, created_at')
+            .eq('ticker', body.ticker.toUpperCase())
+            .eq('status', 'active')
+            .order('created_at', { ascending: false });
+
+          if (findError) {
+            console.error('❌ Error finding active signals:', findError);
+            return new Response(JSON.stringify({ error: findError.message }), {
+              status: 500,
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            });
+          }
+
+          if (!activeSignals || activeSignals.length === 0) {
+            return new Response(JSON.stringify({ message: `No active signals found for ${body.ticker}` }), {
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            });
+          }
+
+          // Close all active signals for this ticker
+          const signalIds = activeSignals.map(s => s.id);
+          const { data: closedSignals, error: closeError } = await supabase
+            .from('analyst_signals')
+            .update({
+              status: 'closed',
+              updated_at: new Date().toISOString()
+            })
+            .in('id', signalIds)
+            .select('id, ticker, analyst_name');
+
+          if (closeError) {
+            console.error('❌ Error closing signals:', closeError);
+            return new Response(JSON.stringify({ error: closeError.message }), {
+              status: 500,
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            });
+          }
+
+          const closedCount = closedSignals?.length || 0;
+          console.log(`✅ Manually closed ${closedCount} signals for ${body.ticker}`);
+
+          return new Response(JSON.stringify({ 
+            success: true, 
+            message: `Successfully closed ${closedCount} ${body.ticker} signal(s)`,
+            closed_signals: closedSignals
+          }), {
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        } catch (error) {
+          console.error('❌ Manual close error:', error);
+          return new Response(JSON.stringify({ error: error.message }), {
+            status: 500,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+      }
+
       // Support path-based routing for degen call endpoints
       const { pathname } = new URL(req.url);
       if (!body.action) {

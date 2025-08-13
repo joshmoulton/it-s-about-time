@@ -67,7 +67,25 @@ export async function processAndInsertMessageImproved(
       });
     }
 
-    // Analyst call detection removed - handled in Telegram side
+    // Handle analyst call detection for degen signals and close commands
+    if (message.text && message.text.trim().length > 0) {
+      try {
+        const { AnalystCallDetector } = await import('./analyst-call-detector.ts');
+        const detector = new AnalystCallDetector(supabase);
+        const detection = await detector.detectAnalystCall(
+          message.text,
+          message.chat.id.toString(),
+          messageId,
+          message.from?.username
+        );
+        
+        if (detection) {
+          console.log('🎯 Analyst call detected:', detection);
+        }
+      } catch (detectionError) {
+        console.error('❌ Error in analyst call detection:', detectionError);
+      }
+    }
 
     console.log(`✅ Successfully processed message ${message.message_id} with ID: ${messageId}`);
     return true;
