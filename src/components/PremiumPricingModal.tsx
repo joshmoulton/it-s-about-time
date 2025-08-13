@@ -163,8 +163,9 @@ const PremiumPricingModal: React.FC<PremiumPricingModalProps> = ({
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-[98vw] xl:max-w-[90vw] w-full max-h-[90vh] overflow-y-auto p-0 m-4 sm:m-6 lg:m-8">
-          <div className="p-6">
+        <DialogContent className="fixed inset-0 z-[100] flex items-center justify-center">
+          <div className="relative w-[min(98vw,95vw)] max-w-[90vw] max-h-[calc(100dvh-4rem)] overflow-y-auto rounded-2xl bg-background p-0 m-auto">
+            <div className="p-6">
             <DialogHeader className="text-center pb-4">
               <DialogTitle className="text-2xl font-bold flex items-center justify-center gap-2">
                 <Sparkles className="h-6 w-6 text-primary" />
@@ -307,6 +308,7 @@ const PremiumPricingModal: React.FC<PremiumPricingModalProps> = ({
                   </div>
                 </div>
               </div>
+            </div>
             </div>
           </div>
         </DialogContent>
