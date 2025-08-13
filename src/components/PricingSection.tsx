@@ -279,10 +279,7 @@ const PricingSection: React.FC<PricingSectionProps> = ({ onAuthClick, onOpenPrem
 const handlePremiumClick: React.MouseEventHandler<HTMLButtonElement> = (e) => {
   e.preventDefault();
   e.stopPropagation();
-  try {
-    toast({ title: 'Opening Premium…', description: 'Loading premium plans.', duration: 1200 });
-  } catch {}
-  navigate('/pricing?open=1');
+  onOpenPremiumModal?.();
 };
 
   const handleFreeClick = () => {
