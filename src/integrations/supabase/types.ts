@@ -1532,6 +1532,7 @@ export type Database = {
       degen_call_subscriptions: {
         Row: {
           created_at: string
+          degen_alerts_enabled: boolean
           id: string
           is_active: boolean
           subscription_tier: Database["public"]["Enums"]["subscription_tier"]
@@ -1542,6 +1543,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          degen_alerts_enabled?: boolean
           id?: string
           is_active?: boolean
           subscription_tier?: Database["public"]["Enums"]["subscription_tier"]
@@ -1552,6 +1554,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          degen_alerts_enabled?: boolean
           id?: string
           is_active?: boolean
           subscription_tier?: Database["public"]["Enums"]["subscription_tier"]

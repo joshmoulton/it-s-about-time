@@ -8,6 +8,7 @@ export interface DegenCallSubscription {
   telegram_user_id?: number;
   telegram_username?: string;
   is_active: boolean;
+  degen_alerts_enabled: boolean;
   subscription_tier: 'free' | 'paid' | 'premium';
   created_at: string;
   updated_at: string;
@@ -163,6 +164,7 @@ export function useDegenCallSubscription() {
           telegram_user_id: telegramUserId,
           telegram_username: telegramUsername,
           is_active: true,
+          degen_alerts_enabled: true,
           subscription_tier: whopUser?.subscription_tier || 'free'
         }, {
           onConflict: 'user_email'
@@ -238,6 +240,40 @@ export function useDegenCallSubscription() {
     await subscribeMutation.mutateAsync(telegramData);
   };
 
+  // Toggle degen call alerts specifically
+  const toggleDegenAlertsmutation = useMutation({
+    mutationFn: async (enabled: boolean) => {
+      const userEmail = await getCurrentUserEmail();
+      if (!userEmail) throw new Error('Please log in to continue');
+
+      const { error } = await supabase
+        .from('degen_call_subscriptions')
+        .update({ degen_alerts_enabled: enabled })
+        .eq('user_email', userEmail);
+
+      if (error) {
+        if (error.message.includes('violates row-level security policy')) {
+          throw new Error('Access denied. Please ensure you have proper permissions.');
+        }
+        throw new Error('Failed to update degen alert settings. Please try again.');
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['degen-call-subscription'] });
+      toast({
+        title: "Degen Alerts Updated",
+        description: "Your degen call alert preferences have been updated.",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Update Failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  });
+
   // Toggle subscription
   const toggleSubscription = async (telegramData?: {
     telegramUserId?: number;
@@ -255,15 +291,23 @@ export function useDegenCallSubscription() {
     }
   };
 
+  // Toggle degen alerts
+  const toggleDegenAlerts = async (enabled: boolean) => {
+    await toggleDegenAlertsmutation.mutateAsync(enabled);
+  };
+
   return {
     subscription,
     recentNotifications,
     isSubscribed: subscription?.is_active || false,
+    degenAlertsEnabled: subscription?.degen_alerts_enabled || false,
     subscriptionLoading,
     notificationsLoading,
     subscriptionError,
     toggleSubscription,
     updateSubscription,
+    toggleDegenAlerts,
     isToggling: subscribeMutation.isPending || unsubscribeMutation.isPending,
+    isTogglingDegenAlerts: toggleDegenAlertsmutation.isPending,
   };
 }

@@ -22,11 +22,14 @@ export function TelegramSettingsSection() {
   const {
     subscription,
     isSubscribed,
+    degenAlertsEnabled,
     subscriptionLoading,
     subscriptionError,
     toggleSubscription,
     updateSubscription,
-    isToggling
+    toggleDegenAlerts,
+    isToggling,
+    isTogglingDegenAlerts
   } = useDegenCallSubscription();
 
   // Load existing data
@@ -274,26 +277,47 @@ export function TelegramSettingsSection() {
               />
             </div>
 
-            {isSubscribed && hasStartedConversation && (
-              <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
-                <div className="flex items-center gap-2 text-green-700 dark:text-green-400 mb-2">
-                  <CheckCircle className="h-4 w-4" />
-                  <span className="font-medium">Notifications Enabled</span>
+            {isSubscribed && (
+              <>
+                <div className="flex items-center justify-between pt-4 border-t">
+                  <div>
+                    <Label htmlFor="enable-degen-alerts" className="text-base font-medium text-white">
+                      Degen Call Alerts
+                    </Label>
+                    <p className="text-sm text-muted-foreground">
+                      Receive automated notifications when new degen calls are detected (includes ticker, direction, entry price, stop loss, targets, and risk level)
+                    </p>
+                  </div>
+                  <Switch
+                    id="enable-degen-alerts"
+                    checked={degenAlertsEnabled}
+                    onCheckedChange={toggleDegenAlerts}
+                    disabled={isTogglingDegenAlerts}
+                  />
                 </div>
-                <p className="text-sm text-green-600 dark:text-green-300 mb-3">
-                  You're all set to receive degen call alerts via Telegram!
-                </p>
-                <Button 
-                  onClick={handleSendTestMessage} 
-                  disabled={isTestingMessage}
-                  variant="outline"
-                  size="sm"
-                  className="border-green-300 hover:bg-green-100 dark:border-green-700 dark:hover:bg-green-900/30"
-                >
-                  <Send className="h-4 w-4 mr-2" />
-                  {isTestingMessage ? 'Sending...' : 'Send Test Message'}
-                </Button>
-              </div>
+
+                {hasStartedConversation && (
+                  <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
+                    <div className="flex items-center gap-2 text-green-700 dark:text-green-400 mb-2">
+                      <CheckCircle className="h-4 w-4" />
+                      <span className="font-medium">Telegram Connected</span>
+                    </div>
+                    <p className="text-sm text-green-600 dark:text-green-300 mb-3">
+                      Your Telegram is connected and ready to receive notifications!
+                    </p>
+                    <Button 
+                      onClick={handleSendTestMessage} 
+                      disabled={isTestingMessage}
+                      variant="outline"
+                      size="sm"
+                      className="border-green-300 hover:bg-green-100 dark:border-green-700 dark:hover:bg-green-900/30"
+                    >
+                      <Send className="h-4 w-4 mr-2" />
+                      {isTestingMessage ? 'Sending...' : 'Send Test Message'}
+                    </Button>
+                  </div>
+                )}
+              </>
             )}
           </div>
         </>

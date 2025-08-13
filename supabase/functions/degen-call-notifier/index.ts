@@ -55,11 +55,12 @@ serve(async (req) => {
 
     console.log('📝 Formatted degen call message:', formattedMessage.substring(0, 100) + '...')
 
-    // Get active degen call subscribers
+    // Get active degen call subscribers with degen alerts enabled
     const { data: subscribers, error: subsError } = await supabase
       .from('degen_call_subscriptions')
       .select('*')
       .eq('is_active', true)
+      .eq('degen_alerts_enabled', true)
 
     if (subsError) {
       console.error('❌ Failed to fetch subscribers:', subsError)
