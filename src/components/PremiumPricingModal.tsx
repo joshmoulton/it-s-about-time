@@ -163,152 +163,148 @@ const PremiumPricingModal: React.FC<PremiumPricingModalProps> = ({
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="fixed inset-0 z-[100] flex items-center justify-center">
-          <div className="relative w-[min(98vw,95vw)] max-w-[90vw] max-h-[calc(100dvh-4rem)] overflow-y-auto rounded-2xl bg-background p-0 m-auto">
-            <div className="p-6">
-            <DialogHeader className="text-center pb-4">
-              <DialogTitle className="text-2xl font-bold flex items-center justify-center gap-2">
-                <Sparkles className="h-6 w-6 text-primary" />
-                Upgrade to Premium
-              </DialogTitle>
-              <DialogDescription className="text-sm">
-                Choose your premium subscription plan and unlock all features
-              </DialogDescription>
-            </DialogHeader>
+        <DialogContent className="w-full max-w-none h-full max-h-[95vh] p-4 sm:p-6 lg:p-8 xl:p-12 overflow-y-auto">
+          <DialogHeader className="text-center pb-4">
+            <DialogTitle className="text-2xl font-bold flex items-center justify-center gap-2">
+              <Sparkles className="h-6 w-6 text-primary" />
+              Upgrade to Premium
+            </DialogTitle>
+            <DialogDescription className="text-sm">
+              Choose your premium subscription plan and unlock all features
+            </DialogDescription>
+          </DialogHeader>
 
-            <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
-              {/* Pricing Plans - Takes 3/5 of space on large screens */}
-              <div className="lg:col-span-3 space-y-6">
-                {/* Payment Method Toggle */}
-                <div className="flex justify-center">
-                  <div className="bg-muted p-1 rounded-lg flex">
-                    <button 
-                      onClick={() => setPaymentMethod('card')} 
-                      className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${paymentMethod === 'card' ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
-                    >
-                      <CreditCard className="h-4 w-4 inline mr-2" />
-                      Credit Card
-                    </button>
-                    <button 
-                      onClick={() => setPaymentMethod('crypto')} 
-                      className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${paymentMethod === 'crypto' ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
-                    >
-                      <Bitcoin className="h-4 w-4 inline mr-2" />
-                      Crypto
-                    </button>
-                  </div>
+          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6 lg:gap-8">
+            {/* Pricing Plans Section */}
+            <div className="xl:col-span-2 space-y-6">
+              {/* Payment Method Toggle */}
+              <div className="flex justify-center">
+                <div className="bg-muted p-1 rounded-lg flex">
+                  <button 
+                    onClick={() => setPaymentMethod('card')} 
+                    className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${paymentMethod === 'card' ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
+                  >
+                    <CreditCard className="h-4 w-4 inline mr-2" />
+                    Credit Card
+                  </button>
+                  <button 
+                    onClick={() => setPaymentMethod('crypto')} 
+                    className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${paymentMethod === 'crypto' ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
+                  >
+                    <Bitcoin className="h-4 w-4 inline mr-2" />
+                    Crypto
+                  </button>
                 </div>
+              </div>
 
-                {/* Pricing Cards - Horizontal Layout */}
-                <div className={`grid gap-4 ${paymentMethod === 'card' ? 'grid-cols-1 md:grid-cols-2' : 'grid-cols-1 md:grid-cols-3'}`}>
-                  {(paymentMethod === 'card' ? cardPlans : cryptoPlans).map((plan, index) => (
-                    <div key={index} className={`relative p-6 rounded-xl border transition-all duration-200 hover:shadow-lg ${plan.popular ? 'ring-2 ring-primary border-primary shadow-lg scale-105' : 'border hover:border-primary/50'}`}>
-                      {plan.popular && (
-                        <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-                          <Badge className="bg-primary text-primary-foreground text-xs font-semibold px-3 py-1 rounded-full">
-                            Most Popular
-                          </Badge>
+              {/* Pricing Cards - Responsive Grid */}
+              <div className={`grid gap-4 lg:gap-6 ${paymentMethod === 'card' ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3'}`}>
+                {(paymentMethod === 'card' ? cardPlans : cryptoPlans).map((plan, index) => (
+                  <div key={index} className={`relative p-6 rounded-xl border transition-all duration-200 hover:shadow-lg ${plan.popular ? 'ring-2 ring-primary border-primary shadow-lg scale-105' : 'border hover:border-primary/50'}`}>
+                    {plan.popular && (
+                      <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
+                        <Badge className="bg-primary text-primary-foreground text-xs font-semibold px-3 py-1 rounded-full">
+                          Most Popular
+                        </Badge>
+                      </div>
+                    )}
+                    
+                    <div className="text-center">
+                      <h4 className="text-lg font-bold mb-2">{plan.title}</h4>
+                      <div className="mb-4">
+                        <span className="text-3xl font-bold">${plan.price}</span>
+                        <span className="text-muted-foreground">/{plan.period.replace('/', '')}</span>
+                      </div>
+                      
+                      {plan.originalPrice && (
+                        <div className="mb-4 flex items-center justify-center gap-2">
+                          <span className="text-muted-foreground line-through text-sm">{plan.originalPrice}</span>
+                          <span className="text-green-600 font-semibold text-sm">{plan.savings}</span>
                         </div>
                       )}
                       
-                      <div className="text-center">
-                        <h4 className="text-lg font-bold mb-2">{plan.title}</h4>
-                        <div className="mb-4">
-                          <span className="text-3xl font-bold">${plan.price}</span>
-                          <span className="text-muted-foreground">/{plan.period.replace('/', '')}</span>
-                        </div>
-                        
-                        {plan.originalPrice && (
-                          <div className="mb-4 flex items-center justify-center gap-2">
-                            <span className="text-muted-foreground line-through text-sm">{plan.originalPrice}</span>
-                            <span className="text-green-600 font-semibold text-sm">{plan.savings}</span>
-                          </div>
-                        )}
-                        
-                        <Button 
-                          onClick={() => handleCheckout(plan.productId, plan.title)} 
-                          className="w-full" 
-                          variant={plan.popular ? 'default' : 'outline'}
-                        >
-                          Get Started
-                        </Button>
+                      <Button 
+                        onClick={() => handleCheckout(plan.productId, plan.title)} 
+                        className="w-full" 
+                        variant={plan.popular ? 'default' : 'outline'}
+                      >
+                        Get Started
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Payment Info */}
+              <div className="text-center p-4 bg-muted/30 rounded-lg">
+                <p className="text-sm text-muted-foreground">
+                  {paymentMethod === 'card' ? 'Secure credit card processing' : 'Pay with USDC cryptocurrency'} • Start today • Cancel anytime
+                </p>
+              </div>
+            </div>
+
+            {/* Features Section */}
+            <div className="xl:col-span-1">
+              <div className="bg-muted/30 rounded-lg p-6 h-full">
+                <h3 className="font-semibold text-lg mb-4 text-center">Premium Features</h3>
+                <div className="grid grid-cols-1 gap-3">
+                  {premiumFeatures.map((feature, index) => (
+                    <div key={index} className="flex items-start gap-3">
+                      <div className="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 mt-1">
+                        <Check className="w-3 h-3 text-primary" />
                       </div>
+                      <span className="text-sm leading-relaxed">{feature}</span>
                     </div>
                   ))}
                 </div>
-
-                {/* Payment Info */}
-                <div className="text-center p-4 bg-muted/30 rounded-lg">
-                  <p className="text-sm text-muted-foreground">
-                    {paymentMethod === 'card' ? 'Secure credit card processing' : 'Pay with USDC cryptocurrency'} • Start today • Cancel anytime
-                  </p>
-                </div>
-              </div>
-
-              {/* Features Section - Takes 2/5 of space */}
-              <div className="lg:col-span-2">
-                <div className="bg-muted/30 rounded-lg p-6 h-full">
-                  <h3 className="font-semibold text-lg mb-4 text-center">Premium Features</h3>
-                  <div className="grid grid-cols-1 gap-3">
-                    {premiumFeatures.map((feature, index) => (
-                      <div key={index} className="flex items-start gap-3">
-                        <div className="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 mt-1">
-                          <Check className="w-3 h-3 text-primary" />
-                        </div>
-                        <span className="text-sm leading-relaxed">{feature}</span>
+                
+                {/* Contact Form */}
+                <div className="mt-6 pt-6 border-t">
+                  <p className="text-sm font-medium mb-3 text-center">Have questions?</p>
+                  {!showContactForm ? (
+                    <Button 
+                      onClick={() => setShowContactForm(true)}
+                      variant="outline" 
+                      size="sm"
+                      className="w-full"
+                    >
+                      <MessageCircle className="h-4 w-4 mr-2" />
+                      Contact Us
+                    </Button>
+                  ) : (
+                    <form onSubmit={handleContactSubmit} className="space-y-3">
+                      <input
+                        type="email"
+                        placeholder="Your email"
+                        value={contactForm.email}
+                        onChange={(e) => setContactForm(prev => ({ ...prev, email: e.target.value }))}
+                        className="w-full px-3 py-2 text-sm border border-input rounded bg-background"
+                        required
+                      />
+                      <textarea
+                        placeholder="Your question"
+                        value={contactForm.question}
+                        onChange={(e) => setContactForm(prev => ({ ...prev, question: e.target.value }))}
+                        className="w-full px-3 py-2 text-sm border border-input rounded bg-background resize-none"
+                        rows={3}
+                        required
+                      />
+                      <div className="flex gap-2">
+                        <Button type="submit" size="sm" className="flex-1">Send</Button>
+                        <Button 
+                          type="button" 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={() => setShowContactForm(false)}
+                          className="flex-1"
+                        >
+                          Cancel
+                        </Button>
                       </div>
-                    ))}
-                  </div>
-                  
-                  {/* Contact Form */}
-                  <div className="mt-6 pt-6 border-t">
-                    <p className="text-sm font-medium mb-3 text-center">Have questions?</p>
-                    {!showContactForm ? (
-                      <Button 
-                        onClick={() => setShowContactForm(true)}
-                        variant="outline" 
-                        size="sm"
-                        className="w-full"
-                      >
-                        <MessageCircle className="h-4 w-4 mr-2" />
-                        Contact Us
-                      </Button>
-                    ) : (
-                      <form onSubmit={handleContactSubmit} className="space-y-3">
-                        <input
-                          type="email"
-                          placeholder="Your email"
-                          value={contactForm.email}
-                          onChange={(e) => setContactForm(prev => ({ ...prev, email: e.target.value }))}
-                          className="w-full px-3 py-2 text-sm border border-input rounded bg-background"
-                          required
-                        />
-                        <textarea
-                          placeholder="Your question"
-                          value={contactForm.question}
-                          onChange={(e) => setContactForm(prev => ({ ...prev, question: e.target.value }))}
-                          className="w-full px-3 py-2 text-sm border border-input rounded bg-background resize-none"
-                          rows={3}
-                          required
-                        />
-                        <div className="flex gap-2">
-                          <Button type="submit" size="sm" className="flex-1">Send</Button>
-                          <Button 
-                            type="button" 
-                            variant="outline" 
-                            size="sm" 
-                            onClick={() => setShowContactForm(false)}
-                            className="flex-1"
-                          >
-                            Cancel
-                          </Button>
-                        </div>
-                      </form>
-                    )}
-                  </div>
+                    </form>
+                  )}
                 </div>
               </div>
-            </div>
             </div>
           </div>
         </DialogContent>
