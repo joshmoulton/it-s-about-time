@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Sparkles } from 'lucide-react';
 import { PaymentToggle } from './PaymentToggle';
@@ -80,6 +80,19 @@ export const PricingModal: React.FC<PricingModalProps> = ({ open, onOpenChange }
   };
 
   const currentPlans = paymentMethod === 'card' ? cardPlans : cryptoPlans;
+
+  // Manage body modal state
+  useEffect(() => {
+    if (open) {
+      document.body.classList.add('modal-open');
+    } else {
+      document.body.classList.remove('modal-open');
+    }
+    
+    return () => {
+      document.body.classList.remove('modal-open');
+    };
+  }, [open]);
 
   return (
     <>
