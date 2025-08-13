@@ -50,6 +50,7 @@ export const getMenuItemsBySection = (section: string) => {
       { label: 'Live Alerts', path: '/admin/live-alerts', icon: Zap },
     ],
     operations: [
+      { label: 'Pattern Detection', path: '/admin/analyst-detection', icon: Brain },
       { label: 'Branding & SEO', path: '/admin/branding', icon: Search },
       { label: 'SEO Management', path: '/admin/seo', icon: Search },
       { label: 'Content SEO', path: '/admin/content-seo', icon: Search },
@@ -68,11 +69,6 @@ export const getMenuItemsBySection = (section: string) => {
       { label: 'Highlight Rules', path: '/admin/chat-highlights-config', icon: MessageCircle },
       { label: 'Topic Management', path: '/admin/telegram-topics', icon: MessageCircle },
     ],
-    analyst_detection: [
-      { label: 'Pattern Detection', path: '/admin/analyst-detection', icon: Brain },
-      { label: 'Call Management', path: '/admin/analyst-call-management', icon: TrendingUp },
-      { label: 'Degen Calls', path: '/admin/degen-calls', icon: Zap },
-    ],
     integrations: [
       { label: 'Telegram', path: '/admin/telegram', icon: Zap },
     ],
@@ -90,6 +86,6 @@ export const getMenuItemsBySection = (section: string) => {
 };
 
 export const getAllMenuItems = (): MenuItem[] => {
-  const sections = ['main', 'content', 'operations', 'ai_sentiment', 'chat_highlights', 'analyst_detection', 'integrations', 'system'];
+  const sections = ['main', 'content', 'operations', 'ai_sentiment', 'chat_highlights', 'integrations', 'system'];
   return sections.flatMap(section => getMenuItemsBySection(section));
 };

@@ -72,7 +72,6 @@ export function AdminSidebar({ adminUser }: AdminSidebarProps) {
   const operationsItems = getMenuItemsBySection('operations');
   const aiSentimentItems = getMenuItemsBySection('ai_sentiment');
   const chatHighlightsItems = getMenuItemsBySection('chat_highlights');
-  const analystDetectionItems = getMenuItemsBySection('analyst_detection');
   const integrationItems = getMenuItemsBySection('integrations');
   const systemItems = getMenuItemsBySection('system');
 
@@ -110,12 +109,6 @@ export function AdminSidebar({ adminUser }: AdminSidebarProps) {
           title="Chat Highlights" 
           items={chatHighlightsItems} 
           icon={MessageCircle}
-        />
-        
-        <CollapsibleMenuSection 
-          title="Analyst Detection" 
-          items={analystDetectionItems} 
-          icon={Brain}
         />
         
         <CollapsibleMenuSection 
