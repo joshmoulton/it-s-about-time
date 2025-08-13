@@ -97,13 +97,13 @@ export const optimizeForMobile = () => {
     
     // Platform-specific optimizations
     if (/iPad|iPhone|iPod/.test(navigator.userAgent)) {
-      document.body.classList.add('ios');
+      document.documentElement.classList.add('ios');
       // iOS-specific optimizations
       document.documentElement.style.webkitTextSizeAdjust = '100%';
     }
     
     if (/Android/.test(navigator.userAgent)) {
-      document.body.classList.add('android');
+      document.documentElement.classList.add('android');
       // Android-specific optimizations
       document.documentElement.style.textRendering = 'optimizeSpeed';
     }

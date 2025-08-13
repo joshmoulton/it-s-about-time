@@ -199,15 +199,14 @@
   --vh-android: 1vh; /* Android specific */
 }
 
-.ios {
-  height: calc(var(--vh, 1vh) * 100);
+html.ios {
   min-height: calc(var(--vh, 1vh) * 100);
 }
 
-.android {
-  height: calc(var(--vh-android, 1vh) * 100);
+html.android {
   min-height: calc(var(--vh-android, 1vh) * 100);
 }
+
 
 /* Scrollbar styling for different browsers */
 .firefox {
