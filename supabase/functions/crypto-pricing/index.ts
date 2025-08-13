@@ -163,7 +163,7 @@ const TICKER_TO_COINGECKO_ID: Record<string, string> = {
   'SPARTA': 'spartan-protocol-token',
   
   // Problem tokens - manual mapping for known issues
-  'REKT': 'rekt-2', // This was the issue mentioned
+  'REKT': 'rekt-4', // Updated to correct ID for main REKT token (rank #193)
   'AI': 'sleepless-ai',
   'TURBO': 'turbo',
   'JESUS': 'jesus-coin',
