@@ -81,7 +81,10 @@ export function TopNavigation({
             <div className="hidden sm:block">
               <Button 
                 size="sm" 
-                onClick={() => setShowPricingModal(true)}
+                onClick={() => {
+                  console.log('Upgrade button clicked, opening modal');
+                  setShowPricingModal(true);
+                }}
                 className="h-9 px-4 bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white border-0 font-medium text-sm rounded-lg shadow-sm transition-all duration-200"
               >
                 <Crown className="h-4 w-4 mr-2" />
@@ -110,10 +113,15 @@ export function TopNavigation({
       </div>
       
       {/* Pricing Modal */}
-      <PremiumPricingModal 
-        open={showPricingModal}
-        onOpenChange={setShowPricingModal}
-      />
+      {showPricingModal && (
+        <PremiumPricingModal 
+          open={showPricingModal}
+          onOpenChange={(open) => {
+            console.log('Modal open state changing to:', open);
+            setShowPricingModal(open);
+          }}
+        />
+      )}
     </header>
   );
 }
