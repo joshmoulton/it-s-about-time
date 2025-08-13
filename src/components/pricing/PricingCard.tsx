@@ -50,7 +50,7 @@ export const PricingCard: React.FC<PricingCardProps> = ({ plan, onCheckout }) =>
         <Button 
           onClick={onCheckout} 
           className="w-full" 
-          variant={plan.popular ? 'default' : 'outline'}
+          variant="default"
         >
           Get Started
         </Button>

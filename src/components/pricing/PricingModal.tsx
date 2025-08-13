@@ -84,7 +84,7 @@ export const PricingModal: React.FC<PricingModalProps> = ({ open, onOpenChange }
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-lg w-full max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-xl w-full max-h-[90vh] overflow-y-auto">
           <DialogHeader className="text-center space-y-3">
             <DialogTitle className="text-2xl font-bold flex items-center justify-center gap-2">
               <Sparkles className="h-6 w-6 text-primary" />
