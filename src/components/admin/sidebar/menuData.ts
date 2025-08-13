@@ -42,11 +42,12 @@ export const getMenuItemsBySection = (section: string) => {
       { label: 'Courses', path: '/admin/courses', icon: GraduationCap },
       { label: 'Articles', path: '/admin/articles', icon: FileText },
       { label: 'Trading Signals', path: '/admin/trading-signals', icon: TrendingUp },
+      { label: 'Live Alerts', path: '/admin/live-alerts', icon: Zap },
       { label: 'Manage Signals', path: '/admin/manage-signals', icon: BarChart3 },
     ],
     analyst_signals: [
       { label: 'Trading Signals', path: '/admin/trading-signals', icon: TrendingUp },
-      { label: 'Manage Signals', path: '/admin/manage-signals', icon: BarChart3 },
+      { label: 'Live Alerts', path: '/admin/live-alerts', icon: Zap },
     ],
     operations: [
       { label: 'Branding & SEO', path: '/admin/branding', icon: Search },
@@ -68,8 +69,9 @@ export const getMenuItemsBySection = (section: string) => {
       { label: 'Topic Management', path: '/admin/telegram-topics', icon: MessageCircle },
     ],
     analyst_detection: [
-      { label: 'Call Detection', path: '/admin/analyst-call-management', icon: Brain },
-      { label: 'Degen Calls', path: '/admin/degen-calls', icon: TrendingUp },
+      { label: 'Pattern Detection', path: '/admin/analyst-detection', icon: Brain },
+      { label: 'Call Management', path: '/admin/analyst-call-management', icon: TrendingUp },
+      { label: 'Degen Calls', path: '/admin/degen-calls', icon: Zap },
     ],
     integrations: [
       { label: 'Telegram', path: '/admin/telegram', icon: Zap },

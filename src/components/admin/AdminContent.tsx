@@ -29,6 +29,8 @@ import { NotificationTemplates } from './sections/NotificationTemplates';
 import { EmailTemplateManager } from './sections/EmailTemplateManager';
 import { FeedbackManagement } from './sections/FeedbackManagement';
 import { AnalystCallManagement } from './sections/AnalystCallManagement';
+import { AnalystDetectionManagement } from './sections/AnalystDetectionManagement';
+import { LiveAlertsManagement } from './sections/LiveAlertsManagement';
 import { XMonitoringDashboard } from './sections/XMonitoringDashboard';
 import { TelegramMonitoring } from './sections/TelegramMonitoring';
 import { OpenAISettings } from './sections/OpenAISettings';
@@ -158,7 +160,7 @@ export function AdminContent({ adminUser, subscriber }: AdminContentProps) {
           <Routes>
             <Route path="/" element={<AnalystOverview adminUser={adminUser} />} />
             <Route path="/trading-signals" element={<SignalGenerator />} />
-            <Route path="/manage-signals" element={<ManageSignals />} />
+            <Route path="/live-alerts" element={<LiveAlertsManagement />} />
             {/* Redirect all other paths to overview for analysts */}
             <Route path="*" element={<AnalystOverview adminUser={adminUser} />} />
           </Routes>
@@ -180,6 +182,7 @@ export function AdminContent({ adminUser, subscriber }: AdminContentProps) {
           <Route path="/courses" element={<CourseManagement />} />
           <Route path="/articles" element={<ArticleManagement />} />
           <Route path="/trading-signals" element={<SignalGenerator />} />
+          <Route path="/live-alerts" element={<LiveAlertsManagement />} />
           <Route path="/manage-signals" element={<ManageSignals />} />
           <Route path="/content-seo" element={<ContentSEO />} />
           <Route path="/chat-highlights-config" element={<ChatHighlightsConfig />} />
@@ -208,6 +211,7 @@ export function AdminContent({ adminUser, subscriber }: AdminContentProps) {
           <Route path="/x-monitoring" element={<XMonitoringDashboard />} />
           <Route path="/degen-calls" element={<DegenCallManagement />} />
           <Route path="/analyst-call-management" element={<AnalystCallManagement />} />
+          <Route path="/analyst-detection" element={<AnalystDetectionManagement />} />
           <Route path="/webhooks" element={<ComingSoonPlaceholder title="Webhook Management" description="Enterprise webhook orchestration and monitoring" />} />
           <Route path="/api-management" element={<ComingSoonPlaceholder title="API Management" description="Advanced API rate limiting, analytics, and security" />} />
           
