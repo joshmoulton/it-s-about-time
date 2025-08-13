@@ -87,7 +87,7 @@ const Dashboard = () => {
       
       return () => clearTimeout(timer);
     }
-  }, [isLoading, memoizedCurrentUser?.id, !!tourController]); // Convert tourController to boolean
+  }, [isLoading, memoizedCurrentUser?.id || '', !!tourController]); // Ensure id is never undefined
 
   if (isLoading) {
     return <DashboardLoader />;
