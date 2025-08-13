@@ -163,7 +163,7 @@ const PremiumPricingModal: React.FC<PremiumPricingModalProps> = ({
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="sm:max-w-4xl w-[95vw] max-h-[90vh] overflow-hidden">
+        <DialogContent className="fixed inset-4 z-[100] m-0 max-w-none w-auto h-auto max-h-[calc(100vh-2rem)] overflow-hidden rounded-lg">
           <div className="h-full overflow-y-auto p-6">
             <DialogHeader className="text-center pb-4">
               <DialogTitle className="text-2xl font-bold flex items-center justify-center gap-2">
