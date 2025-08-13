@@ -420,88 +420,68 @@ export class AnalystCallDetector {
     try {
       console.log('🎯 Processing degen command:', messageText);
 
-      // Parse degen command format: !degen [supporting] long|short TICKER [entry X] [stop Y] [target Z] [risk level]
-      const supportingFormat = /!degen\s+supporting\s+(long|short)\s+([A-Za-z0-9]+)(?:\s+(.+))?/i;
-      const directFormat = /!degen\s+(long|short)\s+([A-Za-z0-9]+)(?:\s+(.+))?/i;
+      // Parse degen command format: !degen long|short TICKER [params in any order]
+      const degenMatch = messageText.match(/!degen\s+(long|short)\s+([A-Za-z0-9]+)(?:\s+(.+))?/i);
       
-      let match = messageText.match(supportingFormat);
-      let isDirectFormat = false;
-      
-      if (!match) {
-        match = messageText.match(directFormat);
-        isDirectFormat = true;
-      }
-
-      if (!match) {
+      if (!degenMatch) {
         console.log('❌ Invalid degen command format');
         return null;
       }
 
-      let direction: string, ticker: string, additionalParams: string | undefined;
-      
-      if (isDirectFormat) {
-        [, direction, ticker, additionalParams] = match;
-      } else {
-        [, direction, ticker, additionalParams] = match;
-      }
-
-      ticker = ticker.toUpperCase();
-      console.log(`🎯 Parsed degen command: ${direction} ${ticker}`);
+      const [, direction, ticker, additionalParams] = degenMatch;
+      const tickerUpper = ticker.toUpperCase();
+      console.log(`🎯 Parsed degen command: ${direction} ${tickerUpper}`);
       console.log(`📝 Additional params: ${additionalParams}`);
 
       // Initialize variables
       let entryPrice: number | undefined;
       let stopLoss: number | undefined;
       let targets: number[] = [];
-      let riskLevel = 2.5; // Default risk
+      let sizeLevel = 'med'; // Default size
+      let riskLevel = 2.5; // Default risk percentage
 
       // Parse additional parameters if provided
       if (additionalParams) {
-        const params = additionalParams.trim();
+        const params = additionalParams.trim().toLowerCase();
         console.log(`🔍 Parsing params: "${params}"`);
         
-        // Look for entry price - matches "entry 3.47" or "entry: 3.47"
-        const entryMatch = params.match(/entry[:\s]+([0-9.]+)/i);
+        // Look for entry price - matches "entry 3.47"
+        const entryMatch = params.match(/entry\s+([0-9.]+)/i);
         if (entryMatch) {
           entryPrice = parseFloat(entryMatch[1]);
           console.log(`📊 Found entry price: ${entryPrice}`);
         }
 
-        // Look for stop loss - matches "stop 2.94" or "stop: 2.94"
-        const stopMatch = params.match(/stop[:\s]+([0-9.]+)/i);
+        // Look for stop loss - matches "stop 2.94"
+        const stopMatch = params.match(/stop\s+([0-9.]+)/i);
         if (stopMatch) {
           stopLoss = parseFloat(stopMatch[1]);
           console.log(`🛑 Found stop loss: ${stopLoss}`);
         }
 
-        // Look for targets - matches "target 4.28" or "targets: 4.28, 5.0"
-        const targetMatch = params.match(/targets?[:\s]+([0-9.,\s]+)/i);
+        // Look for targets - matches "target 4.28"
+        const targetMatch = params.match(/target\s+([0-9.]+)/i);
         if (targetMatch) {
-          targets = targetMatch[1]
-            .split(/[,\s]+/)
-            .map(t => parseFloat(t.trim()))
-            .filter(t => !isNaN(t));
-          console.log(`🎯 Found targets: ${targets}`);
+          targets = [parseFloat(targetMatch[1])];
+          console.log(`🎯 Found target: ${targets}`);
         }
 
-        // Look for risk level - matches "risk high" or "risk: 5%"
-        const riskMatch = params.match(/risk[:\s]+(high|medium|low|[0-9.]+%?)/i);
-        if (riskMatch) {
-          const riskValue = riskMatch[1].toLowerCase();
-          if (riskValue === 'high') {
-            riskLevel = 5.0;
-          } else if (riskValue === 'medium') {
-            riskLevel = 2.5;
-          } else if (riskValue === 'low') {
-            riskLevel = 1.0;
-          } else {
-            // Parse numeric risk
-            const numericRisk = parseFloat(riskValue.replace('%', ''));
-            if (!isNaN(numericRisk)) {
-              riskLevel = numericRisk;
-            }
+        // Look for size - matches "size high", "size med", etc.
+        const sizeMatch = params.match(/size\s+(tiny|low|med|high|huge)/i);
+        if (sizeMatch) {
+          sizeLevel = sizeMatch[1].toLowerCase();
+          console.log(`📏 Found size: ${sizeLevel}`);
+          
+          // Convert size to risk percentage
+          switch (sizeLevel) {
+            case 'tiny': riskLevel = 0.5; break;
+            case 'low': riskLevel = 1.0; break;
+            case 'med': riskLevel = 2.5; break;
+            case 'high': riskLevel = 5.0; break;
+            case 'huge': riskLevel = 10.0; break;
+            default: riskLevel = 2.5;
           }
-          console.log(`⚖️ Found risk level: ${riskLevel}`);
+          console.log(`⚖️ Converted to risk level: ${riskLevel}%`);
         }
       }
 
@@ -535,7 +515,7 @@ export class AnalystCallDetector {
         market: 'crypto' as any,
         trade_type: 'spot' as any,
         trade_direction: direction.toLowerCase() as any,
-        ticker: ticker,
+        ticker: tickerUpper,
         risk_percentage: riskLevel,
         entry_type: 'market' as any,
         entry_price: entryPrice,
