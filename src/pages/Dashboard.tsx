@@ -21,8 +21,6 @@ const DashboardContent = lazy(() =>
 );
 
 const Dashboard = () => {
-  useRenderTracker('Dashboard');
-  
   // Enable mobile performance optimizations
   useMobilePerformance();
   
@@ -64,28 +62,32 @@ const Dashboard = () => {
     metadata: memoizedCurrentUser.metadata || {}
   } : null;
 
-  // Simplified tour initialization without delays for admin users
-  const tourController = GuidedTourController({
-    subscriber: subscriberForComponents,
-    activeSection,
-    setActiveSection,
-  });
+  // Memoized tour controller to prevent re-initialization
+  const tourController = useMemo(() => {
+    if (!subscriberForComponents) return null;
+    return GuidedTourController({
+      subscriber: subscriberForComponents,
+      activeSection,
+      setActiveSection,
+    });
+  }, [subscriberForComponents?.id, activeSection]);
 
-  // Tour initialization - auto-start for all users unless they chose never show again
+  // Tour initialization - optimized to prevent multiple calls
   useEffect(() => {
-    if (!isLoading && memoizedCurrentUser && memoizedCurrentUser.user_type !== 'supabase_admin') {
-      const shouldShowTour = tourController.shouldShowOnboarding();
+    if (!isLoading && memoizedCurrentUser && tourController && 
+        memoizedCurrentUser.user_type !== 'supabase_admin') {
       
-      if (shouldShowTour) {
-        // Auto-start tour for all users who haven't opted out
-        const timer = setTimeout(() => {
+      // Debounce tour initialization to prevent multiple calls
+      const timer = setTimeout(() => {
+        const shouldShowTour = tourController.shouldShowOnboarding();
+        if (shouldShowTour) {
           tourController.startTour('dashboard');
-        }, 500);
-        
-        return () => clearTimeout(timer);
-      }
+        }
+      }, 100); // Reduced delay
+      
+      return () => clearTimeout(timer);
     }
-  }, [isLoading, memoizedCurrentUser?.user_type]);
+  }, [isLoading, memoizedCurrentUser?.id, tourController]); // More specific dependencies
 
   if (isLoading) {
     return <DashboardLoader />;
@@ -95,11 +97,7 @@ const Dashboard = () => {
     return <DashboardLoader />;
   }
 
-  console.log('🎨 Dashboard CSS Debug:', {
-    brandNavy: getComputedStyle(document.documentElement).getPropertyValue('--brand-navy'),
-    background: getComputedStyle(document.documentElement).getPropertyValue('--background'),
-    isDarkMode: document.documentElement.classList.contains('dark')
-  });
+  // Remove debug logging in production for better performance
   
   return (
     <div className="min-h-screen flex flex-col w-full relative" style={{ backgroundColor: 'hsl(0 0% 3%)' }}>
@@ -128,7 +126,7 @@ const Dashboard = () => {
       <div className="relative" style={{ zIndex: 30 }}>
         <TopNavigation 
           subscriber={subscriberForComponents!} 
-          onStartTour={() => tourController.startTour('dashboard')}
+          onStartTour={() => tourController?.startTour('dashboard')}
         />
       </div>
       
@@ -156,8 +154,8 @@ const Dashboard = () => {
             <DashboardContent 
               subscriber={subscriberForComponents!} 
               activeSection={activeSection}
-              onStartTour={tourController.startTour}
-              onForceRestartTour={tourController.forceRestartTour}
+              onStartTour={tourController?.startTour}
+              onForceRestartTour={tourController?.forceRestartTour}
             />
           </LazyLoadWrapper>
         </VirtualizedWrapper>
@@ -165,7 +163,7 @@ const Dashboard = () => {
       
       {/* Tour component - z-index: 40 */}
       <div style={{ zIndex: 40 }}>
-        {tourController.tourComponent}
+        {tourController?.tourComponent}
       </div>
     </div>
   );
