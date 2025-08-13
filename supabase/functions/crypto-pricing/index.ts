@@ -119,6 +119,7 @@ const TICKER_TO_COINGECKO_ID: Record<string, string> = {
   'HOGE': 'hoge-finance',
   'SAFEMOON': 'safemoon',
   'BABYDOGE': 'baby-doge-coin',
+  'FART': 'fartcoin',
   
   // Solana ecosystem
   'JUP': 'jupiter-exchange-solana',
