@@ -249,9 +249,9 @@
   
   /* iOS specific fixes */
   .ios body {
-    /* Use CSS custom properties for viewport height */
-    height: 100vh;
-    height: calc(var(--vh, 1vh) * 100);
+    /* Use CSS custom properties for viewport height without locking scroll */
+    min-height: 100vh;
+    min-height: calc(var(--vh, 1vh) * 100);
     -webkit-overflow-scrolling: touch;
     -webkit-text-size-adjust: 100%;
   }
