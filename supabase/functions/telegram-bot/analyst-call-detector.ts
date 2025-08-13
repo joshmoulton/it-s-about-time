@@ -31,6 +31,11 @@ export class AnalystCallDetector {
         return await this.handleCloseCommand(messageText, chatId, telegramMessageId, username);
       }
 
+      // Check if this is a degen command
+      if (messageText.trim().toLowerCase().match(/^!degen\s+/)) {
+        return await this.handleDegenCommand(messageText, chatId, telegramMessageId, username);
+      }
+
       // Get channel configuration for regular analyst calls
       const channelConfig = await this.getChannelConfig(chatId);
       if (!channelConfig?.isMonitoringEnabled) {
@@ -409,5 +414,167 @@ export class AnalystCallDetector {
       console.error('❌ Error handling close command:', error);
       return null;
     }
+  }
+
+  private async handleDegenCommand(messageText: string, chatId: string, telegramMessageId: string, username?: string): Promise<AnalystCallDetection | null> {
+    try {
+      console.log('🎯 Processing degen command:', messageText);
+
+      // Parse degen command format: !degen [supporting] long|short TICKER [entry] [stop] [target]
+      const supportingFormat = /!degen\s+supporting\s+(long|short)\s+([A-Za-z0-9]+)(?:\s+(.+))?/i;
+      const directFormat = /!degen\s+(long|short)\s+([A-Za-z0-9]+)(?:\s+entry\s+([0-9.]+))?(?:\s+stop\s+([0-9.]+))?(?:\s+target\s+([0-9.]+))?(?:\s+(.+))?/i;
+      
+      let match = messageText.match(supportingFormat);
+      let isDirectFormat = false;
+      
+      if (!match) {
+        match = messageText.match(directFormat);
+        isDirectFormat = true;
+      }
+
+      if (!match) {
+        console.log('❌ Invalid degen command format');
+        return null;
+      }
+
+      let direction: string, ticker: string, entryPrice: string | undefined, additionalParams: string | undefined;
+      
+      if (isDirectFormat) {
+        [, direction, ticker, entryPrice, , , additionalParams] = match;
+      } else {
+        [, direction, ticker, additionalParams] = match;
+      }
+
+      ticker = ticker.toUpperCase();
+      console.log(`🎯 Parsed degen command: ${direction} ${ticker}`);
+
+      // Parse additional parameters
+      let stopLoss: number | undefined;
+      let targets: number[] = [];
+      let riskLevel = 2.5; // Default risk
+
+      if (additionalParams) {
+        const params = additionalParams.toLowerCase();
+        
+        // Look for entry price if not already set
+        if (!entryPrice) {
+          const entryMatch = params.match(/entry[:\s]+([0-9.]+)/);
+          if (entryMatch) {
+            entryPrice = entryMatch[1];
+          }
+        }
+
+        // Look for stop loss
+        const stopMatch = params.match(/stop[:\s]+([0-9.]+)/);
+        if (stopMatch) {
+          stopLoss = parseFloat(stopMatch[1]);
+        }
+
+        // Look for targets
+        const targetMatch = params.match(/target[s]?[:\s]+([0-9.,\s]+)/);
+        if (targetMatch) {
+          targets = targetMatch[1]
+            .split(/[,\s]+/)
+            .map(t => parseFloat(t.trim()))
+            .filter(t => !isNaN(t));
+        }
+      }
+
+      // Fetch current price if no entry price provided
+      let currentPrice: number | undefined;
+      if (!entryPrice) {
+        try {
+          console.log(`💰 Fetching current price for ${ticker}...`);
+          const { data, error } = await this.supabase.functions.invoke('crypto-pricing', {
+            body: { 
+              action: 'fetch_prices',
+              tickers: [ticker] 
+            }
+          });
+
+          if (!error && data?.success && data?.prices?.length > 0) {
+            currentPrice = data.prices[0].price;
+            entryPrice = currentPrice.toString();
+            console.log(`✅ Fetched current price for ${ticker}: $${currentPrice}`);
+          } else {
+            console.error(`❌ Could not fetch price for ${ticker}:`, error);
+          }
+        } catch (priceError) {
+          console.error(`❌ Error fetching price for ${ticker}:`, priceError);
+        }
+      }
+
+      // Create analyst signal
+      const signalData = {
+        analyst_name: username || 'Degen Caller',
+        market: 'crypto' as any,
+        trade_type: 'spot' as any,
+        trade_direction: direction.toLowerCase() as any,
+        ticker: ticker,
+        risk_percentage: riskLevel,
+        entry_type: 'market' as any,
+        entry_price: entryPrice ? parseFloat(entryPrice) : undefined,
+        risk_management: 'stop_loss' as any,
+        stop_loss_price: stopLoss,
+        targets: targets.map(t => t.toString()),
+        full_description: `Degen call for ${ticker} ${direction}`,
+        formatted_output: this.generateFormattedOutput(ticker, direction, entryPrice, stopLoss, targets, currentPrice),
+        status: 'active',
+        posted_to_telegram: false
+      };
+
+      console.log('📊 Creating analyst signal:', signalData);
+
+      const { data: signal, error: signalError } = await this.supabase
+        .from('analyst_signals')
+        .insert(signalData)
+        .select()
+        .single();
+
+      if (signalError || !signal) {
+        console.error('❌ Error creating analyst signal:', signalError);
+        return null;
+      }
+
+      console.log('✅ Degen signal created:', signal.id);
+
+      // Trigger notification
+      await this.triggerDegenCallNotification(signal.id);
+
+      return {
+        patternId: 'degen-command',
+        extractedData: {
+          ticker,
+          direction,
+          entryPrice: entryPrice ? parseFloat(entryPrice) : undefined,
+          stopLoss,
+          targets,
+          currentPrice,
+          signalId: signal.id
+        },
+        confidenceScore: 1.0,
+        requiresReview: false
+      };
+
+    } catch (error) {
+      console.error('❌ Error handling degen command:', error);
+      return null;
+    }
+  }
+
+  private generateFormattedOutput(ticker: string, direction: string, entryPrice?: string, stopLoss?: number, targets?: number[], currentPrice?: number): string {
+    const entryDisplay = entryPrice || 'Market';
+    const stopDisplay = stopLoss?.toString() || 'N/A';
+    const targetsDisplay = targets && targets.length > 0 ? targets.join(', ') : 'N/A';
+
+    return `MARKET: CRYPTO ${ticker} SPOT ${direction.toUpperCase()}
+
+Entry: ${entryDisplay}${currentPrice ? ' (Current Price)' : ''}
+Invalidation: ${stopDisplay}
+Targets: ${targetsDisplay}
+
+Risk: 2.5%
+
+Degen call for ${ticker} ${direction}`;
   }
 }
