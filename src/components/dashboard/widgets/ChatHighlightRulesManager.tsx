@@ -14,7 +14,7 @@ interface ChatHighlightRulesManagerProps {
   isAdmin?: boolean;
 }
 
-type RuleType = 'user' | 'keyword' | 'topic' | 'engagement' | 'time';
+type RuleType = 'user' | 'keyword' | 'topic' | 'engagement' | 'time' | 'ai_sentiment' | 'ai_importance';
 
 interface RuleConfigMap {
   user: { username?: string; user_id?: string; first_name?: string };
@@ -22,6 +22,8 @@ interface RuleConfigMap {
   topic: { topic_name?: string };
   engagement: { min_likes?: number };
   time: { start_hour?: number; end_hour?: number };
+  ai_sentiment: { sentiment_type?: 'bullish' | 'bearish' | 'neutral'; confidence_threshold?: number };
+  ai_importance: { min_importance_score?: number; topic_keywords?: string[] };
 }
 
 export function ChatHighlightRulesManager({ isAdmin = false }: ChatHighlightRulesManagerProps) {
@@ -50,6 +52,8 @@ export function ChatHighlightRulesManager({ isAdmin = false }: ChatHighlightRule
     { value: 'keyword' as const, label: 'Keyword-based' },
     { value: 'topic' as const, label: 'Topic-based' },
     { value: 'engagement' as const, label: 'Engagement-based' },
+    { value: 'ai_sentiment' as const, label: 'AI Sentiment-based' },
+    { value: 'ai_importance' as const, label: 'AI Importance-based' },
   ];
 
   const priorityLabels = {
@@ -180,6 +184,75 @@ export function ChatHighlightRulesManager({ isAdmin = false }: ChatHighlightRule
               onChange={(e) => updateRuleConfig('min_likes', parseInt(e.target.value) || 0)}
               placeholder="Minimum number of likes"
             />
+          </div>
+        );
+      case 'ai_sentiment':
+        return (
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="sentiment_type">Sentiment Type</Label>
+              <Select
+                value={(formData.rule_config as RuleConfigMap['ai_sentiment']).sentiment_type || 'bullish'}
+                onValueChange={(value) => updateRuleConfig('sentiment_type', value)}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="bullish">Bullish</SelectItem>
+                  <SelectItem value="bearish">Bearish</SelectItem>
+                  <SelectItem value="neutral">Neutral</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="confidence_threshold">Confidence Threshold (%)</Label>
+              <Input
+                id="confidence_threshold"
+                type="number"
+                min="50"
+                max="100"
+                value={(formData.rule_config as RuleConfigMap['ai_sentiment']).confidence_threshold || 80}
+                onChange={(e) => updateRuleConfig('confidence_threshold', parseInt(e.target.value) || 80)}
+                placeholder="Minimum confidence percentage"
+              />
+            </div>
+            <div className="p-3 bg-muted/50 rounded-lg">
+              <p className="text-sm text-muted-foreground">
+                💡 Highlights messages where AI detects the specified sentiment with high confidence
+              </p>
+            </div>
+          </div>
+        );
+      case 'ai_importance':
+        return (
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="min_importance_score">Minimum Importance Score</Label>
+              <Input
+                id="min_importance_score"
+                type="number"
+                min="1"
+                max="10"
+                value={(formData.rule_config as RuleConfigMap['ai_importance']).min_importance_score || 7}
+                onChange={(e) => updateRuleConfig('min_importance_score', parseInt(e.target.value) || 7)}
+                placeholder="AI importance score (1-10)"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="topic_keywords">Topic Keywords (optional)</Label>
+              <Input
+                id="topic_keywords"
+                value={(formData.rule_config as RuleConfigMap['ai_importance']).topic_keywords?.join(', ') || ''}
+                onChange={(e) => updateRuleConfig('topic_keywords', e.target.value.split(',').map(k => k.trim()).filter(k => k))}
+                placeholder="bitcoin, ethereum, trading (comma-separated)"
+              />
+            </div>
+            <div className="p-3 bg-muted/50 rounded-lg">
+              <p className="text-sm text-muted-foreground">
+                💡 Highlights messages with high AI-determined importance. Optional keywords filter by topic.
+              </p>
+            </div>
           </div>
         );
       default:

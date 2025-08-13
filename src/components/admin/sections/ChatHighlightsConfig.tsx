@@ -6,10 +6,11 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Trash2, TrendingUp, Brain, Save, Loader2, Settings } from 'lucide-react';
+import { Plus, Trash2, TrendingUp, Brain, Save, Loader2, Settings, Zap, MessageSquare } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 export function ChatHighlightsConfig() {
   const { toast } = useToast();
@@ -25,7 +26,15 @@ export function ChatHighlightsConfig() {
     timeWindowHours: 6,
     maxHighlights: 8,
     sentimentEnabled: true,
-    sentimentUpdateInterval: 300000 // 5 minutes
+    sentimentUpdateInterval: 300000, // 5 minutes
+    aiAnalysisEnabled: true,
+    openaiApiKey: '',
+    llmModel: 'gpt-4o-mini',
+    analysisPrompt: 'Analyze this Telegram message for trading sentiment, importance, and key topics. Rate sentiment as bullish/bearish/neutral and assign importance score 1-10.',
+    aiSentimentWeight: 80, // Weight given to AI sentiment vs keyword-based
+    autoHighlightThreshold: 7, // Auto-highlight messages with AI importance score >= 7
+    contextAnalysis: true, // Analyze previous messages for context
+    contextWindow: 5 // Number of previous messages to include for context
   });
 
   // Load existing configuration
@@ -154,6 +163,10 @@ export function ChatHighlightsConfig() {
           <TabsTrigger value="sentiment" className="flex items-center gap-2 data-[state=active]:bg-slate-700 data-[state=active]:text-white">
             <Brain className="h-4 w-4" />
             AI Sentiment
+          </TabsTrigger>
+          <TabsTrigger value="llm-analysis" className="flex items-center gap-2 data-[state=active]:bg-slate-700 data-[state=active]:text-white">
+            <Zap className="h-4 w-4" />
+            LLM Analysis
           </TabsTrigger>
           <TabsTrigger value="python-bot" className="flex items-center gap-2 data-[state=active]:bg-slate-700 data-[state=active]:text-white">
             <Settings className="h-4 w-4" />
@@ -296,6 +309,153 @@ export function ChatHighlightsConfig() {
                 <p className="text-sm text-slate-400">
                   Current: {Math.floor(config.sentimentUpdateInterval / 1000 / 60)} minutes
                 </p>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="llm-analysis" className="space-y-4">
+          <Card className="bg-slate-800 border-slate-700">
+            <CardHeader>
+              <CardTitle className="text-white">OpenAI LLM Analysis</CardTitle>
+              <CardDescription className="text-slate-400">
+                Configure OpenAI integration for advanced message analysis and intelligent highlighting
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center justify-between">
+                <Label htmlFor="aiAnalysisEnabled" className="text-slate-300">Enable AI Analysis</Label>
+                <Switch
+                  id="aiAnalysisEnabled"
+                  checked={config.aiAnalysisEnabled}
+                  onCheckedChange={(checked) => setConfig({...config, aiAnalysisEnabled: checked})}
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="openaiApiKey" className="text-slate-300">OpenAI API Key</Label>
+                  <Input
+                    id="openaiApiKey"
+                    type="password"
+                    value={config.openaiApiKey}
+                    onChange={(e) => setConfig({...config, openaiApiKey: e.target.value})}
+                    placeholder="sk-..."
+                    className="bg-slate-700 border-slate-600 text-white placeholder:text-slate-500"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="llmModel" className="text-slate-300">LLM Model</Label>
+                  <Select value={config.llmModel} onValueChange={(value) => setConfig({...config, llmModel: value})}>
+                    <SelectTrigger className="bg-slate-700 border-slate-600 text-white">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="bg-slate-700 border-slate-600">
+                      <SelectItem value="gpt-4o-mini" className="text-white">GPT-4o Mini (Fast & Cost-effective)</SelectItem>
+                      <SelectItem value="gpt-4o" className="text-white">GPT-4o (Enhanced Analysis)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="analysisPrompt" className="text-slate-300">Analysis Prompt</Label>
+                <textarea
+                  id="analysisPrompt"
+                  value={config.analysisPrompt}
+                  onChange={(e) => setConfig({...config, analysisPrompt: e.target.value})}
+                  rows={3}
+                  className="w-full p-3 bg-slate-700 border border-slate-600 rounded-md text-white placeholder:text-slate-500 resize-none"
+                  placeholder="Customize how the AI analyzes messages..."
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="aiSentimentWeight" className="text-slate-300">AI Sentiment Weight (%)</Label>
+                  <Input
+                    id="aiSentimentWeight"
+                    type="number"
+                    min="0"
+                    max="100"
+                    value={config.aiSentimentWeight}
+                    onChange={(e) => setConfig({...config, aiSentimentWeight: parseInt(e.target.value)})}
+                    className="bg-slate-700 border-slate-600 text-white"
+                  />
+                  <p className="text-xs text-slate-400">Weight vs keyword-based sentiment</p>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="autoHighlightThreshold" className="text-slate-300">Auto-Highlight Threshold</Label>
+                  <Input
+                    id="autoHighlightThreshold"
+                    type="number"
+                    min="1"
+                    max="10"
+                    value={config.autoHighlightThreshold}
+                    onChange={(e) => setConfig({...config, autoHighlightThreshold: parseInt(e.target.value)})}
+                    className="bg-slate-700 border-slate-600 text-white"
+                  />
+                  <p className="text-xs text-slate-400">Importance score to auto-highlight</p>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="contextWindow" className="text-slate-300">Context Window</Label>
+                  <Input
+                    id="contextWindow"
+                    type="number"
+                    min="0"
+                    max="20"
+                    value={config.contextWindow}
+                    onChange={(e) => setConfig({...config, contextWindow: parseInt(e.target.value)})}
+                    className="bg-slate-700 border-slate-600 text-white"
+                  />
+                  <p className="text-xs text-slate-400">Previous messages for context</p>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between">
+                <Label htmlFor="contextAnalysis" className="text-slate-300">Enable Context Analysis</Label>
+                <Switch
+                  id="contextAnalysis"
+                  checked={config.contextAnalysis}
+                  onCheckedChange={(checked) => setConfig({...config, contextAnalysis: checked})}
+                />
+              </div>
+
+              <div className="p-4 bg-slate-700/50 rounded-lg border border-slate-600">
+                <h4 className="font-medium text-white mb-2 flex items-center gap-2">
+                  <MessageSquare className="h-4 w-4" />
+                  AI Analysis Features
+                </h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                      <span className="text-slate-300">Sentiment Analysis</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                      <span className="text-slate-300">Topic Extraction</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                      <span className="text-slate-300">Importance Scoring</span>
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+                      <span className="text-slate-300">Context Understanding</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+                      <span className="text-slate-300">Signal Detection</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+                      <span className="text-slate-300">Auto-Highlighting</span>
+                    </div>
+                  </div>
+                </div>
               </div>
             </CardContent>
           </Card>

@@ -6,7 +6,7 @@ import { useToast } from '@/hooks/use-toast';
 export interface ChatHighlightRule {
   id: string;
   rule_name: string;
-  rule_type: 'user' | 'keyword' | 'topic' | 'engagement' | 'time';
+  rule_type: 'user' | 'keyword' | 'topic' | 'engagement' | 'time' | 'ai_sentiment' | 'ai_importance';
   rule_config: Record<string, any>;
   priority: number;
   is_active: boolean;
