@@ -163,16 +163,17 @@ const PremiumPricingModal: React.FC<PremiumPricingModalProps> = ({
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="w-full max-w-none h-full max-h-[95vh] p-4 sm:p-6 lg:p-8 xl:p-12 overflow-y-auto">
-          <DialogHeader className="text-center pb-4">
-            <DialogTitle className="text-2xl font-bold flex items-center justify-center gap-2">
-              <Sparkles className="h-6 w-6 text-primary" />
-              Upgrade to Premium
-            </DialogTitle>
-            <DialogDescription className="text-sm">
-              Choose your premium subscription plan and unlock all features
-            </DialogDescription>
-          </DialogHeader>
+        <DialogContent className="fixed inset-4 z-[100] m-0 max-w-none w-auto h-auto max-h-[calc(100vh-2rem)] overflow-hidden rounded-lg">
+          <div className="h-full overflow-y-auto p-6">
+            <DialogHeader className="text-center pb-4">
+              <DialogTitle className="text-2xl font-bold flex items-center justify-center gap-2">
+                <Sparkles className="h-6 w-6 text-primary" />
+                Upgrade to Premium
+              </DialogTitle>
+              <DialogDescription className="text-sm">
+                Choose your premium subscription plan and unlock all features
+              </DialogDescription>
+            </DialogHeader>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6 lg:gap-8">
             {/* Pricing Plans Section */}
@@ -306,6 +307,7 @@ const PremiumPricingModal: React.FC<PremiumPricingModalProps> = ({
                 </div>
               </div>
             </div>
+          </div>
           </div>
         </DialogContent>
       </Dialog>
