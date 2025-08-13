@@ -37,7 +37,23 @@ export function useDegenCallSubscription() {
       const { data, error } = await supabase.rpc('get_current_user_email_optimized');
       if (error) throw error;
       return data;
-    } catch {
+    } catch (error) {
+      console.error('Error getting current user email:', error);
+      return null;
+    }
+  };
+
+  const debugAuthContext = async () => {
+    try {
+      const { data, error } = await supabase.rpc('debug_degen_subscription_access');
+      if (error) {
+        console.error('Debug auth context error:', error);
+      } else {
+        console.log('🔍 Auth Debug Info:', data);
+      }
+      return data;
+    } catch (error) {
+      console.error('Failed to debug auth context:', error);
       return null;
     }
   };
@@ -46,8 +62,16 @@ export function useDegenCallSubscription() {
   const { data: subscription, isLoading: subscriptionLoading, error: subscriptionError } = useQuery({
     queryKey: ['degen-call-subscription'],
     queryFn: async (): Promise<DegenCallSubscription | null> => {
+      // Debug authentication context first
+      const debugInfo = await debugAuthContext();
+      
       const userEmail = await getCurrentUserEmail();
-      if (!userEmail) return null;
+      console.log('🔍 Getting subscription for email:', userEmail);
+      
+      if (!userEmail) {
+        console.log('❌ No user email found, returning null');
+        return null;
+      }
 
       const { data, error } = await supabase
         .from('degen_call_subscriptions')
@@ -58,21 +82,34 @@ export function useDegenCallSubscription() {
         .maybeSingle();
 
       if (error) {
+        console.error('❌ Subscription query error:', error);
+        console.log('🔍 Debug info when error occurred:', debugInfo);
+        
         // Translate RLS errors to user-friendly messages
         if (error.message.includes('violates row-level security policy')) {
-          throw new Error('Access denied. Please ensure you are properly authenticated.');
+          throw new Error('Access denied. Please refresh the page and try again.');
+        }
+        if (error.code === '42501') { // Permission denied
+          throw new Error('Access denied. Please refresh the page and try again.');
         }
         throw new Error('Failed to load subscription settings. Please try again.');
       }
       
+      console.log('✅ Subscription data loaded:', data);
       return data;
     },
     staleTime: 1000 * 60 * 5, // 5 minutes
     retry: (failureCount, error: any) => {
-      // Don't retry RLS errors
-      if (error?.message?.includes('Access denied')) return false;
+      console.log(`🔄 Retry attempt ${failureCount} for error:`, error?.message);
+      // Don't retry RLS/permission errors
+      if (error?.message?.includes('Access denied') || 
+          error?.message?.includes('permission denied') ||
+          error?.code === '42501') {
+        return false;
+      }
       return failureCount < 2;
-    }
+    },
+    refetchOnWindowFocus: false, // Prevent unnecessary refetches
   });
 
   // Get recent notifications

@@ -3850,6 +3850,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: Json
       }
+      debug_degen_subscription_access: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
       debug_user_auth_status: {
         Args: Record<PropertyKey, never>
         Returns: Json
