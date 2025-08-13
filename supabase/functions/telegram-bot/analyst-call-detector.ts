@@ -420,15 +420,31 @@ export class AnalystCallDetector {
     try {
       console.log('🎯 Processing degen command:', messageText);
 
-      // Parse degen command format: !degen long|short TICKER [params in any order]
-      const degenMatch = messageText.match(/!degen\s+(long|short)\s+([A-Za-z0-9]+)(?:\s+(.+))?/i);
+      // Parse degen command format: !degen [direction] TICKER [params in any order]
+      // Also support: !degen TICKER [direction] [params]
+      const degenMatch = messageText.match(/!degen\s+(?:(long|short)\s+([A-Za-z0-9]+)|([A-Za-z0-9]+)\s*(?:(long|short))?)(?:\s+(.+))?/i);
       
       if (!degenMatch) {
         console.log('❌ Invalid degen command format');
         return null;
       }
 
-      const [, direction, ticker, additionalParams] = degenMatch;
+      let direction: string, ticker: string, additionalParams: string | undefined;
+      
+      if (degenMatch[1] && degenMatch[2]) {
+        // Format: !degen long/short TICKER [params]
+        direction = degenMatch[1];
+        ticker = degenMatch[2];
+        additionalParams = degenMatch[5];
+      } else if (degenMatch[3]) {
+        // Format: !degen TICKER [direction] [params]
+        ticker = degenMatch[3];
+        direction = degenMatch[4] || 'long'; // Default to long
+        additionalParams = degenMatch[5];
+      } else {
+        console.log('❌ Could not parse degen command structure');
+        return null;
+      }
       const tickerUpper = ticker.toUpperCase();
       console.log(`🎯 Parsed degen command: ${direction} ${tickerUpper}`);
       console.log(`📝 Additional params: ${additionalParams}`);
