@@ -49,7 +49,7 @@ const Dashboard = () => {
   }, [sectionFromUrl, isContentRoute]);
 
   // Memoize currentUser to prevent unnecessary re-renders
-  const memoizedCurrentUser = useMemo(() => currentUser, [currentUser?.id, currentUser?.email, currentUser?.metadata]);
+  const memoizedCurrentUser = useMemo(() => currentUser, [currentUser?.id || '', currentUser?.email || '', JSON.stringify(currentUser?.metadata || {})]);
   
   // Convert currentUser to subscriber format for components that expect it
   const subscriberForComponents = memoizedCurrentUser ? {
@@ -70,7 +70,7 @@ const Dashboard = () => {
       activeSection,
       setActiveSection,
     });
-  }, [subscriberForComponents?.id, activeSection]);
+  }, [subscriberForComponents?.id || '', activeSection || '']);
 
   // Tour initialization - optimized to prevent multiple calls
   useEffect(() => {
