@@ -127,7 +127,7 @@ export function UserProfileSection() {
 
       // Upload to Supabase storage
       const { error: uploadError } = await supabase.storage
-        .from('assets')
+        .from('avatars')
         .upload(filePath, file, {
           cacheControl: '3600',
           upsert: false
@@ -139,7 +139,7 @@ export function UserProfileSection() {
 
       // Get public URL
       const { data: urlData } = supabase.storage
-        .from('assets')
+        .from('avatars')
         .getPublicUrl(filePath);
 
       // Update form data
