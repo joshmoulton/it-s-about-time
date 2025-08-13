@@ -42,6 +42,29 @@ export async function createTopicMapping(
   }
 }
 
+export async function getMappingByTopicId(
+  telegramTopicId: number,
+  supabase: ReturnType<typeof createClient>
+): Promise<{ custom_name: string; is_active: boolean } | null> {
+  try {
+    const { data, error } = await supabase
+      .from('telegram_topic_mappings')
+      .select('custom_name, is_active')
+      .eq('telegram_topic_id', telegramTopicId)
+      .maybeSingle();
+
+    if (error) {
+      console.error('Error fetching topic mapping:', error);
+      return null;
+    }
+
+    return data;
+  } catch (error) {
+    console.error('Error in getMappingByTopicId:', error);
+    return null;
+  }
+}
+
 export async function getTopicMappings(
   supabase: ReturnType<typeof createClient>
 ): Promise<any[]> {

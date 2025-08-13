@@ -1,4 +1,5 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { getMappingByTopicId } from './enhanced-topic-manager.ts';
 
 const TARGET_CHAT_ID = -1002083186778;
 
@@ -30,7 +31,8 @@ export async function processAndInsertMessageImproved(
         message.message_thread_id,
         message.chat.id,
         supabase,
-        message.text || message.caption
+        message.text || message.caption,
+        message.topic_name  // Pass the payload topic name
       );
     }
 
@@ -100,53 +102,48 @@ async function ensureTopicExistsImproved(
   threadId: number,
   chatId: number,
   supabase: ReturnType<typeof createClient>,
-  messageText?: string
+  messageText?: string,
+  payloadTopicName?: string
 ): Promise<string | null> {
   try {
-    // Check for custom mapping first
-    const { data: mapping } = await supabase
-      .from('telegram_topic_mappings')
-      .select('custom_name')
-      .eq('telegram_topic_id', threadId)
-      .eq('is_active', true)
-      .maybeSingle();
+    console.log(`🔍 Resolving topic for thread ID: ${threadId}, payload: ${payloadTopicName}`);
+    
+    // Implement new precedence: mapping (if active) → payload name → fallback
+    const mapping = await getMappingByTopicId(threadId, supabase);
+    
+    const topicName = 
+      (mapping?.is_active && mapping?.custom_name) ??
+      payloadTopicName ??
+      `Topic ${threadId}`;
 
-    if (mapping) {
-      console.log(`📝 Found custom mapping: ${mapping.custom_name}`);
-      return mapping.custom_name;
-    }
+    console.log(`📝 Topic resolved: ${topicName} (mapping: ${mapping?.custom_name || 'none'}, payload: ${payloadTopicName || 'none'})`);
 
-    // Check if topic exists in telegram_topics
+    // Ensure topic exists in telegram_topics table
     const { data: existingTopic } = await supabase
       .from('telegram_topics')
       .select('name')
       .eq('telegram_topic_id', threadId)
       .maybeSingle();
 
-    if (existingTopic) {
-      return existingTopic.name;
+    if (!existingTopic) {
+      // Insert new topic
+      const { error: topicError } = await supabase
+        .from('telegram_topics')
+        .insert({
+          telegram_topic_id: threadId,
+          name: topicName,
+          last_activity_at: new Date().toISOString(),
+          message_count: 1
+        });
+
+      if (topicError) {
+        console.error('❌ Error creating topic:', topicError);
+      } else {
+        console.log(`✅ Created new topic: ${topicName}`);
+      }
     }
 
-    // Create a default topic name
-    const defaultName = `Topic ${threadId}`;
-    
-    // Insert new topic
-    const { error: topicError } = await supabase
-      .from('telegram_topics')
-      .insert({
-        telegram_topic_id: threadId,
-        name: defaultName,
-        last_activity_at: new Date().toISOString(),
-        message_count: 1
-      });
-
-    if (topicError) {
-      console.error('❌ Error creating topic:', topicError);
-      return defaultName; // Return the name even if insert fails
-    }
-
-    console.log(`✅ Created new topic: ${defaultName}`);
-    return defaultName;
+    return topicName;
 
   } catch (error) {
     console.error('❌ Error in ensureTopicExistsImproved:', error);
