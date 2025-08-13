@@ -542,8 +542,9 @@ export class AnalystCallDetector {
 
       console.log('✅ Degen signal created:', signal.id);
 
-      // Trigger notification
-      await this.triggerDegenCallNotification(signal.id);
+      // Trigger notification and update posted_to_telegram flag
+      const notificationResult = await this.triggerDegenCallNotification(signal.id);
+      console.log('📱 Notification result:', notificationResult);
 
       return {
         patternId: 'degen-command',

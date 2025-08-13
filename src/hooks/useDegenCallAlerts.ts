@@ -67,11 +67,10 @@ export function useDegenCallAlerts(limit = 10) {
     queryKey: ['degenCallAlerts', limit],
     queryFn: async () => {
       console.log('Fetching degen calls from database...');
-      // Fetch latest active, posted signals with all needed fields
+      // Fetch latest active signals - for degen calls, show regardless of posted_to_telegram status
       const { data, error } = await supabase
         .from('analyst_signals')
         .select('id, ticker, entry_price, trade_direction, entry_type, created_at, status, posted_to_telegram, stop_loss_price, targets, risk_percentage, risk_management, analyst_name')
-        .eq('posted_to_telegram', true)
         .eq('status', 'active')
         .order('created_at', { ascending: false })
         .limit(limit);
