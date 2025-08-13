@@ -139,12 +139,7 @@ export function ProfileDropdown({ subscriber, onStartTour, onLogout }: ProfileDr
           <User className="mr-2 h-4 w-4" />
           <span>Account Settings</span>
         </DropdownMenuItem>
-        {onStartTour && (subscriber?.subscription_tier === 'paid' || subscriber?.subscription_tier === 'premium') && (
-          <DropdownMenuItem onClick={handleTakeTour} className="cursor-pointer">
-            <HelpCircle className="mr-2 h-4 w-4" />
-            <span>Take Tour</span>
-          </DropdownMenuItem>
-        )}
+        {/* Tour disabled via feature flag */}
         {subscriber?.subscription_tier === 'free' && (
           <>
             <DropdownMenuSeparator />

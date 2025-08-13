@@ -21,6 +21,9 @@ const DashboardContent = lazy(() =>
 );
 
 const Dashboard = () => {
+  // Feature flag to disable tour functionality
+  const TOUR_ENABLED = false;
+  
   useRenderTracker('Dashboard');
   
   // Enable mobile performance optimizations
@@ -65,14 +68,16 @@ const Dashboard = () => {
   } : null;
 
   // Simplified tour initialization without delays for admin users
-  const tourController = GuidedTourController({
+  const tourController = TOUR_ENABLED ? GuidedTourController({
     subscriber: subscriberForComponents,
     activeSection,
     setActiveSection,
-  });
+  }) : null;
 
   // Tour initialization - auto-start for all users unless they chose never show again
   useEffect(() => {
+    if (!TOUR_ENABLED || !tourController) return;
+    
     if (!isLoading && memoizedCurrentUser && memoizedCurrentUser.user_type !== 'supabase_admin') {
       const shouldShowTour = tourController.shouldShowOnboarding();
       
@@ -85,7 +90,7 @@ const Dashboard = () => {
         return () => clearTimeout(timer);
       }
     }
-  }, [isLoading, memoizedCurrentUser?.user_type]);
+  }, [isLoading, memoizedCurrentUser?.user_type, TOUR_ENABLED, tourController]);
 
   if (isLoading) {
     return <DashboardLoader />;
@@ -128,7 +133,7 @@ const Dashboard = () => {
       <div className="relative" style={{ zIndex: 30 }}>
         <TopNavigation 
           subscriber={subscriberForComponents!} 
-          onStartTour={() => tourController.startTour('dashboard')}
+          onStartTour={TOUR_ENABLED && tourController ? () => tourController.startTour('dashboard') : undefined}
         />
       </div>
       
@@ -156,17 +161,19 @@ const Dashboard = () => {
             <DashboardContent 
               subscriber={subscriberForComponents!} 
               activeSection={activeSection}
-              onStartTour={tourController.startTour}
-              onForceRestartTour={tourController.forceRestartTour}
+              onStartTour={TOUR_ENABLED && tourController ? tourController.startTour : undefined}
+              onForceRestartTour={TOUR_ENABLED && tourController ? tourController.forceRestartTour : undefined}
             />
           </LazyLoadWrapper>
         </VirtualizedWrapper>
       </div>
       
       {/* Tour component - z-index: 40 */}
-      <div style={{ zIndex: 40 }}>
-        {tourController.tourComponent}
-      </div>
+      {TOUR_ENABLED && tourController && (
+        <div style={{ zIndex: 40 }}>
+          {tourController.tourComponent}
+        </div>
+      )}
     </div>
   );
 };

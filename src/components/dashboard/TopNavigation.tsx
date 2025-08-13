@@ -24,7 +24,7 @@ interface Subscriber {
 
 interface TopNavigationProps {
   subscriber: Subscriber;
-  onStartTour: () => void;
+  onStartTour?: () => void;
 }
 
 export function TopNavigation({ 
