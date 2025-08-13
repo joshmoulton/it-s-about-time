@@ -8,7 +8,7 @@ export interface DegenCommandData {
   entryPrice?: number;
   stopLoss?: number;
   targets?: number[];
-  currentPrice?: number;
+  callPrice?: number; // Price at time of call creation
 }
 
 export interface CoinGeckoResponse {
@@ -129,15 +129,23 @@ export const useDegenCommandParser = () => {
       }
     }
 
-    // If no entry price provided, fetch current price from CoinGecko
-    if (!commandData.entryPrice) {
-      const currentPrice = await fetchCurrentPrice(ticker);
-      if (currentPrice) {
-        commandData.currentPrice = currentPrice;
-        commandData.entryPrice = currentPrice;
-        toast.success(`Current ${ticker} price: $${currentPrice.toFixed(4)}`);
+    // Fetch call price once at creation time
+    const callPrice = await fetchCurrentPrice(ticker);
+    if (callPrice) {
+      commandData.callPrice = callPrice;
+      
+      // If no entry price provided, use call price as entry
+      if (!commandData.entryPrice) {
+        commandData.entryPrice = callPrice;
+        toast.success(`${ticker} call price: $${callPrice.toFixed(4)} (set as entry)`);
       } else {
-        toast.error(`Could not fetch current price for ${ticker}`);
+        toast.success(`${ticker} call price: $${callPrice.toFixed(4)}, entry: $${commandData.entryPrice.toFixed(4)}`);
+      }
+    } else {
+      toast.error(`Could not fetch current price for ${ticker}`);
+      // Still allow creation if entry price was manually specified
+      if (!commandData.entryPrice) {
+        return null;
       }
     }
 
@@ -152,9 +160,12 @@ export const useDegenCommandParser = () => {
       const stopDisplay = commandData.stopLoss?.toString() || 'N/A';
       const targetsDisplay = targets.length > 0 ? targets.join(', ') : 'N/A';
 
+      const callPriceDisplay = commandData.callPrice ? `$${commandData.callPrice.toFixed(4)}` : 'N/A';
+      
       const formattedOutput = `MARKET: CRYPTO ${commandData.ticker} SPOT ${commandData.direction.toUpperCase()}
 
-Entry: ${entryDisplay}${commandData.currentPrice ? ' (Current Price)' : ''}
+Call Price: ${callPriceDisplay}
+Entry: ${entryDisplay}
 Invalidation: ${stopDisplay}
 Targets: ${targetsDisplay}
 
