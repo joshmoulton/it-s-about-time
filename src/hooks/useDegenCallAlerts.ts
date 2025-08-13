@@ -98,7 +98,7 @@ export function useDegenCallAlerts(limit = 10) {
           stop_loss: row.stop_loss_price != null ? String(row.stop_loss_price) : undefined,
           targets: row.targets ? (Array.isArray(row.targets) ? row.targets : [row.targets]) : undefined,
           risk_percentage: row.risk_percentage || undefined,
-          size: row.entry_conditions || undefined, // Size is stored in entry_conditions
+          size: row.entry_conditions && row.entry_conditions !== 'N/A' ? row.entry_conditions : undefined, // Size is stored in entry_conditions
           risk_management: row.risk_management || undefined,
           analyst_name: row.analyst_name || undefined,
         };

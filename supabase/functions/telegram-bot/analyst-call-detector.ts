@@ -441,6 +441,7 @@ export class AnalystCallDetector {
       let riskLevel = 2.5; // Default risk percentage
 
       // Parse additional parameters if provided
+      let foundExplicitSize = false;
       if (additionalParams) {
         const params = additionalParams.trim().toLowerCase();
         console.log(`🔍 Parsing params: "${params}"`);
@@ -469,6 +470,7 @@ export class AnalystCallDetector {
         // Look for size - matches "size high", "size med", etc.
         const sizeMatch = params.match(/size\s+(tiny|low|med|high|huge)/i);
         if (sizeMatch) {
+          foundExplicitSize = true;
           sizeLevel = sizeMatch[1].toLowerCase();
           console.log(`📏 Found size: ${sizeLevel}`);
           
@@ -484,24 +486,35 @@ export class AnalystCallDetector {
           console.log(`⚖️ Converted to risk level: ${riskLevel}%`);
         }
       }
+      
+      // If no explicit size was provided, set to null/undefined for UI
+      if (!foundExplicitSize) {
+        sizeLevel = 'N/A';
+      }
 
       // Fetch current price if no entry price provided
       let currentPrice: number | undefined;
       if (!entryPrice) {
         try {
           console.log(`💰 Fetching current price for ${ticker}...`);
-          const { data, error } = await this.supabase.functions.invoke('crypto-pricing', {
-            body: { 
-              ticker: ticker.toUpperCase()
+          
+          // Use the GET request format that the crypto-pricing function expects
+          const response = await fetch(`https://wrvvlmevpvcenauglcyz.supabase.co/functions/v1/crypto-pricing?ticker=${ticker.toUpperCase()}`, {
+            method: 'GET',
+            headers: {
+              'Authorization': `Bearer ${Deno.env.get('SUPABASE_ANON_KEY')}`,
+              'Content-Type': 'application/json'
             }
           });
+          
+          const data = await response.json();
 
-          if (!error && data?.price) {
+          if (response.ok && data?.price) {
             currentPrice = data.price;
             entryPrice = currentPrice;
             console.log(`✅ Fetched current price for ${ticker}: $${currentPrice}`);
           } else {
-            console.error(`❌ Could not fetch price for ${ticker}:`, error || data);
+            console.error(`❌ Could not fetch price for ${ticker}:`, data);
           }
         } catch (priceError) {
           console.error(`❌ Error fetching price for ${ticker}:`, priceError);
@@ -522,7 +535,7 @@ export class AnalystCallDetector {
         stop_loss_price: stopLoss,
         targets: targets.map(t => t.toString()),
         full_description: `Degen call for ${ticker} ${direction}`,
-        entry_conditions: sizeLevel, // Store the original size here
+        entry_conditions: foundExplicitSize ? sizeLevel : null, // Only store size if explicitly provided
         formatted_output: this.generateFormattedOutput(ticker, direction, entryPrice, stopLoss, targets, currentPrice),
         status: 'active',
         posted_to_telegram: false
