@@ -80,6 +80,8 @@ export const EnhancedLoginForm: React.FC<EnhancedLoginFormProps> = ({ onSuccess 
           user_type: 'supabase_admin' as const
         };
         
+        // Clear loading state before calling onSuccess
+        setIsLoading(false);
         onSuccess(adminUser, 'supabase_admin');
         return;
       }
@@ -166,6 +168,9 @@ export const EnhancedLoginForm: React.FC<EnhancedLoginFormProps> = ({ onSuccess 
       };
 
       console.log(`✅ Beehiiv login successful for ${data.email}, tier: ${userTier}`);
+      
+      // Clear loading state before calling onSuccess
+      setIsLoading(false);
       onSuccess(userData, 'beehiiv');
 
     } catch (error: any) {

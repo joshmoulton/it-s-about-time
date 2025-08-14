@@ -89,7 +89,7 @@ export const PricingModal: React.FC<PricingModalProps> = ({ open, onOpenChange }
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="p-0 w-[95vw] max-w-[420px] max-h-[90vh] overflow-hidden flex flex-col">
+        <DialogContent className="p-0 w-[95vw] max-w-[420px] max-h-[90vh] overflow-hidden flex flex-col mx-auto my-auto">
           <div className="flex flex-col h-full">
             <div className="p-4 sm:p-6 flex-shrink-0 relative">
               <button
