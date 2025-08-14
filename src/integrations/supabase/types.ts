@@ -2047,6 +2047,36 @@ export type Database = {
         }
         Relationships: []
       }
+      premium_members: {
+        Row: {
+          active: boolean
+          beehiiv_email: string
+          created_at: string
+          expires_at: string | null
+          tier: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          active?: boolean
+          beehiiv_email: string
+          created_at?: string
+          expires_at?: string | null
+          tier?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          active?: boolean
+          beehiiv_email?: string
+          created_at?: string
+          expires_at?: string | null
+          tier?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       rate_limit_tracking: {
         Row: {
           attempts: number | null
@@ -4027,6 +4057,10 @@ export type Database = {
       }
       is_newsletter_blacklisted: {
         Args: { p_beehiiv_post_id: string }
+        Returns: boolean
+      }
+      is_premium: {
+        Args: Record<PropertyKey, never>
         Returns: boolean
       }
       list_public_tables_rls: {

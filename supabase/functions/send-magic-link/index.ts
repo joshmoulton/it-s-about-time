@@ -25,200 +25,159 @@ function generateToken(len = 32) {
 }
 
 serve(async (req) => {
-  if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
+  // Handle CORS preflight requests
+  if (req.method === 'OPTIONS') {
+    return new Response(null, { headers: corsHeaders });
+  }
 
-  const startTime = Date.now();
-  let email: string;
+  const email = await req.json().then(body => body.email?.toLowerCase().trim()).catch(() => null);
+  
+  if (!email) {
+    console.error('❌ Missing email in request');
+    return json({ 
+      success: false, 
+      error: 'Email is required' 
+    }, { status: 400 });
+  }
+
+  console.log(`🪄 Magic link request for: ${email}`);
+
+  // Rate limiting check
+  if (rateLimitCache.has(email)) {
+    console.log(`⏰ Rate limited: ${email}`);
+    return json({ 
+      success: false, 
+      error: 'Please wait before requesting another magic link' 
+    }, { status: 429 });
+  }
+
+  // Check for pending requests
+  if (pendingRequests.has(email)) {
+    console.log(`⏳ Request already pending for: ${email}`);
+    return json({ 
+      success: false, 
+      error: 'Magic link request already in progress' 
+    }, { status: 429 });
+  }
 
   try {
-    const body = await req.json();
-    email = body.email?.toLowerCase().trim();
-    
-    if (!email) {
-      return json({ error: "email is required" }, { status: 400 });
-    }
-
-    console.log(`🪄 Magic link request for: ${email}`);
-
-    // Rate limiting - only allow one request per email per 10 seconds
-    const now = Date.now();
-    const rateLimitKey = `rate_limit_${email}`;
-    const lastRequestTime = rateLimitCache.get(rateLimitKey) || 0;
-    
-    if (now - lastRequestTime < 10000) {
-      console.log(`🚫 Rate limited: ${email} - last request was ${now - lastRequestTime}ms ago`);
-      return json({ 
-        error: 'Please wait before requesting another magic link' 
-      }, { status: 429 });
-    }
-    
-    // Check for pending requests for this email
-    if (pendingRequests.has(email)) {
-      console.log(`🔄 Request already in progress for: ${email}`);
-      return json({ 
-        error: 'A magic link request is already being processed for this email' 
-      }, { status: 409 });
-    }
-    
     // Mark request as pending
-    pendingRequests.set(email, startTime);
-    rateLimitCache.set(rateLimitKey, now);
+    pendingRequests.set(email, true);
+    rateLimitCache.set(email, true);
+    setTimeout(() => rateLimitCache.delete(email), 10000); // 10 second rate limit
 
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const resendApiKey = Deno.env.get("RESEND_API_KEY")!;
-    const appUrl = "https://www.weeklywizdom.com";
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
+    const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 
-    const supabase = createClient(supabaseUrl, serviceKey);
+    console.log(`🔍 Verifying ${email} with Beehiiv...`);
 
-    // Use unified auth verification to get proper user tier and create user if needed
-    console.log(`🔍 Verifying ${email} with unified auth...`);
+    // Call Beehiiv API to verify subscription
+    const beehiivApiKey = Deno.env.get('BEEHIIV_API_KEY');
+    const publicationId = 'pub_e08d5f43-7f7c-4c24-b546-f301ccd42a77';
     
-    const { data: verificationData, error: verifyError } = await supabase.functions.invoke('unified-auth-verify', {
-      body: { email: email.toLowerCase() }
-    });
-
-    let userTier = 'free';
-    let isNewUser = false;
-
-    if (verifyError) {
-      console.error('❌ Unified auth verification failed:', verifyError);
+    if (!beehiivApiKey || beehiivApiKey.length < 10) {
+      console.error('❌ BEEHIIV_API_KEY missing or invalid');
       return json({ 
-        error: 'Failed to verify your account. Please try again or contact support.' 
+        success: false, 
+        error: 'Configuration error' 
       }, { status: 500 });
     }
 
-    if (!verificationData?.success || !verificationData?.verified) {
-      // User doesn't exist, auto-enroll them as free subscriber
-      console.log(`📝 User not found, creating free subscription...`);
-      
-      const { data: subscriptionData, error: subscriptionError } = await supabase.functions.invoke('beehiiv-create-subscription', {
-        body: { 
-          email: email.toLowerCase(),
-          utm_source: 'Weekly Wizdom App',
-          utm_medium: 'magic_link_signup',
-          utm_campaign: 'auto_enrollment'
-        }
-      });
+    // Verify Beehiiv subscription status
+    const beehiivUrl = `https://api.beehiiv.com/v2/publications/${publicationId}/subscriptions/by_email/${encodeURIComponent(email)}`;
+    console.log(`📡 Making API request to: ${beehiivUrl}`);
 
-      if (subscriptionError || !subscriptionData?.success) {
-        console.error('❌ Failed to create Beehiiv subscription:', subscriptionError || subscriptionData?.error);
-        return json({ 
-          error: 'Failed to create your free subscription. Please try again or contact support.' 
-        }, { status: 500 });
-      }
-
-      console.log(`✅ Successfully created free subscription for ${email}`);
-      userTier = 'free';
-      isNewUser = true;
-    } else {
-      // User exists, use their existing tier from unified verification
-      userTier = verificationData.tier || 'free';
-      console.log(`✅ Existing user found - Tier: ${userTier}, Source: ${verificationData.source}`);
-    }
-
-    // Create token & store in magic_links table
-    const token = generateToken(32);
-    const expiresAt = new Date(Date.now() + 1000 * 60 * 15).toISOString(); // 15 min
-
-    const { error: insertErr } = await supabase.from("magic_links").insert({
-      email: email,
-      token,
-      expires_at: expiresAt,
-      used: false,
-    });
-    
-    if (insertErr) {
-      console.error('❌ Failed to create magic link token:', insertErr);
-      throw insertErr;
-    }
-
-    // Create magic link URL
-    const link = `${appUrl}/auth/verify?token=${token}&email=${encodeURIComponent(email)}`;
-
-    // Send via Resend (plain HTML = no React/Node polyfills)
-    const html = `
-      <div style="font-family:Inter,Arial,sans-serif;padding:24px;max-width:560px;margin:0 auto">
-        <h1 style="margin:0 0 12px;color:#1a73e8">Weekly Wizdom</h1>
-        ${isNewUser ? `
-          <h2 style="color:#333; margin:16px 0;">Welcome to Weekly Wizdom! 🎉</h2>
-          <p>Thank you for joining our community! We've created your free subscription and you're all set to start receiving valuable crypto insights.</p>
-          <p>Click the button below to access your dashboard and explore all the features available to you:</p>
-        ` : `
-          <h2 style="color:#333; margin:16px 0;">Access Your Account</h2>
-          <p>Click the button below to securely access your Weekly Wizdom account:</p>
-        `}
-        
-        <p style="margin:20px 0">
-          <a href="${link}" style="display:inline-block;padding:16px 24px;border-radius:8px;background:#1a73e8;color:#fff;text-decoration:none;font-weight:600">
-            ${isNewUser ? 'Get Started Now' : 'Sign In to Your Account'}
-          </a>
-        </p>
-        
-        <p style="font-size:14px;color:#666">If the button doesn't work, copy and paste this URL:</p>
-        <p style="word-break:break-all;font-size:12px;color:#666;background-color:#f8f9fa;padding:12px;border-radius:4px">${link}</p>
-        
-        ${isNewUser ? `
-          <div style="background-color:#f8f9fa;border:1px solid #e9ecef;border-radius:8px;margin:24px 0;padding:20px">
-            <p style="margin:8px 0;font-weight:600">What's Next?</p>
-            <p style="margin:8px 0;font-size:14px">
-              • Access your personalized dashboard<br/>
-              • Read our latest newsletter insights<br/>
-              • Explore premium features<br/>
-              • Join our community discussions
-            </p>
-          </div>
-        ` : ''}
-        
-        <p style="font-size:12px;color:#666;margin-top:24px">
-          This link expires in 15 minutes for security. If you didn't expect this invitation, you can safely ignore this email.
-        </p>
-        
-        <hr style="margin:24px 0;border:none;border-top:1px solid #e5e7eb">
-        <p style="color:#6b7280;font-size:12px;text-align:center">
-          <a href="https://www.weeklywizdom.com" style="color:#1a73e8;text-decoration:none">Weekly Wizdom</a><br/>
-          Your trusted source for crypto insights and trading signals.
-        </p>
-      </div>
-    `;
-
-    // Send email via Resend REST API
-    const emailResponse = await fetch("https://api.resend.com/emails", {
-      method: "POST",
+    const beehiivResponse = await fetch(beehiivUrl, {
+      method: 'GET',
       headers: {
-        "Authorization": `Bearer ${resendApiKey}`,
-        "Content-Type": "application/json",
+        'Authorization': `Bearer ${beehiivApiKey}`,
+        'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        from: "Weekly Wizdom <noreply@weeklywizdom.app>",
-        to: [email],
-        subject: isNewUser ? 'Welcome to Weekly Wizdom - Your access link' : 'Your Weekly Wizdom access link',
-        html,
-      }),
     });
 
-    if (!emailResponse.ok) {
-      const errorText = await emailResponse.text();
-      console.error(`❌ Resend API error (${emailResponse.status}):`, errorText);
-      throw new Error(`Failed to send email: ${emailResponse.status} ${errorText}`);
+    console.log(`📡 Beehiiv API Response Status: ${beehiivResponse.status}`);
+
+    let tier = 'free';
+    let userExists = false;
+
+    if (beehiivResponse.ok) {
+      const beehiivData = await beehiivResponse.json();
+      console.log(`✅ Beehiiv API response for ${email}:`, JSON.stringify(beehiivData, null, 2));
+
+      if (beehiivData?.data) {
+        userExists = true;
+        const subscription = beehiivData.data;
+        const apiTier = subscription.subscription_tier;
+        
+        // Determine tier from Beehiiv API response
+        if (
+          apiTier === 'premium' ||
+          apiTier === 'Premium' ||
+          (Array.isArray(subscription.subscription_premium_tier_names) && subscription.subscription_premium_tier_names.length > 0)
+        ) {
+          tier = 'premium';
+        } else if (apiTier === 'paid' || apiTier === 'Paid') {
+          tier = 'paid';
+        }
+      }
+    } else if (beehiivResponse.status === 404) {
+      console.log(`📝 Email not found in Beehiiv: ${email} - will create free subscription`);
+      // User not in Beehiiv, will be created as free
+    } else {
+      console.error(`❌ Beehiiv API error: ${beehiivResponse.status}`);
+      return json({ 
+        success: false, 
+        error: 'Unable to verify subscription status' 
+      }, { status: 500 });
     }
 
-    console.log(`✅ Magic link sent successfully for ${email}`);
+    console.log(`✅ User verification complete - Email: ${email}, Exists: ${userExists}, Tier: ${tier}`);
+
+    // Create Supabase client for OTP
+    const anonSupabase = createClient(supabaseUrl, supabaseAnonKey);
+
+    // Send OTP magic link via Supabase Auth
+    const redirectUrl = `${req.headers.get('origin') || 'https://www.weeklywizdom.com'}/auth/callback?tier=${tier}`;
+    
+    const { error: otpError } = await anonSupabase.auth.signInWithOtp({
+      email: email,
+      options: {
+        emailRedirectTo: redirectUrl,
+        shouldCreateUser: true,
+        data: {
+          tier: tier,
+          beehiiv_verified: userExists,
+          source: 'beehiiv'
+        }
+      }
+    });
+
+    if (otpError) {
+      console.error('❌ Supabase OTP error:', otpError);
+      return json({ 
+        success: false, 
+        error: 'Failed to send magic link' 
+      }, { status: 500 });
+    }
+
+    console.log(`✅ Magic link sent successfully for ${email} with tier: ${tier}`);
 
     return json({ 
       success: true, 
-      message: isNewUser ? 'Welcome! Access link sent to your email.' : 'Access link sent successfully',
-      is_new_user: isNewUser,
-      tier: userTier
+      message: 'Magic link sent to your email',
+      tier: tier
     });
 
-  } catch (e: any) {
-    console.error("send-magic-link error:", e);
-    return json({ error: e?.message ?? String(e) }, { status: 500 });
+  } catch (error) {
+    console.error('❌ Magic link error:', error);
+    return json({ 
+      success: false, 
+      error: 'Internal server error' 
+    }, { status: 500 });
   } finally {
-    // Always clean up pending request
-    if (email) {
-      pendingRequests.delete(email);
-    }
+    // Clean up pending request
+    pendingRequests.delete(email);
   }
+});
 });
