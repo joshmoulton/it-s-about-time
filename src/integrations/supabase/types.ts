@@ -1759,6 +1759,39 @@ export type Database = {
         }
         Relationships: []
       }
+      magic_link_tokens: {
+        Row: {
+          created_at: string
+          email: string
+          expires_at: string
+          id: string
+          tier: string
+          token: string
+          updated_at: string
+          used_at: string | null
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          expires_at: string
+          id?: string
+          tier?: string
+          token: string
+          updated_at?: string
+          used_at?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          expires_at?: string
+          id?: string
+          tier?: string
+          token?: string
+          updated_at?: string
+          used_at?: string | null
+        }
+        Relationships: []
+      }
       magic_links: {
         Row: {
           created_at: string
@@ -3754,6 +3787,10 @@ export type Database = {
         Returns: undefined
       }
       cleanup_auth_rate_limits: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
+      cleanup_expired_magic_link_tokens: {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
