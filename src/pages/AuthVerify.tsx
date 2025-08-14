@@ -33,53 +33,71 @@ const AuthVerify = () => {
           return;
         }
 
-        // Use unified auth verification to get proper user tier and data
-        console.log(`🔍 Verifying user with unified auth: ${email}`);
+        console.log(`🔍 Validating magic link token for: ${email}`);
         
-        const { data: verifyData, error: verifyError } = await supabase.functions.invoke('beehiiv-subscriber-verify', {
-          body: { email: decodeURIComponent(email) }
+        // Call the proper magic link verification function
+        const { data: verifyData, error: verifyError } = await supabase.functions.invoke('verify-magic-link', {
+          body: { 
+            token: token,
+            email: decodeURIComponent(email) 
+          }
         });
 
         if (verifyError) {
-          console.error('❌ Unified auth verification error:', verifyError);
+          console.error('❌ Magic link verification error:', verifyError);
           setStatus('error');
-          setMessage('Failed to verify your account. Please request a new access link.');
+          setMessage('Failed to verify your access link. Please request a new one.');
           return;
         }
 
         if (!verifyData?.success) {
-          console.log('⚠️ User not verified through Beehiiv');
+          console.log('⚠️ Invalid magic link token');
           setStatus('error');
-          setMessage('Unable to verify your account. Please request a new access link.');
+          setMessage(verifyData?.error || 'Invalid or expired access link. Please request a new one.');
           return;
         }
 
-        console.log('✅ Unified auth verification successful:', {
-          tier: verifyData.tier,
-          source: verifyData.source,
-          verified: verifyData.verified
+        console.log('✅ Magic link verification successful:', {
+          user_id: verifyData.user.id,
+          tier: verifyData.user.subscription_tier,
+          source: verifyData.user.source
         });
 
-        // Success! Store authentication data with exact tier from API
+        // Set the Supabase session using the tokens from verification
+        if (verifyData.session?.access_token) {
+          const { error: sessionError } = await supabase.auth.setSession({
+            access_token: verifyData.session.access_token,
+            refresh_token: verifyData.session.refresh_token
+          });
+
+          if (sessionError) {
+            console.error('❌ Error setting Supabase session:', sessionError);
+            // Continue without Supabase session - fallback to enhanced auth
+          } else {
+            console.log('✅ Supabase session established successfully');
+          }
+        }
+
+        // Store authentication data with exact tier from verification
         localStorage.setItem('auth_user_email', decodeURIComponent(email));
         localStorage.setItem('auth_method', 'magic_link');
         localStorage.setItem('auth_verified_at', new Date().toISOString());
-        localStorage.setItem('auth_tier', verifyData.tier); // Use exact tier from API
-        localStorage.setItem('auth_user_source', verifyData.source || 'beehiiv');
+        localStorage.setItem('auth_tier', verifyData.user.subscription_tier);
+        localStorage.setItem('auth_user_source', verifyData.user.source || 'beehiiv');
 
         // Flag recent login to provide a short grace period for route guards
         sessionStorage.setItem('ww.justLoggedIn', String(Date.now()));
 
-        // Immediately set auth context to avoid redirect loop
+        // Set auth context with verified user data
         setAuthenticatedUser({
-          id: 'magic_link_user',
+          id: verifyData.user.id || 'magic_link_user',
           email: decodeURIComponent(email),
-          subscription_tier: verifyData.tier, // Use exact tier from API
+          subscription_tier: verifyData.user.subscription_tier,
           user_type: 'unified_user',
           status: 'active',
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
-          metadata: { source: verifyData.source || 'beehiiv' }
+          metadata: { source: verifyData.user.source || 'beehiiv' }
         }, 'magic_link');
 
         setStatus('success');
@@ -91,8 +109,10 @@ const AuthVerify = () => {
           description: "You've been successfully signed in.",
         });
 
-        // Redirect immediately and replace history to avoid back to verify page
-        navigate('/dashboard', { replace: true });
+        // Redirect to dashboard with tier-specific access
+        setTimeout(() => {
+          navigate('/dashboard', { replace: true });
+        }, 1000);
 
       } catch (error) {
         console.error('❌ Verification error:', error);
