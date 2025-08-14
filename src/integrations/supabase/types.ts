@@ -4208,6 +4208,10 @@ export type Database = {
         }
         Returns: undefined
       }
+      set_config: {
+        Args: { is_local?: boolean; new_value: string; setting_name: string }
+        Returns: undefined
+      }
       setup_beehiiv_twice_daily_sync: {
         Args: Record<PropertyKey, never>
         Returns: undefined

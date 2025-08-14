@@ -1,6 +1,7 @@
 
 import { useEffect, useRef, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { setSupabaseAuthContext, updateAuthContextFromLocalStorage } from '@/utils/supabaseContext';
 
 import { CurrentUser } from '@/types/auth';
 
@@ -206,6 +207,13 @@ export const useEnhancedAuthInitialization = ({
                   updated_at: new Date().toISOString(),
                   metadata: session.user.user_metadata
                 });
+                
+                // Set Supabase context for RLS policies
+                await setSupabaseAuthContext({
+                  authMethod: 'supabase_admin',
+                  authTier: 'premium',
+                  userEmail: session.user.email
+                });
               } else {
                 localStorage.setItem('auth_method', 'supabase_user');
                 
@@ -233,19 +241,26 @@ export const useEnhancedAuthInitialization = ({
                       const updatedTier = tierRaw === 'free' ? 'free' : 'premium';
                       console.log(`✅ Background Beehiiv tier: ${verifyData.tier} (mapped to ${updatedTier})`);
                       
-                      // Update user if tier changed
-                      if (updatedTier !== 'free') {
-                        setCurrentUser({
-                          id: session.user.id,
-                          email: session.user.email!,
-                          subscription_tier: updatedTier,
-                          user_type: userType,
-                          status: 'active',
-                          created_at: session.user.created_at,
-                          updated_at: new Date().toISOString(),
-                          metadata: session.user.user_metadata
-                        });
-                      }
+                       // Update user if tier changed
+                       if (updatedTier !== 'free') {
+                         setCurrentUser({
+                           id: session.user.id,
+                           email: session.user.email!,
+                           subscription_tier: updatedTier,
+                           user_type: userType,
+                           status: 'active',
+                           created_at: session.user.created_at,
+                           updated_at: new Date().toISOString(),
+                           metadata: session.user.user_metadata
+                         });
+                         
+                         // Update Supabase context for RLS policies
+                         await setSupabaseAuthContext({
+                           authMethod: 'supabase_user',
+                           authTier: updatedTier,
+                           userEmail: session.user.email
+                         });
+                       }
                     } else {
                       console.warn('⚠️ Background Beehiiv verification failed; keeping free tier');
                     }
@@ -335,6 +350,14 @@ export const useEnhancedAuthInitialization = ({
               };
               localStorage.setItem('auth_method', 'magic_link');
               setCurrentUser(user);
+              
+              // Set Supabase context for RLS policies
+              await setSupabaseAuthContext({
+                authMethod: 'magic_link',
+                authTier: subscriptionTier,
+                userEmail: cachedEmail
+              });
+              
               setIsLoading(false);
               isInitialized.current = true;
               return;

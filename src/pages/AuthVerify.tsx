@@ -4,6 +4,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Loader2, CheckCircle, XCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { setSupabaseAuthContext } from '@/utils/supabaseContext';
 import { useEnhancedAuth } from '@/contexts/EnhancedAuthContext';
 
 const AuthVerify = () => {
@@ -103,6 +104,13 @@ const AuthVerify = () => {
           updated_at: new Date().toISOString(),
           metadata: { source: verifyData.user.source || 'beehiiv' }
         }, 'magic_link');
+
+        // Set Supabase context for RLS policies
+        await setSupabaseAuthContext({
+          authMethod: 'magic_link',
+          authTier: verifyData.user.subscription_tier,
+          userEmail: decodeURIComponent(email)
+        });
 
         setStatus('success');
         setMessage('Successfully verified! Redirecting to dashboard...');

@@ -18,15 +18,18 @@ export const setSupabaseAuthContext = async (context: AuthContext) => {
 
     console.log('🔧 Setting Supabase auth context:', contextVars);
 
-    // Set each context variable
+    // Use SQL to set the context directly
     for (const [key, value] of Object.entries(contextVars)) {
       if (value) {
         try {
-          await supabase.rpc('set_config', {
+          const { error } = await supabase.rpc('set_config' as any, {
             setting_name: key,
             new_value: value,
             is_local: true
           });
+          if (error) {
+            console.warn(`⚠️ Failed to set context ${key}:`, error);
+          }
         } catch (error) {
           console.warn(`⚠️ Failed to set context ${key}:`, error);
         }
@@ -49,11 +52,14 @@ export const clearSupabaseAuthContext = async () => {
 
     for (const key of contextVars) {
       try {
-        await supabase.rpc('set_config', {
+        const { error } = await supabase.rpc('set_config' as any, {
           setting_name: key,
           new_value: '',
           is_local: true
         });
+        if (error) {
+          console.warn(`⚠️ Failed to clear context ${key}:`, error);
+        }
       } catch (error) {
         console.warn(`⚠️ Failed to clear context ${key}:`, error);
       }

@@ -9,6 +9,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { EnhancedAuthProvider } from "@/contexts/EnhancedAuthContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { DeveloperProvider, DeveloperToggle } from "@/components/dev/DeveloperToggle";
+import { updateAuthContextFromLocalStorage } from "@/utils/supabaseContext";
 import { AccessibilityProvider } from "@/components/AccessibilityProvider";
 // Performance optimizations temporarily removed to fix modal issues
 // import { optimizeFontDisplay, enableLayoutShiftPrevention } from "@/utils/performanceUtils";
@@ -47,8 +48,10 @@ const queryClient = new QueryClient();
 const App = () => {
   // Initialize safe performance optimizations
   useEffect(() => {
-    const timeoutId = setTimeout(() => {
+    const timeoutId = setTimeout(async () => {
       initializePerformanceOptimizations();
+      // Update Supabase context from localStorage on app start
+      await updateAuthContextFromLocalStorage();
     }, 100);
     
     return () => clearTimeout(timeoutId);
