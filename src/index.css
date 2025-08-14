@@ -504,18 +504,34 @@
       }
     }
     
-    /* Critical mobile layout optimizations */
-    html {
-      scroll-behavior: auto; /* Disable smooth scroll on mobile for performance */
-      -webkit-text-size-adjust: 100%;
-      -ms-text-size-adjust: 100%;
-      font-size: 16px; /* Prevent zoom on inputs */
-      /* Hardware acceleration */
-      -webkit-transform: translateZ(0);
-      transform: translateZ(0);
-      /* Critical performance */
-      contain: layout style;
-    }
+  /* Critical mobile layout optimizations */
+  html {
+    scroll-behavior: auto; /* Disable smooth scroll on mobile for performance */
+    -webkit-text-size-adjust: 100%;
+    -ms-text-size-adjust: 100%;
+    font-size: 16px; /* Prevent zoom on inputs */
+    /* Hardware acceleration */
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
+    /* Critical performance */
+    contain: layout style;
+  }
+  
+  /* Modal escape from performance constraints */
+  body.modal-open {
+    contain: none !important;
+    -webkit-transform: none !important;
+    transform: none !important;
+    overflow: hidden !important;
+  }
+  
+  .modal-allowed {
+    contain: none !important;
+    -webkit-transform: none !important;
+    transform: none !important;
+    position: fixed !important;
+    z-index: 9999 !important;
+  }
     
     body {
       -webkit-overflow-scrolling: touch;
