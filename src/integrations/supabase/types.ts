@@ -3918,10 +3918,6 @@ export type Database = {
           unique_users: number
         }[]
       }
-      get_user_effective_tier: {
-        Args: Record<PropertyKey, never>
-        Returns: Database["public"]["Enums"]["subscription_tier"]
-      }
       get_user_role: {
         Args: { _user_id: string }
         Returns: Database["public"]["Enums"]["app_role"]
@@ -3997,10 +3993,6 @@ export type Database = {
         Args:
           | { admin_email: string; ip_address: unknown }
           | { p_admin_email: string; p_ip_address: unknown }
-        Returns: boolean
-      }
-      is_magic_link_authenticated: {
-        Args: Record<PropertyKey, never>
         Returns: boolean
       }
       is_newsletter_blacklisted: {
