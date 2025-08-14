@@ -61,18 +61,9 @@ export const useLoginForm = () => {
         const { supabase } = await import('@/integrations/supabase/client');
         
         if (method === 'magic') {
-          // Use API-only magic link (no local storage)
-          const { data, error } = await supabase.functions.invoke('send-magic-link', {
-            body: { email: sanitizedEmail }
-          });
-          
-          if (error || !data?.success) {
-            const errorMessage = data?.error || error?.message || 'Failed to send access link';
-            throw new Error(errorMessage);
-          }
-          
-          toast.success('Access link sent! Check your email and click the link to get started.');
-          setEmail('');
+          // REMOVED MAGIC LINK - Now handled only by SimplifiedAuthModal
+          console.log(`🚫 useLoginForm: Magic link removed - use SimplifiedAuthModal instead`);
+          throw new Error('Please use the main authentication modal for magic links.');
         } else if (method === 'signin') {
           // First verify with Beehiiv API
           const { data: verifyData, error: verifyError } = await supabase.functions.invoke('beehiiv-subscriber-verify', {

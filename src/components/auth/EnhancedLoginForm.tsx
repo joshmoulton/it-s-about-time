@@ -216,21 +216,9 @@ export const EnhancedLoginForm: React.FC<EnhancedLoginFormProps> = ({ onSuccess 
     try {
       const email = data.email.toLowerCase().trim();
       
-      // Send magic link via our custom function (handles verification and user creation automatically)
-      console.log(`🪄 Sending magic link for: ${email}`);
-      
-      const { data: magicLinkResult, error: magicLinkError } = await supabase.functions.invoke('send-magic-link', {
-        body: { email }
-      });
-      
-      if (magicLinkError || !magicLinkResult?.success) {
-        console.error('❌ Magic link failed:', magicLinkError || magicLinkResult?.error);
-        setError(magicLinkResult?.error || 'Failed to send magic link. Please try again.');
-        return;
-      }
-      
-      console.log('✅ Magic link sent successfully');
-      setError(magicLinkResult.message || 'Magic link sent! Check your email and click the link to sign in.');
+      console.log(`🚫 EnhancedLoginForm: Magic link removed - use SimplifiedAuthModal instead`);
+      setError('Please use the main authentication modal for magic links.');
+      return;
     } catch (error) {
       console.error('❌ Magic link error:', error);
       setError('An unexpected error occurred. Please try again.');
