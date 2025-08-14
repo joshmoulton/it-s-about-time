@@ -90,12 +90,12 @@ export const SimplifiedAuthModal: React.FC<SimplifiedAuthModalProps> = memo(({ o
     // Clear any previous auth completion markers
     sessionStorage.removeItem('ww.auth_complete');
     
-    // Prevent double submissions with debouncing
+    // Prevent double submissions with more aggressive debouncing
     const now = Date.now();
     const timeSinceLastSubmit = now - lastSubmitTimeRef.current;
     
-    if (isSubmittingRef.current || timeSinceLastSubmit < 2000) {
-      console.log('⏳ Preventing duplicate submission');
+    if (isSubmittingRef.current || timeSinceLastSubmit < 5000) {
+      console.log('⏳ Preventing duplicate submission - time since last:', timeSinceLastSubmit);
       return;
     }
     
@@ -113,7 +113,13 @@ export const SimplifiedAuthModal: React.FC<SimplifiedAuthModalProps> = memo(({ o
       if (mode === 'magic') {
         console.log('🔄 Sending magic link for:', email.toLowerCase().trim());
         console.log('🔍 Modal Instance ID:', Date.now(), 'Component:', 'SimplifiedAuthModal');
-        console.log('🔍 Current mode:', mode, 'Stack trace:', new Error().stack?.split('\n').slice(0, 5));
+        console.log('🔍 Current mode:', mode, 'Refs:', { isSubmitting: isSubmittingRef.current, lastSubmit: lastSubmitTimeRef.current });
+        
+        // Additional safety check before invoking function
+        if (isSubmittingRef.current !== true) {
+          console.log('❌ Submit state changed unexpectedly, aborting');
+          return;
+        }
         
         const { data, error } = await supabase.functions.invoke('send-magic-link', {
           body: { email: email.toLowerCase().trim() }
