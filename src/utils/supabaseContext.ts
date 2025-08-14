@@ -7,6 +7,16 @@ interface AuthContext {
   userEmail?: string;
 }
 
+// Type-safe wrapper for our custom set_config RPC function
+const callSetConfig = async (setting_name: string, new_value: string, is_local: boolean = true) => {
+  // Use direct supabase client call to avoid TypeScript type constraints
+  return supabase.rpc('set_config' as any, {
+    setting_name,
+    new_value,
+    is_local
+  });
+};
+
 export const setSupabaseAuthContext = async (context: AuthContext) => {
   try {
     // Set context variables that RLS policies can access
@@ -22,11 +32,7 @@ export const setSupabaseAuthContext = async (context: AuthContext) => {
     for (const [key, value] of Object.entries(contextVars)) {
       if (value) {
         try {
-          const { error } = await supabase.rpc('set_config' as any, {
-            setting_name: key,
-            new_value: value,
-            is_local: true
-          });
+          const { error } = await callSetConfig(key, value, true);
           if (error) {
             console.warn(`⚠️ Failed to set context ${key}:`, error);
           }
@@ -52,11 +58,7 @@ export const clearSupabaseAuthContext = async () => {
 
     for (const key of contextVars) {
       try {
-        const { error } = await supabase.rpc('set_config' as any, {
-          setting_name: key,
-          new_value: '',
-          is_local: true
-        });
+        const { error } = await callSetConfig(key, '', true);
         if (error) {
           console.warn(`⚠️ Failed to clear context ${key}:`, error);
         }
