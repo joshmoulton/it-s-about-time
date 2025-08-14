@@ -124,8 +124,6 @@ export const SimplifiedAuthModal: React.FC<SimplifiedAuthModalProps> = memo(({ o
     try {
       if (mode === 'magic') {
         console.log('🔄 Sending magic link for:', email.toLowerCase().trim());
-        console.log('🔍 Modal Instance ID:', Date.now(), 'Component:', 'SimplifiedAuthModal');
-        console.log('🔍 Current mode:', mode, 'Refs:', { isSubmitting: isSubmittingRef.current, lastSubmit: lastSubmitTimeRef.current });
         
         // Additional safety check before invoking function
         if (isSubmittingRef.current !== true) {
@@ -139,39 +137,67 @@ export const SimplifiedAuthModal: React.FC<SimplifiedAuthModalProps> = memo(({ o
           'magic_link',
           async () => {
             console.log('📧 Actually sending magic link request...');
-            const { data, error } = await supabase.functions.invoke('unified-auth-verify', {
-              body: { email: email.toLowerCase().trim() }
-            });
+            
+            try {
+              const { data, error } = await supabase.functions.invoke('unified-auth-verify', {
+                body: { email: email.toLowerCase().trim() }
+              });
 
-            if (error) {
-              console.error('❌ Magic link error:', error);
-              throw new Error(error.message || 'Failed to send magic link');
+              console.log('🔍 Supabase function response:', { data, error });
+
+              if (error) {
+                console.error('❌ Magic link error:', error);
+                throw new Error(error.message || 'Failed to send magic link');
+              }
+              return data;
+            } catch (functionError: any) {
+              console.error('❌ Function invocation failed:', functionError);
+              throw new Error(functionError.message || 'Network error occurred');
             }
-
-            return data;
           }
         );
         
-        console.log('✅ Magic link sent successfully:', result);
+        console.log('✅ Magic link result:', result);
         
-        // Handle successful verification
-        if (result && (result.success || result.session_id)) {
-          console.log('🎯 User verified and authenticated via magic link');
-          
-          if (result.user_data) {
-            console.log('📝 Setting authenticated user with data:', result.user_data);
-            setAuthenticatedUser(result.user_data, 'unified_auth');
+        // Handle successful verification or magic link sending
+        if (result && result.success) {
+          if (result.verified && result.session_token) {
+            console.log('🎯 User verified and authenticated via magic link');
+            
+            // Store the session for the auth system to pick up
+            localStorage.setItem('auth_user_email', email.toLowerCase().trim());
+            localStorage.setItem('enhanced_session_token', result.session_token);
+            localStorage.setItem('auth_tier', result.tier || 'free');
+            localStorage.setItem('auth_method', 'magic_link');
+            
+            // Set user context if we have user data
+            if (setAuthenticatedUser) {
+              const userData = {
+                id: crypto.randomUUID(),
+                email: email.toLowerCase().trim(),
+                subscription_tier: result.tier === 'free' ? 'free' : 'premium',
+                user_type: 'unified_user' as const,
+                status: 'active',
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString()
+              };
+              setAuthenticatedUser(userData, 'magic_link');
+            }
+            
+            // Success - redirect to dashboard
+            onOpenChange(false);
+            navigate('/dashboard');
+          } else {
+            // Magic link sent but not immediately verified
+            console.log('📧 Magic link sent, awaiting user action');
+            setError(
+              <div className="text-green-600 text-sm">
+                ✅ Magic link sent! Check your email and click the link to sign in.
+              </div>
+            );
           }
-          
-          onOpenChange(false);
-          navigate('/dashboard');
         } else {
-          console.log('📧 Magic link sent, awaiting user action');
-          setError(
-            <div className="text-green-600">
-              Magic link sent! Check your email and click the link to sign in.
-            </div>
-          );
+          throw new Error('Failed to process magic link request');
         }
       } else if (mode === 'signin') {
         if (!password.trim()) {
@@ -246,9 +272,21 @@ export const SimplifiedAuthModal: React.FC<SimplifiedAuthModalProps> = memo(({ o
           setConfirmPassword('');
         }
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('❌ Auth submission error:', error);
-      setError('An error occurred. Please try again.');
+      
+      // More specific error handling for magic link
+      if (mode === 'magic') {
+        if (error.message?.includes('subscription') || error.message?.includes('not found')) {
+          setError('Email not found in our subscription list. Please check your email or sign up for Weekly Wizdom newsletter first.');
+        } else if (error.message?.includes('network') || error.message?.includes('timeout')) {
+          setError('Network error. Please check your internet connection and try again.');
+        } else {
+          setError('Unable to send magic link. Please try again or contact support.');
+        }
+      } else {
+        setError(error.message || 'An error occurred. Please try again.');
+      }
     } finally {
       setIsLoading(false);
       isSubmittingRef.current = false;
