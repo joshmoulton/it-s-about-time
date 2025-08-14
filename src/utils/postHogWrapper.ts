@@ -22,9 +22,9 @@ class PostHogWrapper {
     lastEventTime: 0
   };
 
-  private readonly RATE_LIMIT_COOLDOWN = 60000; // 1 minute cooldown
-  private readonly MAX_EVENTS_PER_MINUTE = 5; // Reduced from 10 to 5 for newsletter pages
-  private readonly CIRCUIT_BREAKER_THRESHOLD = 3; // After 3 rate limits, activate circuit breaker
+  private readonly RATE_LIMIT_COOLDOWN = 120000; // 2 minute cooldown
+  private readonly MAX_EVENTS_PER_MINUTE = 2; // Reduced to 2 events per minute
+  private readonly CIRCUIT_BREAKER_THRESHOLD = 2; // After 2 rate limits, activate circuit breaker
   private rateLimitCount = 0; // Track consecutive rate limits
 
   constructor() {

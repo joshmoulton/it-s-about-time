@@ -132,7 +132,9 @@ export function useDegenCallAlerts(limit = 10, subscriber?: Subscriber) {
       return mapped;
     },
     enabled: shouldFetchData, // Only run query if user has access
-    staleTime: 5_000, // Reduced stale time for faster updates
-    refetchInterval: shouldFetchData ? 15_000 : false, // More frequent polling as backup
+    staleTime: 30_000, // Increased stale time to reduce API calls
+    refetchInterval: shouldFetchData ? 60_000 : false, // Reduced frequency to 1 minute
+    refetchOnWindowFocus: false, // Prevent excessive refetching
+    refetchOnMount: false, // Use cache if available
   });
 }

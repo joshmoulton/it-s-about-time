@@ -83,7 +83,7 @@ export function useTelegramMessages(limit: number = 20) {
   return useQuery({
     queryKey: ['telegram-messages', limit],
     queryFn: async () => {
-      console.log('🔄 Fetching telegram messages from database...');
+      console.log('🔍 Fetching telegram messages for user:', 'tier:', 'premium');
       
       // First try to get messages from database
 const { data, error } = await authenticatedQuery(() =>
@@ -104,18 +104,16 @@ const { data, error } = await authenticatedQuery(() =>
         throw error;
       }
       
-      console.log('✅ Retrieved messages from database:', data?.length || 0);
-      
-      // Auto-sync disabled - external bot handles all syncing
-      console.log('ℹ️ Auto-sync disabled: External bot manages all updates');
+      console.log('✅ Fetched', data?.length || 0, 'telegram messages for topic "Money Glitch"');
       
       return (data || []) as any; // Type assertion for schema mismatch
     },
     refetchInterval: false, // Disabled - external bot handles updates
-    staleTime: Infinity,
+    staleTime: 60_000, // Increased to 1 minute to reduce API calls
     refetchOnWindowFocus: false,
-    retry: 3,
-    retryDelay: 1000,
+    refetchOnMount: false, // Use cache if available
+    retry: 1, // Reduced retries
+    retryDelay: 2000,
   });
 }
 

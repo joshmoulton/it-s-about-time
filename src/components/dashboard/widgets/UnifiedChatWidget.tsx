@@ -24,7 +24,7 @@ export function UnifiedChatWidget({
   onToggleExpanded
 }: UnifiedChatWidgetProps) {
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const limit = isExpanded ? 100 : 15;
+  const limit = isExpanded ? 50 : 10; // Reduced limits to improve performance
   const {
     messages,
     selectedTopic,

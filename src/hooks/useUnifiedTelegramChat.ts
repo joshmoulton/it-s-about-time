@@ -86,9 +86,10 @@ export function useUnifiedTelegramChat(limit: number = 50, subscriber?: Subscrib
       return (data || []) as any;
     },
     enabled: shouldFetchData, // Only run query if user has access
-    refetchInterval: shouldFetchData ? 30000 : false,
-    staleTime: 10000,
-    refetchOnWindowFocus: shouldFetchData,
+    refetchInterval: false, // Disable polling to reduce API calls
+    staleTime: 60000, // Cache for 1 minute
+    refetchOnWindowFocus: false,
+    refetchOnMount: false, // Use cache if available
   });
 
   // Fetch topic mappings
@@ -112,9 +113,10 @@ export function useUnifiedTelegramChat(limit: number = 50, subscriber?: Subscrib
       return (data || []) as any; // Type assertion for schema mismatch
     },
     enabled: shouldFetchData,
-    refetchInterval: shouldFetchData ? 60000 : false, // Poll every 60 seconds for topic mappings
-    staleTime: 30000, // Topic mappings are fresh for 30 seconds
+    refetchInterval: false, // Disable polling to reduce API calls
+    staleTime: 300000, // Topic mappings are fresh for 5 minutes
     refetchOnWindowFocus: false,
+    refetchOnMount: false,
   });
 
   // Messages are already filtered at database level, so use them directly
@@ -142,7 +144,9 @@ export function useUnifiedTelegramChat(limit: number = 50, subscriber?: Subscrib
       return data || [];
     },
     enabled: shouldFetchData,
-    staleTime: 60000, // Cache topic list for 1 minute
+    staleTime: 300000, // Cache topic list for 5 minutes
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
   });
 
   const availableTopics = [...new Set(allMessagesForTopics.map(m => m.topic_name).filter(Boolean))];
