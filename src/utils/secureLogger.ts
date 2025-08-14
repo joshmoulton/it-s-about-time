@@ -195,8 +195,8 @@ export const logger = new SecureLogger();
 // Initialize console security in production
 const win = getWindow();
 if (!isDevelopment && win) {
-  // Disable debug mode to prevent PostHog rate limiting
-  const shouldEnableDebug = false; // Disable debug mode to stop console logging
+  // Enable debug mode to troubleshoot authentication issues  
+  const shouldEnableDebug = true; // Enable debug mode for troubleshooting
   
   if (shouldEnableDebug) {
     // Keep console methods enabled for debugging

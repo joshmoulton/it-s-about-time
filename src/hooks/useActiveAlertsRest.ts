@@ -60,7 +60,7 @@ export function useActiveAlertsRest(): UseActiveAlertsRestReturn {
         authHeaders['Authorization'] = `Bearer ${sessionData.session.access_token}`;
       }
       
-      const response = await fetch('https://tcchfpgmwqawcjtwicek.supabase.co/functions/v1/active-alerts-widget', {
+      const response = await fetch('https://wrvvlmevpvcenauglcyz.supabase.co/functions/v1/active-alerts-widget', {
         headers: {
           'Content-Type': 'application/json',
           ...authHeaders
