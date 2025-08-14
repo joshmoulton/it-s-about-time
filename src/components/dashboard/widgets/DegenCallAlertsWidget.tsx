@@ -30,9 +30,9 @@ export function DegenCallAlertsWidget({
     isLoading
   } = useDegenCallAlerts(1); // Last 1 call for consistent height with other widgets
 
-  // Remove real-time crypto price fetching - we only want price at call time
-  // const tickers = degenCalls?.map(call => call.coin) || [];
-  // const { data: cryptoPrices } = useCryptoPrices(tickers);
+  // Get current crypto prices for market price display
+  const tickers = degenCalls?.map(call => call.coin) || [];
+  const { data: cryptoPrices } = useCryptoPrices(tickers);
   const queryClient = useQueryClient();
   useEffect(() => {
     const KEY = 'ww_backfill_degen_2025_08_11';
@@ -173,10 +173,10 @@ export function DegenCallAlertsWidget({
     
     return `$${formatted}`;
   };
-  // Remove real-time price functions since we only show call-time price
-  // const getPriceForTicker = (ticker: string) => {
-  //   return cryptoPrices?.find(p => p.ticker === ticker.toUpperCase());
-  // };
+  // Get current market price for ticker
+  const getPriceForTicker = (ticker: string) => {
+    return cryptoPrices?.find(p => p.ticker === ticker.toUpperCase());
+  };
   return <ModernCard className="h-full min-h-[300px] flex flex-col bg-gradient-to-br from-orange-900/20 via-red-900/10 to-slate-800/50 border-orange-500/20 hover:border-orange-400/30 transition-all duration-200" interactive data-tour="degen-calls-widget">
       {!hideHeader && <ModernCardHeader className="pb-2 pt-3 flex-shrink-0 px-4">
           <div className="flex items-center justify-between">
@@ -233,7 +233,7 @@ export function DegenCallAlertsWidget({
                       <span className="text-xs text-white font-medium">{call.analyst_name}</span>
                     </div>}
 
-                  {/* Call-time Price Section */}
+                  {/* Current Market Price Section */}
                   <div className="bg-black/20 rounded-md p-1.5">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-1.5">
@@ -241,10 +241,10 @@ export function DegenCallAlertsWidget({
                         <span className="text-xs text-orange-200/80">Market Price:</span>
                       </div>
                       <span className="text-white font-semibold text-sm">
-                        {call.entry_price && call.entry_price !== 'Market' 
-                          ? formatPrice(Number(call.entry_price))
-                          : 'Market'
-                        }
+                        {(() => {
+                          const currentPrice = getPriceForTicker(call.coin);
+                          return currentPrice ? formatPrice(currentPrice.price_usd) : 'Loading...';
+                        })()}
                       </span>
                     </div>
                   </div>
