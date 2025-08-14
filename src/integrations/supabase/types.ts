@@ -1767,6 +1767,7 @@ export type Database = {
           id: string
           token: string
           used: boolean
+          used_at: string | null
         }
         Insert: {
           created_at?: string
@@ -1775,6 +1776,7 @@ export type Database = {
           id?: string
           token: string
           used?: boolean
+          used_at?: string | null
         }
         Update: {
           created_at?: string
@@ -1783,6 +1785,7 @@ export type Database = {
           id?: string
           token?: string
           used?: boolean
+          used_at?: string | null
         }
         Relationships: []
       }
