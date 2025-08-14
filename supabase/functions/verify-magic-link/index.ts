@@ -141,14 +141,24 @@ Deno.serve(async (req) => {
 
     console.log(`✅ Valid token found for ${email}, live tier from Beehiiv API: ${subscriber.subscription_tier}`);
 
-    // Check if Supabase auth user already exists
-    const { data: existingUser } = await supabase.auth.admin.getUserByEmail(email);
+    // Check if Supabase auth user already exists by listing users with email filter
+    const { data: usersList, error: listError } = await supabase.auth.admin.listUsers({
+      page: 1,
+      perPage: 1000 
+    });
+    
+    if (listError) {
+      console.error('❌ Error listing users:', listError);
+      throw listError;
+    }
+    
+    const existingUser = usersList.users.find(user => user.email === email);
     
     let authUser;
-    if (existingUser.user) {
+    if (existingUser) {
       // Update existing user's metadata with current tier
       const { data: updatedUser, error: updateError } = await supabase.auth.admin.updateUserById(
-        existingUser.user.id,
+        existingUser.id,
         {
           user_metadata: {
             subscription_tier: subscriber.subscription_tier,
@@ -186,7 +196,7 @@ Deno.serve(async (req) => {
       console.log(`✅ Created new Supabase user for ${email}`);
     }
 
-    // Generate an access token for the user
+    // Generate an access token for the user using generateLink
     const { data: sessionResult, error: sessionCreateError } = await supabase.auth.admin.generateLink({
       type: 'magiclink',
       email: email,
