@@ -19,54 +19,54 @@ export function AuthCallback() {
         const tierParam = searchParams.get('tier');
         const verifiedParam = searchParams.get('verified');
         
-        if (sessionDataParam && verifiedParam === 'true') {
-          console.log('🔄 Processing magic link session data...');
+        // Check for magic link authentication
+        const magicAuthParam = searchParams.get('magic_auth');
+        const emailParam = searchParams.get('email');
+        const tempPasswordParam = searchParams.get('temp_password');
+        
+        if (magicAuthParam === 'true' && emailParam && tempPasswordParam && verifiedParam === 'true') {
+          console.log('🔄 Processing magic link authentication...');
           try {
-            const sessionData = JSON.parse(atob(sessionDataParam));
-            console.log('✅ Magic link session processed for:', sessionData.user.email);
-            
-            // Set the real Supabase session with JWT tokens
-            const { error: setSessionError } = await supabase.auth.setSession({
-              access_token: sessionData.access_token,
-              refresh_token: sessionData.refresh_token
+            // Sign in with temporary password to create real Supabase session
+            const { data: authData, error: signInError } = await supabase.auth.signInWithPassword({
+              email: emailParam,
+              password: tempPasswordParam
             });
             
-            if (setSessionError) {
-              console.error('❌ Error setting session:', setSessionError);
+            if (signInError || !authData.session) {
+              console.error('❌ Error signing in with magic link:', signInError);
               setStatus('error');
-              setMessage('Failed to establish session. Please try again.');
+              setMessage('Failed to authenticate. Please try again.');
               return;
             }
             
-            console.log('✅ Real Supabase session established successfully');
+            console.log('✅ Magic link authentication successful for:', emailParam);
             
             // Verify tier and update metadata (same as password auth)
-            if (sessionData.user.email) {
-              try {
-                const { data: verifyData, error: verifyError } = await supabase.functions.invoke('beehiiv-subscriber-verify', {
-                  body: { email: sessionData.user.email }
+            try {
+              const { data: verifyData, error: verifyError } = await supabase.functions.invoke('beehiiv-subscriber-verify', {
+                body: { email: emailParam }
+              });
+              
+              if (verifyData?.success) {
+                console.log(`✅ User tier verified: ${verifyData.tier}`);
+                
+                // Update user metadata with tier info
+                await supabase.auth.updateUser({
+                  data: {
+                    subscription_tier: verifyData.tier,
+                    source: 'magic_link',
+                    verified_at: new Date().toISOString()
+                  }
                 });
                 
-                if (verifyData?.success) {
-                  console.log(`✅ User tier verified: ${verifyData.tier}`);
-                  
-                  // Update user metadata with tier info (consistent with password auth)
-                  await supabase.auth.updateUser({
-                    data: {
-                      subscription_tier: verifyData.tier,
-                      source: 'magic_link',
-                      verified_at: new Date().toISOString()
-                    }
-                  });
-                  
-                  setMessage(`Welcome! Your subscription tier: ${verifyData.tier}`);
-                } else {
-                  setMessage(`Welcome! Your subscription tier: ${tierParam}`);
-                }
-              } catch (verifyError) {
-                console.warn('⚠️ Could not verify tier:', verifyError);
+                setMessage(`Welcome! Your subscription tier: ${verifyData.tier}`);
+              } else {
                 setMessage(`Welcome! Your subscription tier: ${tierParam}`);
               }
+            } catch (verifyError) {
+              console.warn('⚠️ Could not verify tier:', verifyError);
+              setMessage(`Welcome! Your subscription tier: ${tierParam}`);
             }
             
             setStatus('success');
@@ -75,11 +75,29 @@ export function AuthCallback() {
               navigate('/dashboard', { replace: true });
             }, 1500);
             return;
+          } catch (authError) {
+            console.error('❌ Magic link authentication error:', authError);
+            setStatus('error');
+            setMessage('Authentication failed. Please try again.');
+            return;
+          }
+        }
+        
+        // Check for old session data format (fallback)
+        if (sessionDataParam && verifiedParam === 'true') {
+          console.log('🔄 Processing legacy session data...');
+          try {
+            const sessionData = JSON.parse(atob(sessionDataParam));
+            console.log('✅ Legacy session processed for:', sessionData.user.email);
+            setMessage(`Welcome! Your subscription tier: ${tierParam}`);
+            setStatus('success');
+            
+            setTimeout(() => {
+              navigate('/dashboard', { replace: true });
+            }, 1500);
+            return;
           } catch (decodeError) {
             console.error('❌ Error decoding session data:', decodeError);
-            setStatus('error');
-            setMessage('Invalid session data. Please try again.');
-            return;
           }
         }
         

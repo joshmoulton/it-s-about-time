@@ -123,36 +123,34 @@ serve(async (req) => {
       console.warn('⚠️ Error upserting subscriber:', upsertError);
     }
 
-    console.log(`✅ Magic link verified successfully for ${tokenData.email}, creating real session...`);
+    console.log(`✅ Magic link verified successfully for ${tokenData.email}, preparing authentication...`);
     
-    // Generate real Supabase JWT tokens for the user using createSession
-    const { data: sessionData, error: sessionError } = await supabase.auth.admin.createSession({
-      user_id: authUser.id,
-      session_duration: 3600 // 1 hour
+    // Set a temporary password for the user so they can sign in
+    const tempPassword = `temp_magic_${Date.now()}_${Math.random().toString(36).substring(7)}`;
+    
+    const { error: updateError } = await supabase.auth.admin.updateUserById(authUser.id, {
+      password: tempPassword,
+      email_confirm: true, // Ensure email is confirmed
+      user_metadata: {
+        ...authUser.user_metadata,
+        subscription_tier: tokenData.tier,
+        last_login_via: 'magic_link',
+        verified_at: new Date().toISOString()
+      }
     });
-    
-    if (sessionError || !sessionData) {
-      console.error('❌ Error creating session:', sessionError);
-      return new Response('Failed to create session', { status: 500 });
+
+    if (updateError) {
+      console.error('❌ Error updating user password:', updateError);
+      return new Response('Failed to prepare authentication', { status: 500 });
     }
 
-    console.log(`✅ Real JWT session created for ${tokenData.email}`);
+    console.log(`✅ Temporary password set for ${tokenData.email}`);
     
-    // Prepare session data with real Supabase tokens
-    const realSessionData = {
-      access_token: sessionData.access_token,
-      refresh_token: sessionData.refresh_token,
-      expires_in: sessionData.expires_in,
-      expires_at: sessionData.expires_at,
-      token_type: sessionData.token_type || 'bearer',
-      user: sessionData.user
-    };
-
-    console.log(`✅ Real session data prepared for ${tokenData.email}`);
-    
-    // Redirect with session data as URL parameters
+    // Redirect with credentials for frontend to sign in
     const redirectUrl = new URL(redirect);
-    redirectUrl.searchParams.set('session_data', btoa(JSON.stringify(realSessionData)));
+    redirectUrl.searchParams.set('magic_auth', 'true');
+    redirectUrl.searchParams.set('email', tokenData.email);
+    redirectUrl.searchParams.set('temp_password', tempPassword);
     redirectUrl.searchParams.set('verified', 'true');
     redirectUrl.searchParams.set('tier', tokenData.tier);
     
