@@ -51,41 +51,6 @@ serve(async (req) => {
       .update({ used_at: new Date().toISOString() })
       .eq('token', token);
 
-    // Get or create user in auth.users
-    let authUser;
-    const { data: existingUser } = await supabase.auth.admin.listUsers();
-    authUser = existingUser.users.find(u => u.email === tokenData.email);
-
-    if (!authUser) {
-      // Create user in Supabase auth
-      const { data: newUser, error: createError } = await supabase.auth.admin.createUser({
-        email: tokenData.email,
-        email_confirm: true,
-        user_metadata: {
-          subscription_tier: tokenData.tier,
-          source: 'magic_link',
-          verified_at: new Date().toISOString()
-        }
-      });
-
-      if (createError) {
-        console.error('❌ Error creating user:', createError);
-        return new Response('Failed to create user account', { status: 500 });
-      }
-
-      authUser = newUser.user;
-    } else {
-      // Update existing user metadata
-      await supabase.auth.admin.updateUserById(authUser.id, {
-        user_metadata: {
-          ...authUser.user_metadata,
-          subscription_tier: tokenData.tier,
-          last_login_via: 'magic_link',
-          verified_at: new Date().toISOString()
-        }
-      });
-    }
-
     // Upsert subscriber in our database
     const { error: upsertError } = await supabase
       .from('beehiiv_subscribers')
@@ -103,27 +68,26 @@ serve(async (req) => {
       console.warn('⚠️ Error upserting subscriber:', upsertError);
     }
 
-    // Generate a session for the user
-    const { data: sessionData, error: sessionError } = await supabase.auth.admin.generateLink({
-      type: 'magiclink',
-      email: tokenData.email,
-      options: {
-        redirectTo: redirect
-      }
-    });
-
-    if (sessionError || !sessionData.properties?.action_link) {
-      console.error('❌ Error generating session:', sessionError);
-      return new Response('Failed to create session', { status: 500 });
-    }
-
     console.log(`✅ Magic link verified successfully for ${tokenData.email}, redirecting to: ${redirect}`);
     
-    // Redirect to the Supabase auth link which will create the session and redirect
+    // Create session data for frontend unified auth
+    const sessionData = {
+      email: tokenData.email,
+      tier: tokenData.tier,
+      source: 'magic_link',
+      timestamp: new Date().toISOString()
+    };
+
+    // Encode session data in URL parameters for frontend to pick up
+    const redirectUrl = new URL(redirect);
+    redirectUrl.searchParams.set('session', btoa(JSON.stringify(sessionData)));
+    redirectUrl.searchParams.set('verified', 'true');
+    
+    // Redirect to dashboard with session data
     return new Response(null, {
       status: 302,
       headers: {
-        'Location': sessionData.properties.action_link,
+        'Location': redirectUrl.toString(),
         ...corsHeaders
       }
     });

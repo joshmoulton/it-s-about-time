@@ -29,10 +29,45 @@ const Dashboard = () => {
   // Enable mobile performance optimizations
   useMobilePerformance();
   
-  const { currentUser, isLoading } = useEnhancedAuth();
+  const { currentUser, isLoading, setAuthenticatedUser } = useEnhancedAuth();
   const [searchParams] = useSearchParams();
   const sectionFromUrl = searchParams.get('section');
   const connectionStatus = useConnectionStatus();
+
+  // Handle magic link session data from URL parameters
+  useEffect(() => {
+    const sessionParam = searchParams.get('session');
+    const verified = searchParams.get('verified');
+    
+    if (sessionParam && verified === 'true' && !currentUser) {
+      try {
+        const sessionData = JSON.parse(atob(sessionParam));
+        console.log('🔗 Processing magic link session:', sessionData);
+        
+        // Create unified auth session
+        setAuthenticatedUser({
+          id: crypto.randomUUID(),
+          email: sessionData.email,
+          subscription_tier: sessionData.tier,
+          source: sessionData.source,
+          permissions: {
+            canAccessPremiumContent: sessionData.tier === 'premium',
+            canAccessPaidContent: sessionData.tier === 'premium' || sessionData.tier === 'paid',
+            canAccessFreeContent: true
+          }
+        }, 'magic_link');
+
+        // Clean up URL parameters
+        const newUrl = new URL(window.location.href);
+        newUrl.searchParams.delete('session');
+        newUrl.searchParams.delete('verified');
+        window.history.replaceState({}, '', newUrl.toString());
+        
+      } catch (error) {
+        console.error('Failed to process magic link session:', error);
+      }
+    }
+  }, [searchParams, currentUser, setAuthenticatedUser]);
   
   // Check if we're on the /dashboard/content route
   const isContentRoute = window.location.pathname === '/dashboard/content';
