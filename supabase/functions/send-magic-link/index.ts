@@ -1,6 +1,5 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { Resend } from "https://esm.sh/resend@2.0.0";
 
 const corsHeaders = {
   "access-control-allow-origin": "*",
@@ -71,7 +70,6 @@ serve(async (req) => {
     const appUrl = "https://www.weeklywizdom.com";
 
     const supabase = createClient(supabaseUrl, serviceKey);
-    const resend = new Resend(resendApiKey);
 
     // Use unified auth verification to get proper user tier and create user if needed
     console.log(`🔍 Verifying ${email} with unified auth...`);
@@ -184,12 +182,26 @@ serve(async (req) => {
       </div>
     `;
 
-    await resend.emails.send({
-      from: "Weekly Wizdom <noreply@weeklywizdom.app>",
-      to: [email],
-      subject: isNewUser ? 'Welcome to Weekly Wizdom - Your access link' : 'Your Weekly Wizdom access link',
-      html,
+    // Send email via Resend REST API
+    const emailResponse = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${resendApiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        from: "Weekly Wizdom <noreply@weeklywizdom.app>",
+        to: [email],
+        subject: isNewUser ? 'Welcome to Weekly Wizdom - Your access link' : 'Your Weekly Wizdom access link',
+        html,
+      }),
     });
+
+    if (!emailResponse.ok) {
+      const errorText = await emailResponse.text();
+      console.error(`❌ Resend API error (${emailResponse.status}):`, errorText);
+      throw new Error(`Failed to send email: ${emailResponse.status} ${errorText}`);
+    }
 
     console.log(`✅ Magic link sent successfully for ${email}`);
 
