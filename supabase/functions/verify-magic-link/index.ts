@@ -32,20 +32,11 @@ Deno.serve(async (req) => {
 
     console.log(`🔍 Validating magic link token for: ${email}`);
 
-    // Validate the token in user_sessions table
+    // Validate the token in user_sessions table and get associated subscriber
     const { data: sessionData, error: sessionError } = await supabase
       .from('user_sessions')
-      .select(`
-        *,
-        beehiiv_subscribers!subscriber_id (
-          id,
-          email,
-          subscription_tier,
-          status
-        )
-      `)
+      .select('*')
       .eq('session_token', token)
-      .eq('beehiiv_subscribers.email', email)
       .gt('expires_at', new Date().toISOString())
       .single();
 
@@ -63,9 +54,15 @@ Deno.serve(async (req) => {
       );
     }
 
-    const subscriber = sessionData.beehiiv_subscribers;
-    if (!subscriber) {
-      console.error('❌ No subscriber found for session');
+    // Get the subscriber data separately using email
+    const { data: subscriber, error: subscriberError } = await supabase
+      .from('beehiiv_subscribers')
+      .select('id, email, subscription_tier, status')
+      .eq('email', email)
+      .single();
+
+    if (subscriberError || !subscriber) {
+      console.error('❌ No subscriber found:', subscriberError);
       return new Response(
         JSON.stringify({ 
           success: false, 
@@ -136,18 +133,18 @@ Deno.serve(async (req) => {
       throw sessionCreateError;
     }
 
-    // Mark the user session as used
+    // Mark the user session as used (update by token and email match)
     await supabase
       .from('user_sessions')
       .update({ 
-        used_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
         metadata: { 
-          ...sessionData.metadata, 
           supabase_user_id: authUser?.id,
-          login_completed_at: new Date().toISOString()
+          login_completed_at: new Date().toISOString(),
+          used_for_login: true
         }
       })
-      .eq('id', sessionData.id);
+      .eq('session_token', token);
 
     // Log successful authentication
     await supabase
@@ -157,9 +154,10 @@ Deno.serve(async (req) => {
         auth_method: 'magic_link',
         action_type: 'login_success',
         metadata: {
-          session_id: sessionData.id,
+          session_token: token,
           subscription_tier: subscriber.subscription_tier,
-          supabase_user_id: authUser?.id
+          supabase_user_id: authUser?.id,
+          source: sessionData.source
         }
       });
 
