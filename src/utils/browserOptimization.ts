@@ -230,25 +230,9 @@ export const optimizeForBrowser = () => {
     });
   }
 
-  // Chrome specific optimizations
+  // Chrome specific optimizations (SAFE - no transforms)
   if (browser.isChrome) {
-    // Enable hardware acceleration for animations EXCEPT for modals
-    const applyAcceleration = () => {
-      if (!document.body.classList.contains('modal-open')) {
-        document.documentElement.style.transform = 'translateZ(0)';
-      }
-    };
-    applyAcceleration();
-    
-    // Monitor for modal state changes
-    const observer = new MutationObserver(() => {
-      if (document.body.classList.contains('modal-open')) {
-        document.documentElement.style.transform = 'none';
-      } else {
-        document.documentElement.style.transform = 'translateZ(0)';
-      }
-    });
-    observer.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+    // Removed hardware acceleration to prevent modal issues
     
     // Fix Chrome autofill styling
     const style = document.createElement('style');
@@ -285,54 +269,20 @@ export const optimizeForBrowser = () => {
     document.documentElement.classList.add('brave-optimized');
   }
 
-  // General mobile optimizations
+  // General mobile optimizations (SAFE - minimal interference)
   if (browser.isMobile) {
-    // Improve touch responsiveness
+    // Safe touch optimizations
     document.body.style.touchAction = 'manipulation';
-    
-    // Prevent callout on touch and hold
     (document.body.style as any).webkitTouchCallout = 'none';
+    (document.body.style as any).webkitTapHighlightColor = 'transparent';
     
-    // Prevent text selection on touch EXCEPT when modal is open
-    const updateSelection = () => {
-      if (!document.body.classList.contains('modal-open')) {
-        (document.body.style as any).webkitUserSelect = 'none';
-        document.body.style.userSelect = 'none';
-      } else {
-        (document.body.style as any).webkitUserSelect = 'auto';
-        document.body.style.userSelect = 'auto';
-      }
-    };
-    updateSelection();
-    
-    // Monitor for modal state changes
-    const observer = new MutationObserver(updateSelection);
-    observer.observe(document.body, { attributes: true, attributeFilter: ['class'] });
-    
-    // Re-enable text selection for text content
-    const textElements = document.querySelectorAll('p, span, div[contenteditable], input, textarea');
+    // Allow text selection in input elements without complex observers
+    const textElements = document.querySelectorAll('input, textarea, [contenteditable]');
     textElements.forEach(element => {
       const elementStyle = (element as HTMLElement).style as any;
       elementStyle.webkitUserSelect = 'text';
       (element as HTMLElement).style.userSelect = 'text';
     });
-    
-    // Fix mobile tap highlighting
-    (document.body.style as any).webkitTapHighlightColor = 'transparent';
-    
-    // Optimize for mobile performance EXCEPT when modal is open
-    const updatePerformance = () => {
-      if (!document.body.classList.contains('modal-open')) {
-        document.documentElement.style.setProperty('will-change', 'transform');
-      } else {
-        document.documentElement.style.setProperty('will-change', 'auto');
-      }
-    };
-    updatePerformance();
-    
-    // Monitor for modal state changes
-    const perfObserver = new MutationObserver(updatePerformance);
-    perfObserver.observe(document.body, { attributes: true, attributeFilter: ['class'] });
   }
 
   // High DPI display optimizations
