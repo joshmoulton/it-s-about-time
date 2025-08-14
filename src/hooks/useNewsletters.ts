@@ -27,10 +27,10 @@ interface Newsletter {
 }
 
 export const useNewsletters = (limit?: number, sortBy: 'newest' | 'oldest' | 'title' = 'newest') => {
-  const { user } = useUnifiedAuth();
+  const { user, isAuthenticated } = useUnifiedAuth();
   
   return useQuery({
-    queryKey: ['newsletters', limit, sortBy, user?.subscription_tier],
+    queryKey: ['newsletters', limit, sortBy, user?.subscription_tier, isAuthenticated],
     queryFn: async () => {
       // Get blacklisted newsletter IDs first
       const blacklistedIds = await getBlacklistedNewsletterIds();
@@ -85,6 +85,7 @@ export const useNewsletters = (limit?: number, sortBy: 'newest' | 'oldest' | 'ti
       debugLog.log('📧 NEWSLETTER QUERY RESULT:', {
         userEmail: user?.email || 'unauthenticated',
         userTier: user?.subscription_tier || 'free',
+        isAuthenticated,
         totalNewsletters: data?.length || 0,
         blacklistedCount: blacklistedIds.length,
         filteredCount: finalData.length,

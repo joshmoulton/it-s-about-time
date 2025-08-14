@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useOptimizedQuery } from './useOptimizedQuery';
+import { supabase } from '@/integrations/supabase/client';
 
 interface Alert {
   id: string;
@@ -50,7 +51,21 @@ export function useActiveAlertsRest(): UseActiveAlertsRestReturn {
     queryKey: ['active-alerts-rest'],
     queryFn: async () => {
       console.log('🔄 Fetching alerts from REST endpoint...');
-      const response = await fetch('https://tcchfpgmwqawcjtwicek.supabase.co/functions/v1/active-alerts-widget');
+      
+      // Get the current session to include auth headers
+      const { data: sessionData } = await supabase.auth.getSession();
+      const authHeaders: Record<string, string> = {};
+      
+      if (sessionData?.session?.access_token) {
+        authHeaders['Authorization'] = `Bearer ${sessionData.session.access_token}`;
+      }
+      
+      const response = await fetch('https://tcchfpgmwqawcjtwicek.supabase.co/functions/v1/active-alerts-widget', {
+        headers: {
+          'Content-Type': 'application/json',
+          ...authHeaders
+        }
+      });
       
       if (!response.ok) {
         // Suppress 401 errors for free users (expected behavior)

@@ -63,28 +63,21 @@ export function useCryptoPrices(tickers: string[] = []) {
           // Make individual calls for each ticker since the function doesn't support batch requests
           const pricePromises = staleTickers.map(async (ticker) => {
             try {
-              // Use direct fetch to make GET request with query params
-              const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/crypto-pricing?ticker=${ticker}`, {
-                method: 'GET',
-                headers: {
-                  'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-                  'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
-                  'Content-Type': 'application/json'
-                }
+              // Use Supabase Edge Functions invoke method instead of direct fetch
+              const { data, error } = await supabase.functions.invoke('crypto-pricing', {
+                body: { ticker }
               });
               
-              if (!response.ok) {
-                console.error(`Failed to fetch price for ${ticker}: ${response.status}`);
+              if (error) {
+                console.error(`Failed to fetch price for ${ticker}:`, error);
                 return null;
               }
               
-              const data = await response.json();
-              
               return {
                 ticker: ticker.toUpperCase(),
-                price_usd: data.price || 0,
-                price_change_24h: data.change24h || null,
-                last_updated: data.timestamp || new Date().toISOString()
+                price_usd: data?.price || 0,
+                price_change_24h: data?.change24h || null,
+                last_updated: data?.timestamp || new Date().toISOString()
               };
             } catch (error) {
               console.error(`Error fetching price for ${ticker}:`, error);
