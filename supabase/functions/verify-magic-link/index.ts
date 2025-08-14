@@ -123,41 +123,38 @@ serve(async (req) => {
       console.warn('⚠️ Error upserting subscriber:', upsertError);
     }
 
-    console.log(`✅ Magic link verified successfully for ${tokenData.email}, preparing authentication...`);
+    console.log(`✅ Magic link verified successfully for ${tokenData.email}, generating Supabase magic link...`);
     
-    // Set a temporary password for the user so they can sign in
-    const tempPassword = `temp_magic_${Date.now()}_${Math.random().toString(36).substring(7)}`;
-    
-    const { error: updateError } = await supabase.auth.admin.updateUserById(authUser.id, {
-      password: tempPassword,
-      email_confirm: true, // Ensure email is confirmed
-      user_metadata: {
-        ...authUser.user_metadata,
-        subscription_tier: tokenData.tier,
-        last_login_via: 'magic_link',
-        verified_at: new Date().toISOString()
+    // Generate a proper Supabase magic link for the user
+    const { data: linkData, error: linkError } = await supabase.auth.admin.generateLink({
+      type: 'magiclink',
+      email: tokenData.email,
+      options: {
+        redirectTo: redirect
       }
     });
 
-    if (updateError) {
-      console.error('❌ Error updating user password:', updateError);
-      return new Response('Failed to prepare authentication', { status: 500 });
+    if (linkError || !linkData) {
+      console.error('❌ Error generating Supabase magic link:', linkError);
+      return new Response('Failed to generate authentication link', { status: 500 });
     }
 
-    console.log(`✅ Temporary password set for ${tokenData.email}`);
+    console.log(`✅ Supabase magic link generated for ${tokenData.email}`);
     
-    // Redirect with credentials for frontend to sign in
-    const redirectUrl = new URL(redirect);
-    redirectUrl.searchParams.set('magic_auth', 'true');
-    redirectUrl.searchParams.set('email', tokenData.email);
-    redirectUrl.searchParams.set('temp_password', tempPassword);
-    redirectUrl.searchParams.set('verified', 'true');
-    redirectUrl.searchParams.set('tier', tokenData.tier);
+    // Extract the token from the generated link for direct session creation
+    const urlParams = new URL(linkData.properties.action_link).searchParams;
+    const supabaseToken = urlParams.get('token');
+    const tokenHash = urlParams.get('token_hash') || supabaseToken;
+    
+    // Redirect directly to Supabase's verification endpoint
+    const supabaseVerifyUrl = `${Deno.env.get('SUPABASE_URL')}/auth/v1/verify?token=${tokenHash}&type=magiclink&redirect_to=${encodeURIComponent(redirect)}`;
+    
+    console.log(`✅ Redirecting to Supabase verification for ${tokenData.email}`);
     
     return new Response(null, {
       status: 302,
       headers: {
-        'Location': redirectUrl.toString(),
+        'Location': supabaseVerifyUrl,
         ...corsHeaders
       }
     });

@@ -19,68 +19,16 @@ export function AuthCallback() {
         const tierParam = searchParams.get('tier');
         const verifiedParam = searchParams.get('verified');
         
-        // Check for magic link authentication
+        // Check for magic link authentication from our custom flow (fallback)
         const magicAuthParam = searchParams.get('magic_auth');
         const emailParam = searchParams.get('email');
         const tempPasswordParam = searchParams.get('temp_password');
         
         if (magicAuthParam === 'true' && emailParam && tempPasswordParam && verifiedParam === 'true') {
-          console.log('🔄 Processing magic link authentication...');
-          try {
-            // Sign in with temporary password to create real Supabase session
-            const { data: authData, error: signInError } = await supabase.auth.signInWithPassword({
-              email: emailParam,
-              password: tempPasswordParam
-            });
-            
-            if (signInError || !authData.session) {
-              console.error('❌ Error signing in with magic link:', signInError);
-              setStatus('error');
-              setMessage('Failed to authenticate. Please try again.');
-              return;
-            }
-            
-            console.log('✅ Magic link authentication successful for:', emailParam);
-            
-            // Verify tier and update metadata (same as password auth)
-            try {
-              const { data: verifyData, error: verifyError } = await supabase.functions.invoke('beehiiv-subscriber-verify', {
-                body: { email: emailParam }
-              });
-              
-              if (verifyData?.success) {
-                console.log(`✅ User tier verified: ${verifyData.tier}`);
-                
-                // Update user metadata with tier info
-                await supabase.auth.updateUser({
-                  data: {
-                    subscription_tier: verifyData.tier,
-                    source: 'magic_link',
-                    verified_at: new Date().toISOString()
-                  }
-                });
-                
-                setMessage(`Welcome! Your subscription tier: ${verifyData.tier}`);
-              } else {
-                setMessage(`Welcome! Your subscription tier: ${tierParam}`);
-              }
-            } catch (verifyError) {
-              console.warn('⚠️ Could not verify tier:', verifyError);
-              setMessage(`Welcome! Your subscription tier: ${tierParam}`);
-            }
-            
-            setStatus('success');
-            
-            setTimeout(() => {
-              navigate('/dashboard', { replace: true });
-            }, 1500);
-            return;
-          } catch (authError) {
-            console.error('❌ Magic link authentication error:', authError);
-            setStatus('error');
-            setMessage('Authentication failed. Please try again.');
-            return;
-          }
+          console.log('🔄 Processing legacy magic link authentication...');
+          setMessage('Legacy magic link authentication no longer supported. Please use the latest magic link.');
+          setStatus('error');
+          return;
         }
         
         // Check for old session data format (fallback)
