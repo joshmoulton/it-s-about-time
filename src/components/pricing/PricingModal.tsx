@@ -59,6 +59,11 @@ const cryptoPlans = [{
 export const PricingModal: React.FC<PricingModalProps> = ({ open, onOpenChange }) => {
   const { refreshCurrentUser } = useEnhancedAuth();
   const [paymentMethod, setPaymentMethod] = useState<'card' | 'crypto'>('card');
+  
+  // Debug logging
+  useEffect(() => {
+    console.log('PricingModal rendered, open:', open);
+  }, [open]);
   const [checkoutModal, setCheckoutModal] = useState<{
     open: boolean;
     productId: string | null;

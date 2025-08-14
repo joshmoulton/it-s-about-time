@@ -59,6 +59,7 @@ const Index = () => {
   useEffect(() => {
     (window as any).__openPremium = () => setPremiumModalOpen(true);
     console.debug('[premium] premiumModalOpen=', premiumModalOpen);
+    console.debug('[premium] modal component rendered at top level');
   }, [premiumModalOpen]);
 
   // Open premium modal on landing page when ?open=1 or ?open=true
@@ -170,7 +171,10 @@ const Index = () => {
       {/* 9. Premium Section */}
       <div id="pricing">
         <Suspense fallback={<div className="h-64 bg-muted/20" />}>
-          <PricingSection onOpenPremiumModal={() => setPremiumModalOpen(true)} />
+          <PricingSection onOpenPremiumModal={() => {
+            console.log('PricingSection onOpenPremiumModal called');
+            setPremiumModalOpen(true);
+          }} />
         </Suspense>
       </div>
 
