@@ -120,11 +120,16 @@ export function UserProfileSection() {
 
     setIsUploadingAvatar(true);
     try {
-      // Generate unique filename using email for magic link users or id for regular users
+      // Get the authenticated user's ID from Supabase
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user?.id) {
+        throw new Error('User not authenticated');
+      }
+
+      // Generate unique filename using auth.uid() for proper storage structure
       const fileExt = file.name.split('.').pop();
-      const userIdentifier = currentUser.email || currentUser.id;
-      const fileName = `${userIdentifier}_${Date.now()}.${fileExt}`;
-      const filePath = `${userIdentifier}/${fileName}`;
+      const fileName = `avatar_${Date.now()}.${fileExt}`;
+      const filePath = `${user.id}/${fileName}`;
 
       // Upload to Supabase storage
       const { error: uploadError } = await supabase.storage
@@ -160,7 +165,7 @@ export function UserProfileSection() {
       console.error('Error uploading avatar:', error);
       toast({
         title: "Upload Failed",
-        description: "Failed to upload avatar. Please try again.",
+        description: error instanceof Error ? error.message : "Failed to upload avatar. Please try again.",
         variant: "destructive"
       });
     } finally {
