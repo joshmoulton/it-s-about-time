@@ -1,8 +1,9 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { HelpCircle, LogOut, Crown, User } from 'lucide-react';
+import { HelpCircle, LogOut, Crown, User, Settings } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useAdminCheck } from '@/hooks/useAdminCheck';
 
 interface MenuItem {
   title: string;
@@ -35,6 +36,7 @@ export function MobileMenu({
   onCloseMobileMenu 
 }: MobileMenuProps) {
   const navigate = useNavigate();
+  const { isAdmin } = useAdminCheck();
 
   const handleMenuItemClick = (itemId: string) => {
     onMenuItemClick(itemId);
@@ -94,6 +96,20 @@ export function MobileMenu({
           <User className="h-5 w-5 flex-shrink-0" />
           <span className="truncate text-base">Account Settings</span>
         </Button>
+        
+        {isAdmin && (
+          <Button 
+            variant="ghost" 
+            onClick={() => {
+              navigate('/admin');
+              onCloseMobileMenu();
+            }}
+            className="flex items-center gap-3 w-full justify-start min-h-[48px] rounded-xl"
+          >
+            <Settings className="h-5 w-5 flex-shrink-0 text-orange-400" />
+            <span className="truncate text-base text-orange-400">Admin Panel</span>
+          </Button>
+        )}
         
         {onStartTour && (subscriber?.subscription_tier === 'paid' || subscriber?.subscription_tier === 'premium') && (
           <Button 

@@ -64,14 +64,14 @@ export function TopNavigation({
           
           {/* Admin Panel Access */}
           {isAdmin && (
-            <Link to="/admin" className="hidden sm:block">
+            <Link to="/admin">
               <Button 
                 variant="outline" 
                 size="sm" 
-                className="h-9 px-4 bg-orange-500/10 border-orange-500/30 text-orange-300 hover:bg-orange-500/20 hover:border-orange-400/50 hover:text-orange-200 transition-all duration-200 font-medium text-sm rounded-lg shadow-sm"
+                className="h-8 px-2 sm:h-9 sm:px-4 bg-orange-500/10 border-orange-500/30 text-orange-300 hover:bg-orange-500/20 hover:border-orange-400/50 hover:text-orange-200 transition-all duration-200 font-medium text-xs sm:text-sm rounded-lg shadow-sm"
               >
-                <Settings className="h-4 w-4 mr-2" />
-                <span className="hidden md:inline">Admin</span>
+                <Settings className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline md:inline">Admin</span>
               </Button>
             </Link>
           )}
