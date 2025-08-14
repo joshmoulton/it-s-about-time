@@ -167,6 +167,30 @@ export const UnifiedAuth = {
         return { success: false, error: 'Email not found in subscriber lists' };
       }
 
+      // CRITICAL FIX: Create Supabase session for RLS policies
+      console.log('🔧 UNIFIED AUTH: Creating Supabase session for:', email, 'Tier:', verificationResult.tier);
+      try {
+        const { data: sessionResult, error: sessionError } = await supabase.functions.invoke(
+          'establish-beehiiv-session-context',
+          {
+            body: {
+              email: email.toLowerCase().trim(),
+              subscription_tier: verificationResult.tier
+            }
+          }
+        );
+
+        if (sessionError || !sessionResult?.success) {
+          console.error('❌ UNIFIED AUTH: Failed to establish Supabase session:', sessionError || sessionResult?.error);
+          // Continue with local session even if Supabase session fails
+        } else {
+          console.log('✅ UNIFIED AUTH: Supabase session established for:', email);
+        }
+      } catch (sessionErr) {
+        console.error('❌ UNIFIED AUTH: Error establishing Supabase session:', sessionErr);
+        // Continue with local session even if Supabase session fails
+      }
+
       const session = this.createSession(verificationResult);
       if (!session) {
         return { success: false, error: 'Failed to create session' };

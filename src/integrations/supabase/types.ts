@@ -3743,6 +3743,13 @@ export type Database = {
         }
         Returns: string
       }
+      create_supabase_session_for_beehiiv_user: {
+        Args: {
+          p_email: string
+          p_subscription_tier: Database["public"]["Enums"]["subscription_tier"]
+        }
+        Returns: Json
+      }
       create_supabase_session_for_enhanced_user: {
         Args: { p_email: string; p_session_token: string }
         Returns: Json
@@ -3791,6 +3798,13 @@ export type Database = {
               p_user_id: string
             }
         Returns: string
+      }
+      establish_beehiiv_session_context: {
+        Args: {
+          p_email: string
+          p_subscription_tier: Database["public"]["Enums"]["subscription_tier"]
+        }
+        Returns: Json
       }
       extract_analyst_call_data: {
         Args: { message_text: string; pattern_config?: Json }
