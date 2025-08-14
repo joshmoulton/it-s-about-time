@@ -154,12 +154,24 @@ export function DegenCallAlertsWidget({
   };
   const formatPrice = (price: number | null | undefined) => {
     if (price == null || isNaN(price)) return 'N/A';
-    if (price >= 1) return `$${price.toLocaleString(undefined, {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 8
-    })}`;
-    if (price >= 0.01) return `$${price.toFixed(6)}`;
-    return `$${price.toFixed(8)}`;
+    
+    // Format with appropriate precision and remove trailing zeros
+    let formatted: string;
+    if (price >= 1) {
+      // For prices >= $1, use up to 8 decimals but remove trailing zeros
+      formatted = price.toLocaleString(undefined, {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 8
+      });
+    } else if (price >= 0.01) {
+      // For prices >= $0.01, use up to 6 decimals
+      formatted = price.toFixed(6).replace(/\.?0+$/, '');
+    } else {
+      // For very small prices, use up to 8 decimals
+      formatted = price.toFixed(8).replace(/\.?0+$/, '');
+    }
+    
+    return `$${formatted}`;
   };
   // Remove real-time price functions since we only show call-time price
   // const getPriceForTicker = (ticker: string) => {
