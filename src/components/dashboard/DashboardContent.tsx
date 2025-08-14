@@ -123,14 +123,22 @@ export function DashboardContent({
           {/* Top Row - Newsletter, Edge, and Degen Calls - all in same responsive container */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
             {/* Newsletter Widget - Always accessible to all users */}
-            <div className="h-[280px] sm:h-[300px] lg:h-[340px] overflow-hidden">
-              <WidgetErrorBoundary widgetName="Newsletter">
-                <ModernNewsletterWidget 
-                  subscriber={subscriber} 
-                  hideHeader={false}
-                />
-              </WidgetErrorBoundary>
-            </div>
+            <FreemiumWidgetWrapper
+              featureName="Weekly Wizdom Newsletter"
+              className="h-[280px] sm:h-[300px] lg:h-[340px] overflow-hidden"
+              gradientTheme="blue"
+              showTeaserStats={false}
+              widgetType="newsletter"
+            >
+              <div className="h-full">
+                <WidgetErrorBoundary widgetName="Newsletter">
+                  <ModernNewsletterWidget 
+                    subscriber={subscriber} 
+                    hideHeader={false}
+                  />
+                </WidgetErrorBoundary>
+              </div>
+            </FreemiumWidgetWrapper>
 
             {/* Watch The Edge Widget - Premium only */}
             <FreemiumWidgetWrapper
