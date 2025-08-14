@@ -203,20 +203,8 @@ const { subscriber, isLoading } = useEnhancedAuth();
 const [showUpgradeModal, setShowUpgradeModal] = useState(false);
 const { isAdmin } = useAdminCheck();
 
-// Debug logging for tier access issues
-console.log('🔍 FreemiumWrapper Debug:', {
-  widgetType,
-  isAdmin,
-  subscriber: !!subscriber,
-  subscriberTier: subscriber?.subscription_tier,
-  authMethod: localStorage.getItem('auth_method'),
-  authTier: localStorage.getItem('auth_tier'),
-  authEmail: localStorage.getItem('auth_user_email')
-});
-
 // Admins and premium users always have access (bypass overlay)
 if (isAdmin || subscriber?.subscription_tier === 'premium') {
-  console.log(`✅ Premium access granted for ${widgetType} - Admin: ${isAdmin}, Tier: ${subscriber?.subscription_tier}`);
   return <>{children}</>;
 }
 
@@ -224,7 +212,6 @@ if (isAdmin || subscriber?.subscription_tier === 'premium') {
 const authMethod = localStorage.getItem('auth_method');
 const authTier = localStorage.getItem('auth_tier');
 if (authMethod === 'magic_link' && (authTier === 'premium' || authTier === 'paid')) {
-  console.log(`✅ Magic link premium access granted for ${widgetType} - Method: ${authMethod}, Tier: ${authTier}`);
   return <>{children}</>;
 }
 
