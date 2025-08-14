@@ -120,24 +120,22 @@ export function DashboardContent({
         <div className="max-w-7xl mx-auto space-y-6 sm:space-y-8">
           
           
-          {/* Top Row - Newsletter (always accessible), Edge, and Degen Calls */}
+          {/* Top Row - Newsletter, Edge, and Degen Calls - all in same responsive container */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
-            {/* Newsletter Widget - Always accessible to all users with new gradient styling */}
-            <div className="h-[280px] sm:h-[300px] lg:h-[340px] overflow-hidden flex flex-col">
+            {/* Newsletter Widget - Always accessible to all users */}
+            <div className="h-[280px] sm:h-[300px] lg:h-[340px] overflow-hidden">
               <WidgetErrorBoundary widgetName="Newsletter">
-                <div className="h-full flex flex-col">
-                  <ModernNewsletterWidget 
-                    subscriber={subscriber} 
-                    hideHeader={false}
-                  />
-                </div>
+                <ModernNewsletterWidget 
+                  subscriber={subscriber} 
+                  hideHeader={false}
+                />
               </WidgetErrorBoundary>
             </div>
 
             {/* Watch The Edge Widget - Premium only */}
             <FreemiumWidgetWrapper
               featureName="Watch The Edge Signals"
-              className="h-[300px] sm:h-[340px] overflow-hidden"
+              className="h-[280px] sm:h-[300px] lg:h-[340px] overflow-hidden"
               gradientTheme="teal"
               showTeaserStats={true}
               teaserStats={{
@@ -158,7 +156,7 @@ export function DashboardContent({
             {/* Degen Call Alerts Widget - Premium only */}
             <FreemiumWidgetWrapper
               featureName="Degen Call Alerts"
-              className="h-[300px] sm:h-[340px] overflow-hidden"
+              className="h-[280px] sm:h-[300px] lg:h-[340px] overflow-hidden"
               gradientTheme="orange"
               showTeaserStats={true}
               teaserStats={{
