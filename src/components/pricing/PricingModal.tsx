@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import { Sparkles } from 'lucide-react';
+import { Sparkles, X } from 'lucide-react';
 import { PaymentToggle } from './PaymentToggle';
 import { PricingCard } from './PricingCard';
 import { PremiumFeatures } from './PremiumFeatures';
@@ -89,11 +89,18 @@ export const PricingModal: React.FC<PricingModalProps> = ({ open, onOpenChange }
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="w-[95vw] max-w-[420px] h-auto max-h-[90vh] p-0 overflow-hidden">
+        <DialogContent className="p-0 w-[95vw] max-w-[420px] max-h-[90vh] overflow-hidden flex flex-col">
           <div className="flex flex-col h-full">
-            <div className="p-4 sm:p-6 flex-shrink-0">
-              <DialogHeader className="text-center space-y-2 sm:space-y-3">
-                <DialogTitle className="text-xl sm:text-2xl font-bold flex items-center justify-center gap-2 pr-8">
+            <div className="p-4 sm:p-6 flex-shrink-0 relative">
+              <button
+                onClick={() => onOpenChange(false)}
+                className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+                aria-label="Close modal"
+              >
+                <X className="h-4 w-4" />
+              </button>
+              <DialogHeader className="text-center space-y-2 sm:space-y-3 pr-8">
+                <DialogTitle className="text-xl sm:text-2xl font-bold flex items-center justify-center gap-2">
                   <Sparkles className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
                   Upgrade to Premium
                 </DialogTitle>
