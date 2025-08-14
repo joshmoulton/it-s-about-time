@@ -27,9 +27,6 @@ import { TierAccessManager } from '@/utils/tierAccess';
 import { useAdminCheck } from '@/hooks/useAdminCheck';
 
 // Keep lazy loading for non-critical widgets
-const CompactNewsletterWidget = lazy(() => import('./widgets/CompactNewsletterWidget').then(module => ({
-  default: module.CompactNewsletterWidget
-})));
 const CompactEdgeWidget = lazy(() => import('./widgets/CompactEdgeWidget').then(module => ({
   default: module.CompactEdgeWidget
 })));
@@ -317,9 +314,7 @@ export function DashboardContent({
             <h1 className="text-2xl font-bold mb-6 text-foreground">Newsletter</h1>
             <div className="max-w-4xl">
               <WidgetErrorBoundary widgetName="Newsletter">
-                <Suspense fallback={<LazyWidgetLoader height="min-h-[400px]" />}>
-                  <CompactNewsletterWidget subscriber={subscriber} />
-                </Suspense>
+                <ModernNewsletterWidget subscriber={subscriber} hideHeader={true} />
               </WidgetErrorBoundary>
             </div>
           </div>;
