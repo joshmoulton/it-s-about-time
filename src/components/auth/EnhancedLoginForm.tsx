@@ -216,55 +216,21 @@ export const EnhancedLoginForm: React.FC<EnhancedLoginFormProps> = ({ onSuccess 
     try {
       const email = data.email.toLowerCase().trim();
       
-      // First, verify user exists in Beehiiv or create a free subscription
-      console.log(`🔍 Checking Beehiiv subscription for magic link: ${email}`);
+      // Send magic link via our custom function (handles verification and user creation automatically)
+      console.log(`🪄 Sending magic link for: ${email}`);
       
-      const { data: verificationResult, error: verifyError } = await supabase.functions.invoke(
-        'beehiiv-subscriber-verify',
-        { body: { email } }
-      );
-
-      if (verifyError || !verificationResult?.success) {
-        // User doesn't exist in Beehiiv, create free subscription first
-        console.log('🆕 User not found in Beehiiv, creating free subscription...');
-        
-        const { data: beehiivResult, error: beehiivError } = await supabase.functions.invoke('beehiiv-create-subscription', {
-          body: {
-            email,
-            utm_source: 'Weekly Wizdom App',
-            utm_medium: 'magic_link',
-            utm_campaign: 'free_signup',
-            referring_site: window.location.origin
-          }
-        });
-
-        if (beehiivError || !beehiivResult?.success) {
-          if (beehiivResult?.error === 'EMAIL_EXISTS') {
-            // Continue with magic link even if they already exist
-            console.log('ℹ️ User already exists in Beehiiv, proceeding with magic link...');
-          } else {
-            setError('Failed to verify subscription. Please try again.');
-            return;
-          }
-        } else {
-          console.log('✅ Free Beehiiv subscription created, proceeding with magic link...');
-        }
-      }
-      
-      // Send magic link via Supabase
-      const { error } = await supabase.auth.signInWithOtp({
-        email,
-        options: {
-          emailRedirectTo: `${window.location.origin}/dashboard`
-        }
+      const { data: magicLinkResult, error: magicLinkError } = await supabase.functions.invoke('send-magic-link', {
+        body: { email }
       });
       
-      if (!error) {
-        console.log('✅ Magic link sent successfully');
-        setError('Magic link sent! Check your email and click the link to sign in.');
-      } else {
-        setError(error.message || 'Failed to send magic link. Please check your email address.');
+      if (magicLinkError || !magicLinkResult?.success) {
+        console.error('❌ Magic link failed:', magicLinkError || magicLinkResult?.error);
+        setError(magicLinkResult?.error || 'Failed to send magic link. Please try again.');
+        return;
       }
+      
+      console.log('✅ Magic link sent successfully');
+      setError(magicLinkResult.message || 'Magic link sent! Check your email and click the link to sign in.');
     } catch (error) {
       console.error('❌ Magic link error:', error);
       setError('An unexpected error occurred. Please try again.');
