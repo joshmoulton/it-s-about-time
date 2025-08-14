@@ -22,3 +22,6 @@ verify_jwt = false
 
 [functions.crypto-pricing]
 verify_jwt = false
+
+[functions.degen-call-notifier]
+verify_jwt = false
