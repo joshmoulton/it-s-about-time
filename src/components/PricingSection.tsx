@@ -23,6 +23,7 @@ interface PricingTierProps {
   popular?: boolean;
   isFree?: boolean;
   onButtonClick: React.MouseEventHandler<HTMLButtonElement>;
+  onOpenPremiumModal?: () => void;
 }
 
 const PricingTier: React.FC<PricingTierProps> = ({
@@ -35,7 +36,8 @@ const PricingTier: React.FC<PricingTierProps> = ({
   buttonVariant = 'outline',
   popular = false,
   isFree = false,
-  onButtonClick
+  onButtonClick,
+  onOpenPremiumModal
 }) => {
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
@@ -63,40 +65,26 @@ const PricingTier: React.FC<PricingTierProps> = ({
     setLoading(true);
 
     try {
-      // Call the custom send-magic-link edge function
-      const { data, error } = await supabase.functions.invoke('send-magic-link', {
-        body: { email: email.toLowerCase().trim() }
-      });
-
-      if (error || !data?.success) {
-        const errorMessage = data?.error || error?.message || 'Failed to send access link';
-        toast({
-          title: "Error",
-          description: errorMessage,
-          variant: "destructive"
-        });
-      } else {
-        setIsSuccess(true);
-        setEmail('');
-        
-        // Show appropriate success message based on user status
-        if (data.is_new_user) {
-          setSuccessMessage({
-            title: "Welcome to Weekly Wizdom!",
-            description: "We've created your free subscription and sent you an access link via email. Check your inbox to get started!"
-          });
-        } else {
-          setSuccessMessage({
-            title: "Access Link Sent!",
-            description: "Check your email and click the link to sign in to your account."
-          });
-        }
-        
-        setShowSuccessModal(true);
-        
-        // Reset success state after 3 seconds
-        setTimeout(() => setIsSuccess(false), 3000);
+      // Redirect to main auth modal instead of sending duplicate magic links
+      console.log('🔄 Redirecting to main auth modal for:', email.toLowerCase().trim());
+      
+      // Call the onOpenPremiumModal prop to show the premium modal with auth
+      if (onOpenPremiumModal) {
+        onOpenPremiumModal();
       }
+      
+      setIsSuccess(true);
+      setEmail('');
+      
+      setSuccessMessage({
+        title: "Authentication Required",
+        description: "Please complete authentication in the modal that opened to access premium features."
+      });
+      
+      setShowSuccessModal(true);
+      
+      // Reset success state after 3 seconds
+      setTimeout(() => setIsSuccess(false), 3000);
     } catch (error) {
       console.error('Magic link error:', error);
       toast({
@@ -304,7 +292,8 @@ const handlePremiumClick: React.MouseEventHandler<HTMLButtonElement> = (e) => {
               <PricingTier 
                 key={index} 
                 {...tier} 
-                onButtonClick={tier.isFree ? handleFreeClick : handlePremiumClick} 
+                onButtonClick={tier.isFree ? handleFreeClick : handlePremiumClick}
+                onOpenPremiumModal={onOpenPremiumModal}
               />
             ))}
           </div>
