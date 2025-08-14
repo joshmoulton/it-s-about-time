@@ -39,11 +39,16 @@ export const WhopEmbeddedCheckout: React.FC<WhopEmbeddedCheckoutProps> = ({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent 
-        className="p-0 w-[95vw] max-w-md sm:max-w-lg md:max-w-2xl lg:max-w-4xl h-[95vh] max-h-[800px] overflow-hidden flex flex-col" 
+        className="p-0 w-[95vw] max-w-md sm:max-w-lg md:max-w-2xl lg:max-w-4xl h-[95vh] max-h-[800px] overflow-hidden flex flex-col mx-auto" 
         onPointerDownOutside={(e) => e.preventDefault()}
         onWheel={(e) => e.stopPropagation()}
         onTouchMove={(e) => e.stopPropagation()}
-        style={{ touchAction: 'none' }}
+        style={{ 
+          touchAction: 'none',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          right: 'auto'
+        }}
       >
         <div className="flex flex-col h-full">
           <DialogHeader className="px-4 sm:px-6 py-3 sm:py-4 border-b flex-shrink-0 relative">
