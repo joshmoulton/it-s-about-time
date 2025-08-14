@@ -39,6 +39,19 @@ export const ModernAuthModal: React.FC<ModernAuthModalProps> = memo(({ open, onO
     }
   }, [isAuthenticated, open, onOpenChange, navigate]);
 
+  // Manage body modal state
+  useEffect(() => {
+    if (open) {
+      document.body.classList.add('modal-open');
+    } else {
+      document.body.classList.remove('modal-open');
+    }
+    
+    return () => {
+      document.body.classList.remove('modal-open');
+    };
+  }, [open]);
+
   const resetForm = useCallback(() => {
     setEmail('');
     setPassword('');
@@ -285,7 +298,7 @@ export const ModernAuthModal: React.FC<ModernAuthModalProps> = memo(({ open, onO
 
   return (
     <Dialog open={open} onOpenChange={handleModalClose}>
-      <DialogContent className="max-w-lg mx-auto p-0 bg-transparent border-none shadow-none [&>button]:hidden max-sm:fixed max-sm:left-4 max-sm:right-4 max-sm:top-16 max-sm:bottom-4 max-sm:max-w-none max-sm:w-auto max-sm:max-h-[85vh] max-sm:overflow-y-auto sm:fixed sm:left-[50%] sm:top-[50%] sm:translate-x-[-50%] sm:translate-y-[-50%] sm:max-w-lg sm:w-full">
+      <DialogContent className="max-w-lg mx-auto p-0 bg-transparent border-none shadow-none [&>button]:hidden max-sm:fixed max-sm:left-4 max-sm:right-4 max-sm:top-16 max-sm:bottom-4 max-sm:max-w-none max-sm:w-auto max-sm:max-h-[85vh] max-sm:overflow-y-auto sm:fixed sm:left-[50%] sm:top-[50%] sm:translate-x-[-50%] sm:translate-y-[-50%] sm:max-w-lg sm:w-full modal-allowed">
         <DialogTitle className="sr-only">Authentication</DialogTitle>
         <DialogDescription className="sr-only">
           Get access to Weekly Wizdom premium features and newsletter content.
