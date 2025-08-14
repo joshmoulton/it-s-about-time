@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { useAuth } from '@/contexts/AuthContext';
+import { useEnhancedAuth } from '@/contexts/EnhancedAuthContext';
 import { toast } from 'sonner';
 import { validateEmail, validatePassword, secureAuthAction, sanitizeInput } from '@/utils/authSecurity';
 
@@ -9,7 +9,7 @@ export const useLoginForm = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated } = useEnhancedAuth();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   

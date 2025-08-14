@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth } from '@/contexts/AuthContext';
+import { useEnhancedAuth } from '@/contexts/EnhancedAuthContext';
 import { format } from 'date-fns';
 
 interface NewsletterFormData {
@@ -20,7 +20,7 @@ export function useNewsletterForm(onCancel: () => void) {
   const [scheduledDate, setScheduledDate] = useState('');
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const { subscriber } = useAuth();
+  const { currentUser } = useEnhancedAuth();
 
   // Validate scheduled date is in the future
   const validateScheduledDate = (dateString: string): boolean => {
@@ -72,7 +72,7 @@ export function useNewsletterForm(onCancel: () => void) {
         }
 
         // Ensure user is authenticated
-        if (!subscriber?.id) {
+        if (!currentUser?.email) {
           throw new Error('You must be logged in to create a newsletter');
         }
 
@@ -88,7 +88,7 @@ export function useNewsletterForm(onCancel: () => void) {
             formatDateForDatabase(data.scheduled_at) : null,
           published_at: data.status === 'published' ? 
             new Date().toISOString() : null,
-          author_id: subscriber.id
+          author_id: currentUser.email
         };
 
         const { error } = await supabase

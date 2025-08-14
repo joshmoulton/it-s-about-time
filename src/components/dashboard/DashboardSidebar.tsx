@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { useAuth } from '@/contexts/AuthContext';
+import { useEnhancedAuth } from '@/contexts/EnhancedAuthContext';
 import {
   Sidebar,
   SidebarContent,
@@ -30,7 +30,7 @@ interface DashboardSidebarProps {
 }
 
 export function DashboardSidebar({ subscriber, activeSection = 'overview', onSectionChange }: DashboardSidebarProps) {
-  const { logout } = useAuth();
+  const { logout } = useEnhancedAuth();
   const navigate = useNavigate();
 
   const handleLogout = async () => {

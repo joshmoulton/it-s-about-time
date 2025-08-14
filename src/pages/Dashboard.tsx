@@ -74,13 +74,15 @@ const Dashboard = () => {
     metadata: memoizedCurrentUser.metadata || {}
   } : null;
 
-  // Reduced logging for performance
-  if (process.env.NODE_ENV === 'development') {
-    console.log('🔍 Dashboard Auth:', {
-      authenticated: !!memoizedCurrentUser,
-      tier: memoizedCurrentUser?.subscription_tier
-    });
-  }
+  // Enhanced logging for both development and production debugging
+  console.log('🔍 Dashboard Auth Debug:', {
+    authenticated: !!memoizedCurrentUser,
+    tier: memoizedCurrentUser?.subscription_tier,
+    userType: memoizedCurrentUser?.user_type,
+    email: memoizedCurrentUser?.email,
+    subscriberTier: subscriberForComponents?.subscription_tier,
+    isAdmin: memoizedCurrentUser?.user_type === 'supabase_admin'
+  });
 
   // Simplified tour initialization without delays for admin users
   const tourController = TOUR_ENABLED ? GuidedTourController({

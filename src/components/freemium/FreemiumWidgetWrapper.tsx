@@ -239,7 +239,7 @@ if (justLoggedIn && authMethod === 'magic_link' && (authTier === 'premium' || au
 
 // Admins and premium users always have access (bypass overlay)
 if (isAdmin || subscriber?.subscription_tier === 'premium') {
-  console.log(`✅ ${widgetType}: Access granted (admin: ${isAdmin}, premium: ${subscriber?.subscription_tier === 'premium'})`);
+  console.log(`✅ ${widgetType}: Access granted (admin: ${isAdmin}, premium: ${subscriber?.subscription_tier === 'premium'}, tier: ${subscriber?.subscription_tier})`);
   return <>{children}</>;
 }
 
