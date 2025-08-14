@@ -114,17 +114,17 @@ serve(async (req) => {
 
     console.log(`✅ Magic link verified successfully for ${tokenData.email}, creating Supabase session...`);
     
-    // Generate a real Supabase auth session
-    const { data: sessionData, error: sessionError } = await supabase.auth.admin.generateLink({
-      type: 'magiclink',
-      email: tokenData.email,
-      options: {
-        redirectTo: redirect
+    // Create an actual Supabase auth session directly
+    const { data: sessionResponse, error: sessionError } = await supabase.auth.admin.createSession({
+      user_id: authUser.id,
+      session: {
+        access_token: undefined, // Let Supabase generate tokens
+        refresh_token: undefined
       }
     });
 
-    if (sessionError || !sessionData.properties?.action_link) {
-      console.error('❌ Error generating Supabase session:', sessionError);
+    if (sessionError || !sessionResponse.session) {
+      console.error('❌ Error creating Supabase session:', sessionError);
       
       // Fallback: redirect with unified auth session data
       const unifiedSessionData = {
@@ -138,6 +138,7 @@ serve(async (req) => {
       const redirectUrl = new URL(redirect);
       redirectUrl.searchParams.set('session', btoa(JSON.stringify(unifiedSessionData)));
       redirectUrl.searchParams.set('verified', 'true');
+      redirectUrl.searchParams.set('tier', tokenData.tier);
       
       return new Response(null, {
         status: 302,
@@ -148,13 +149,20 @@ serve(async (req) => {
       });
     }
 
-    console.log(`🎯 Redirecting to Supabase auth link for session creation`);
+    console.log(`✅ Supabase session created successfully for ${tokenData.email}`);
     
-    // Redirect to Supabase magic link which will create the session and redirect to dashboard
+    // Set session cookies and redirect to dashboard
+    const session = sessionResponse.session;
+    const redirectUrl = new URL(redirect);
+    
     return new Response(null, {
       status: 302,
       headers: {
-        'Location': sessionData.properties.action_link,
+        'Location': redirectUrl.toString(),
+        'Set-Cookie': [
+          `sb-access-token=${session.access_token}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=3600`,
+          `sb-refresh-token=${session.refresh_token}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=604800`
+        ].join(', '),
         ...corsHeaders
       }
     });

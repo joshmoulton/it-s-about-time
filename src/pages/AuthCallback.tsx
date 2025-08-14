@@ -12,7 +12,29 @@ export function AuthCallback() {
   useEffect(() => {
     const handleAuthCallback = async () => {
       try {
-        console.log('🔄 Processing Supabase auth callback...');
+        console.log('🔄 Processing authentication callback...');
+        
+        // Check for fallback session data from magic link
+        const sessionParam = searchParams.get('session');
+        const tierParam = searchParams.get('tier');
+        const verifiedParam = searchParams.get('verified');
+        
+        if (sessionParam && verifiedParam === 'true') {
+          console.log('🔄 Processing fallback unified auth session...');
+          try {
+            const sessionData = JSON.parse(atob(sessionParam));
+            console.log('✅ Fallback session processed for:', sessionData.email);
+            setMessage(`Welcome! Your subscription tier: ${sessionData.tier}`);
+            setStatus('success');
+            
+            setTimeout(() => {
+              navigate('/dashboard', { replace: true });
+            }, 1500);
+            return;
+          } catch (decodeError) {
+            console.error('❌ Error decoding session data:', decodeError);
+          }
+        }
         
         // Handle standard Supabase magic link callback
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
@@ -25,7 +47,7 @@ export function AuthCallback() {
         }
 
         if (!session) {
-          console.log('❌ No session found');
+          console.log('❌ No Supabase session found');
           setStatus('error');
           setMessage('No active session found. Please try logging in again.');
           return;
