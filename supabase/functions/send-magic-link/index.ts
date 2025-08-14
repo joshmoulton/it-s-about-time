@@ -101,9 +101,8 @@ serve(async (req) => {
       return json({ success: false, error: 'Failed to generate magic link' }, { status: 500 });
     }
 
-    // Create the magic link URL - always use production domain
-    const redirectUrl = `https://www.weeklywizdom.com/auth/callback?tier=${tier}`;
-    const magicLinkUrl = `https://wrvvlmevpvcenauglcyz.supabase.co/functions/v1/verify-magic-link?token=${token}&redirect=${encodeURIComponent(redirectUrl)}`;
+    // Create the clean magic link URL - goes directly to your domain
+    const magicLinkUrl = `https://www.weeklywizdom.com/auth/verify?token=${token}&email=${encodeURIComponent(email)}`;
 
     // Send email using Resend with our custom template
     const resend = new Resend(Deno.env.get('RESEND_API_KEY'));
