@@ -17,11 +17,11 @@ export const WelcomeView: React.FC<WelcomeViewProps> = ({
 }) => {
   return (
     <div className="w-full relative">
-      {/* Close Button */}
+      {/* Clean close button */}
       {onClose && (
         <button
           onClick={onClose}
-          className="absolute top-2 right-2 p-1 text-muted-foreground hover:text-foreground transition-colors z-10"
+          className="absolute top-4 right-4 w-8 h-8 rounded-lg bg-muted/10 hover:bg-muted/20 flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
           aria-label="Close modal"
         >
           <X className="w-4 h-4" />
