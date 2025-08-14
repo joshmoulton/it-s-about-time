@@ -420,9 +420,19 @@ serve(async (req) => {
   }
   
   try {
-    const url = new URL(req.url)
-    const ticker = url.searchParams.get('ticker')
-    const detailed = url.searchParams.get('detailed') === 'true'
+    let ticker: string | null = null;
+    let detailed = false;
+
+    // Handle both GET and POST requests
+    if (req.method === 'GET') {
+      const url = new URL(req.url)
+      ticker = url.searchParams.get('ticker')
+      detailed = url.searchParams.get('detailed') === 'true'
+    } else if (req.method === 'POST') {
+      const body = await req.json()
+      ticker = body.ticker || body.symbol
+      detailed = body.detailed === true
+    }
     
     if (!ticker) {
       return new Response(

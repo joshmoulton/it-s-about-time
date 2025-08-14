@@ -161,7 +161,7 @@ export function LiveAlertsManagement() {
                     {filteredSignals?.map((signal) => (
                       <Card key={signal.id}>
                         <CardContent className="p-6">
-                          <div className="flex items-start justify-between">
+                           <div className="flex items-start justify-between">
                             <div className="flex-1">
                               <div className="flex items-center gap-3 mb-4">
                                 <h3 className="text-xl font-semibold text-foreground">
@@ -174,6 +174,40 @@ export function LiveAlertsManagement() {
                                 <Badge variant="outline">
                                   {signal.trade_direction.toUpperCase()}
                                 </Badge>
+                              </div>
+                              
+                              <div className="flex items-center gap-2 mb-4">
+                                <Button 
+                                  variant="outline" 
+                                  size="sm"
+                                  onClick={async () => {
+                                    if (confirm('Are you sure you want to close this signal?')) {
+                                      const { error } = await supabase
+                                        .from('analyst_signals')
+                                        .update({ status: 'closed' })
+                                        .eq('id', signal.id);
+                                      if (!error) window.location.reload();
+                                    }
+                                  }}
+                                >
+                                  Close Signal
+                                </Button>
+                                <Button 
+                                  variant="outline" 
+                                  size="sm"
+                                  className="text-red-500 hover:text-red-600"
+                                  onClick={async () => {
+                                    if (confirm('Are you sure you want to delete this signal? This action cannot be undone.')) {
+                                      const { error } = await supabase
+                                        .from('analyst_signals')
+                                        .delete()
+                                        .eq('id', signal.id);
+                                      if (!error) window.location.reload();
+                                    }
+                                  }}
+                                >
+                                  Delete
+                                </Button>
                               </div>
 
                               <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
@@ -257,7 +291,7 @@ export function LiveAlertsManagement() {
                     {degenCalls?.map((call) => (
                       <Card key={call.id}>
                         <CardContent className="p-6">
-                          <div className="flex items-start justify-between">
+                           <div className="flex items-start justify-between">
                             <div className="flex-1">
                               <div className="flex items-center gap-3 mb-4">
                                 <h3 className="text-lg font-semibold text-foreground">
@@ -266,6 +300,25 @@ export function LiveAlertsManagement() {
                                 <Badge variant="outline">
                                   {call.recipient_count} recipients
                                 </Badge>
+                              </div>
+                              
+                              <div className="flex items-center gap-2 mb-4">
+                                <Button 
+                                  variant="outline" 
+                                  size="sm"
+                                  className="text-red-500 hover:text-red-600"
+                                  onClick={async () => {
+                                    if (confirm('Are you sure you want to delete this degen call notification?')) {
+                                      const { error } = await supabase
+                                        .from('degen_call_notifications')
+                                        .delete()
+                                        .eq('id', call.id);
+                                      if (!error) window.location.reload();
+                                    }
+                                  }}
+                                >
+                                  Delete
+                                </Button>
                               </div>
 
                               <div className="bg-muted/30 rounded-lg p-4 mb-4">
