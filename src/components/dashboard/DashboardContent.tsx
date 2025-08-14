@@ -106,17 +106,6 @@ export function DashboardContent({
   // Check if user has premium access
   const hasFullAccess = TierAccessManager.canAccess(subscriber, 'paid');
   
-  console.log('🔍 DashboardContent tier check:', {
-    subscriber: subscriber?.email,
-    tier: subscriber?.subscription_tier,
-    hasFullAccess
-  });
-
-  console.log('🎨 DashboardContent CSS Debug:', {
-    brandNavy: getComputedStyle(document.documentElement).getPropertyValue('--brand-navy'),
-    classList: document.documentElement.classList.toString()
-  });
-  
   // Main dashboard view - modern card-based layout with improved spacing
   if (activeSection === 'overview' || activeSection === 'dashboard') {
     return (

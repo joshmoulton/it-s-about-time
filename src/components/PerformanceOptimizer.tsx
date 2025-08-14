@@ -89,35 +89,46 @@ export function withShallowMemo<T extends React.ComponentType<any>>(
 
 // Enhanced hook for monitoring component render performance
 export function useRenderTracker(componentName: string) {
-  const renderStartTime = useRef(performance.now());
+  const renderStartTime = useRef(0); // ✅ Initialize to 0
   const renderCountRef = useRef(0);
+  const lastLogTime = useRef(0);
+  
+  renderCountRef.current++;
+  
+  // ✅ Set render start time only once per render cycle
+  useEffect(() => {
+    renderStartTime.current = performance.now();
+  });
   
   useEffect(() => {
-    const renderEndTime = performance.now();
-    const renderTime = renderEndTime - renderStartTime.current;
-    renderCountRef.current++;
-    
-    // Enhanced logging with component-specific tracking
-    if (process.env.NODE_ENV === 'development') {
-      if (renderTime > 100) {
-        logger.warn(`🐌 Slow render detected: ${componentName} took ${renderTime.toFixed(2)}ms (render #${renderCountRef.current})`);
-        
-        // Suggest optimizations for consistently slow components
-        if (renderCountRef.current > 3) {
-          logger.info(`💡 ${componentName} has rendered ${renderCountRef.current} times. Consider:`, {
-            suggestions: [
-              'Add React.memo if props don\'t change frequently',
-              'Use useMemo for expensive calculations',
-              'Check for unnecessary re-renders with React DevTools',
-              'Consider code splitting for large components'
-            ]
-          });
-        }
-      }
+    if (renderStartTime.current > 0) {
+      const renderEndTime = performance.now();
+      const renderTime = renderEndTime - renderStartTime.current;
       
-      // Track re-render frequency
-      if (renderCountRef.current > 10) {
-        logger.warn(`🔄 Frequent re-renders: ${componentName} has rendered ${renderCountRef.current} times`);
+      // ✅ Only log in development and with throttling
+      if (process.env.NODE_ENV === 'development' && Date.now() - lastLogTime.current > 2000) {
+        if (renderTime > 16) { // ✅ Reduced threshold for 60fps
+          logger.warn(`🐌 Slow render detected: ${componentName} took ${renderTime.toFixed(2)}ms (render #${renderCountRef.current})`);
+        }
+        
+        // Track re-render frequency with reduced threshold
+        if (renderCountRef.current > 8) {
+          logger.warn(`🔄 Frequent re-renders: ${componentName} has rendered ${renderCountRef.current} times`);
+          
+          // Suggest optimizations less frequently
+          if (renderCountRef.current % 5 === 0) {
+            logger.info(`💡 ${componentName} optimization suggestions:`, {
+              suggestions: [
+                'Add React.memo if props don\'t change frequently',
+                'Use useMemo for expensive calculations',
+                'Check for unnecessary re-renders with React DevTools',
+                'Consider code splitting for large components'
+              ]
+            });
+          }
+        }
+        
+        lastLogTime.current = Date.now();
       }
     }
   });

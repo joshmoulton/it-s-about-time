@@ -26,12 +26,15 @@ export function LiveChatContent({
   selectedTopicDetails,
   subscriber
 }: LiveChatContentProps) {
-  console.log('💬 LiveChatContent render:', {
-    hasRealData,
-    messageCount: displayMessages?.length || 0,
-    selectedTopic,
-    messagesLoading
-  });
+  // ✅ Performance: Only log in development
+  if (import.meta.env.DEV) {
+    console.log('💬 LiveChatContent render:', {
+      hasRealData,
+      messageCount: displayMessages?.length || 0,
+      selectedTopic,
+      messagesLoading
+    });
+  }
 
   if (!hasRealData && !messagesLoading) {
     return (

@@ -74,16 +74,6 @@ const Dashboard = () => {
     metadata: memoizedCurrentUser.metadata || {}
   } : null;
 
-  // Enhanced logging for both development and production debugging
-  console.log('🔍 Dashboard Auth Debug:', {
-    authenticated: !!memoizedCurrentUser,
-    tier: memoizedCurrentUser?.subscription_tier,
-    userType: memoizedCurrentUser?.user_type,
-    email: memoizedCurrentUser?.email,
-    subscriberTier: subscriberForComponents?.subscription_tier,
-    isAdmin: memoizedCurrentUser?.user_type === 'supabase_admin'
-  });
-
   // Simplified tour initialization without delays for admin users
   const tourController = TOUR_ENABLED ? GuidedTourController({
     subscriber: subscriberForComponents,
@@ -116,12 +106,6 @@ const Dashboard = () => {
   if (!memoizedCurrentUser) {
     return <DashboardLoader />;
   }
-
-  console.log('🎨 Dashboard CSS Debug:', {
-    brandNavy: getComputedStyle(document.documentElement).getPropertyValue('--brand-navy'),
-    background: getComputedStyle(document.documentElement).getPropertyValue('--background'),
-    isDarkMode: document.documentElement.classList.contains('dark')
-  });
   
   return (
     <div className="min-h-screen flex flex-col w-full relative" style={{ backgroundColor: 'hsl(0 0% 3%)' }}>

@@ -94,11 +94,12 @@ export const EnhancedAuthProvider: React.FC<EnhancedAuthProviderProps> = ({ chil
 
   const isAuthenticated = useMemo(() => !!currentUser, [currentUser]);
 
-  // Reduced logging to prevent performance issues
+  // ✅ Performance: Only log auth state changes in development
   const prevAuthState = useRef({ isAuthenticated: false, email: null as string | null });
   
-  if (prevAuthState.current.isAuthenticated !== isAuthenticated || 
-      prevAuthState.current.email !== currentUser?.email) {
+  if (import.meta.env.DEV && 
+      (prevAuthState.current.isAuthenticated !== isAuthenticated || 
+       prevAuthState.current.email !== currentUser?.email)) {
     console.log('🔄 Auth state change:', { 
       isAuthenticated, 
       email: currentUser?.email,
