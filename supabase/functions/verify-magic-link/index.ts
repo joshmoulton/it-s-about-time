@@ -31,14 +31,19 @@ Deno.serve(async (req) => {
     }
 
     console.log(`🔍 Validating magic link token for: ${email}`);
+    console.log('🔍 Received token:', token);
+    console.log('🔍 Received email:', email);
 
     // Validate the token in user_sessions table and get associated subscriber
+    console.log('🔍 Querying user_sessions table...');
     const { data: sessionData, error: sessionError } = await supabase
       .from('user_sessions')
       .select('*')
       .eq('session_token', token)
       .gt('expires_at', new Date().toISOString())
       .single();
+
+    console.log('🔍 Session query result:', { sessionData, sessionError });
 
     if (sessionError || !sessionData) {
       console.error('❌ Invalid or expired token:', sessionError);
@@ -55,11 +60,14 @@ Deno.serve(async (req) => {
     }
 
     // Get the subscriber data separately using email
+    console.log('🔍 Querying beehiiv_subscribers table for email:', email);
     const { data: subscriber, error: subscriberError } = await supabase
       .from('beehiiv_subscribers')
       .select('id, email, subscription_tier, status')
       .eq('email', email)
       .single();
+
+    console.log('🔍 Subscriber query result:', { subscriber, subscriberError });
 
     if (subscriberError || !subscriber) {
       console.error('❌ No subscriber found:', subscriberError);

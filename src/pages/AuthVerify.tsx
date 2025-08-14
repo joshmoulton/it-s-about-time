@@ -34,6 +34,8 @@ const AuthVerify = () => {
         }
 
         console.log(`🔍 Validating magic link token for: ${email}`);
+        console.log('🔍 Token:', token);
+        console.log('🔍 Email:', decodeURIComponent(email));
         
         // Call the proper magic link verification function
         const { data: verifyData, error: verifyError } = await supabase.functions.invoke('verify-magic-link', {
@@ -42,6 +44,8 @@ const AuthVerify = () => {
             email: decodeURIComponent(email) 
           }
         });
+
+        console.log('🔍 Verification response:', { verifyData, verifyError });
 
         if (verifyError) {
           console.error('❌ Magic link verification error:', verifyError);
