@@ -29,6 +29,7 @@ export const SimplifiedAuthModal: React.FC<SimplifiedAuthModalProps> = memo(({ o
   // Refs to prevent duplicate submissions
   const isSubmittingRef = useRef(false);
   const lastSubmitTimeRef = useRef(0);
+  const magicLinkRequestIdRef = useRef<string | null>(null);
 
   // Auto-close and redirect when auth completes (e.g., after magic link)
   useEffect(() => {
@@ -94,9 +95,19 @@ export const SimplifiedAuthModal: React.FC<SimplifiedAuthModalProps> = memo(({ o
     const now = Date.now();
     const timeSinceLastSubmit = now - lastSubmitTimeRef.current;
     
-    if (isSubmittingRef.current || timeSinceLastSubmit < 5000) {
+    if (isSubmittingRef.current || timeSinceLastSubmit < 3000) {
       console.log('⏳ Preventing duplicate submission - time since last:', timeSinceLastSubmit);
       return;
+    }
+    
+    // Additional check for magic link requests - use request ID to prevent duplicates
+    if (mode === 'magic') {
+      const requestId = `${email.toLowerCase().trim()}-${now}`;
+      if (magicLinkRequestIdRef.current === requestId.substring(0, requestId.lastIndexOf('-'))) {
+        console.log('⏳ Preventing duplicate magic link request for same email');
+        return;
+      }
+      magicLinkRequestIdRef.current = requestId.substring(0, requestId.lastIndexOf('-'));
     }
     
     if (!email.trim()) {

@@ -199,19 +199,51 @@ export const FreemiumWidgetWrapper: React.FC<FreemiumWidgetWrapperProps> = ({
   gradientTheme = 'blue',
   widgetType
 }) => {
-const { subscriber, isLoading } = useEnhancedAuth();
+const { subscriber, isLoading, isAuthenticated } = useEnhancedAuth();
 const [showUpgradeModal, setShowUpgradeModal] = useState(false);
 const { isAdmin } = useAdminCheck();
 
+// Debug logging for widget access
+console.log(`🔍 FreemiumWidgetWrapper [${widgetType}]:`, {
+  subscriber: subscriber ? {
+    tier: subscriber.subscription_tier,
+    email: subscriber.email
+  } : null,
+  isLoading,
+  isAuthenticated,
+  isAdmin,
+  localStorage: {
+    authMethod: localStorage.getItem('auth_method'),
+    authTier: localStorage.getItem('auth_tier'),
+    authEmail: localStorage.getItem('auth_user_email'),
+    justLoggedIn: sessionStorage.getItem('ww.justLoggedIn'),
+    authComplete: sessionStorage.getItem('ww.auth_complete')
+  },
+  featureName
+});
+
+// Check if user just logged in via magic link and give immediate access
+const justLoggedIn = sessionStorage.getItem('ww.justLoggedIn');
+const authMethod = localStorage.getItem('auth_method');
+const authTier = localStorage.getItem('auth_tier');
+
+if (justLoggedIn && authMethod === 'magic_link' && (authTier === 'premium' || authTier === 'paid')) {
+  const loginTime = parseInt(justLoggedIn);
+  if (Date.now() - loginTime < 30000) { // 30 second grace period
+    console.log(`✅ ${widgetType}: Access granted via recent magic link login (tier: ${authTier})`);
+    return <>{children}</>;
+  }
+}
+
 // Admins and premium users always have access (bypass overlay)
 if (isAdmin || subscriber?.subscription_tier === 'premium') {
+  console.log(`✅ ${widgetType}: Access granted (admin: ${isAdmin}, premium: ${subscriber?.subscription_tier === 'premium'})`);
   return <>{children}</>;
 }
 
-// Check magic link premium access
-const authMethod = localStorage.getItem('auth_method');
-const authTier = localStorage.getItem('auth_tier');
+// Check magic link premium access (reuse variables from above)
 if (authMethod === 'magic_link' && (authTier === 'premium' || authTier === 'paid')) {
+  console.log(`✅ ${widgetType}: Access granted via magic link (tier: ${authTier})`);
   return <>{children}</>;
 }
 
@@ -219,12 +251,19 @@ if (authMethod === 'magic_link' && (authTier === 'premium' || authTier === 'paid
 const shouldShowOverlay = TierAccessManager.shouldShowFreemiumOverlay(subscriber, widgetType);
 const hasAccess = !shouldShowOverlay;
 
+console.log(`🎯 ${widgetType}: shouldShowOverlay=${shouldShowOverlay}, hasAccess=${hasAccess}`);
+
   // Get widget header and mock content
   const widgetHeader = getWidgetHeader(widgetType);
   const widgetMockContent = getWidgetMockContent(widgetType);
 
-  // During loading, show overlay for premium features to prevent flashing
+  // During loading, check localStorage for immediate access and only show overlay if no premium access found
   if (isLoading && widgetType !== 'newsletter') {
+    // Check localStorage for immediate premium access during loading (reuse variables from above)
+    if (authMethod === 'magic_link' && (authTier === 'premium' || authTier === 'paid')) {
+      console.log(`✅ ${widgetType}: Access granted during loading via localStorage (tier: ${authTier})`);
+      return <>{children}</>;
+    }
     return (
       <div className={`relative ${className} min-h-[300px]`}>
         {/* Widget Header - Only show for non-alerts widgets during loading */}
@@ -260,8 +299,11 @@ const hasAccess = !shouldShowOverlay;
 
   // If user has access (premium/paid or feature is free), show content directly without any freemium elements
   if (hasAccess) {
+    console.log(`✅ ${widgetType}: Full access granted, showing content`);
     return <>{children}</>;
   }
+  
+  console.log(`🚫 ${widgetType}: Access denied, showing freemium overlay`);
 
   // For free users on premium features, show freemium overlay
   return (

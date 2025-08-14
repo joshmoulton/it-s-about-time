@@ -22,13 +22,25 @@ export class TierAccessManager {
   }
 
   static shouldShowFreemiumOverlay(subscriber: Subscriber | null, widgetType?: string): boolean {
+    console.log(`🔍 TierAccessManager.shouldShowFreemiumOverlay [${widgetType}]:`, {
+      subscriber: subscriber ? {
+        tier: subscriber.subscription_tier
+      } : null,
+      localStorage: {
+        authMethod: localStorage.getItem('auth_method'),
+        authTier: localStorage.getItem('auth_tier')
+      }
+    });
+
     // Newsletter is always free - no overlay
     if (widgetType === 'newsletter') {
+      console.log(`✅ ${widgetType}: No overlay (newsletter is free)`);
       return false;
     }
 
     // Premium users get full access like admins (no overlay)
     if (subscriber?.subscription_tier === 'premium') {
+      console.log(`✅ ${widgetType}: No overlay (premium subscriber)`);
       return false;
     }
 
@@ -37,13 +49,17 @@ export class TierAccessManager {
     const authTier = localStorage.getItem('auth_tier');
     
     if (authMethod === 'magic_link' && (authTier === 'premium' || authTier === 'paid')) {
+      console.log(`✅ ${widgetType}: No overlay (magic link ${authTier})`);
       return false;
     }
 
     // Show overlay for free users or no subscriber
-    return !subscriber || 
+    const shouldShow = !subscriber || 
            !subscriber.subscription_tier || 
            subscriber.subscription_tier === 'free';
+           
+    console.log(`🎯 ${widgetType}: Should show overlay = ${shouldShow}`);
+    return shouldShow;
   }
 
   static getChatLimits(subscriber: Subscriber) {
