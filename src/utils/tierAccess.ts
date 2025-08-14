@@ -27,19 +27,18 @@ export class TierAccessManager {
       return false;
     }
 
-    // Check if this is a magic link user still being verified
+    // Check if this is a magic link user with verified premium/paid access
     const authMethod = localStorage.getItem('auth_method');
     const authEmail = localStorage.getItem('auth_user_email');
-    const authVerified = localStorage.getItem('auth_verified_at');
+    const authTier = localStorage.getItem('auth_tier'); // Set by magic link verification
     
-    // If magic link user is authenticated but subscriber might still be loading/verifying
-    if (authMethod === 'magic_link' && authEmail && authVerified) {
-      // Don't show overlay for authenticated magic link users
-      // Let the backend RLS policies handle the actual access control
+    // Only bypass overlay for magic link users with verified premium/paid tier
+    if (authMethod === 'magic_link' && authEmail && (authTier === 'premium' || authTier === 'paid')) {
       return false;
     }
 
     // Show overlay if no subscriber or if subscription_tier is free/undefined
+    // This preserves the free user experience with upgrade prompts
     return !subscriber || 
            !subscriber.subscription_tier || 
            subscriber.subscription_tier === 'free';
