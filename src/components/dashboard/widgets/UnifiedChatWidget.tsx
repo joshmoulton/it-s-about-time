@@ -70,9 +70,6 @@ export function UnifiedChatWidget({
           </div>
           
           <div className="flex items-center gap-2">
-            {messages && messages.length > 0 && <Badge variant="secondary" className="text-xs bg-blue-900/30 text-blue-300 border-blue-500/20">
-                {messages.length} messages
-              </Badge>}
             {onToggleExpanded && <Button variant="ghost" size="sm" onClick={onToggleExpanded} className="h-7 w-7 p-0 text-slate-400 hover:text-white hover:bg-slate-700">
                 {isExpanded ? <Minimize2 className="h-3 w-3" /> : <Maximize2 className="h-3 w-3" />}
               </Button>}
