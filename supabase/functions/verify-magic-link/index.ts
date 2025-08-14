@@ -46,15 +46,19 @@ serve(async (req) => {
     console.log(`✅ Token validated for: ${tokenData.email}`);
 
     // Mark token as used
+    console.log(`🔄 Marking token as used for: ${tokenData.email}`);
     await supabase
       .from('magic_link_tokens')
       .update({ used_at: new Date().toISOString() })
       .eq('token', token);
+    console.log(`✅ Token marked as used for: ${tokenData.email}`);
 
     // Get or create user in Supabase auth with real session
+    console.log(`🔄 Looking up existing user for: ${tokenData.email}`);
     let authUser;
     const { data: existingUsers } = await supabase.auth.admin.listUsers();
     authUser = existingUsers.users.find(u => u.email === tokenData.email);
+    console.log(`${authUser ? '✅ Found existing user' : '❌ No existing user found'} for: ${tokenData.email}`);
 
     if (!authUser) {
       console.log(`🔐 Creating Supabase auth user for: ${tokenData.email}`);
