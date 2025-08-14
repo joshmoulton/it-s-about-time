@@ -1,15 +1,16 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
-import { corsHeaders } from '../_shared/cors.ts'
 
-const supabase = createClient(
-  Deno.env.get('SUPABASE_URL') ?? '',
-  Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-)
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+}
 
-interface MagicLinkVerifyRequest {
-  token: string;
-  email: string;
+function json(body: unknown, init: ResponseInit = {}) {
+  return new Response(JSON.stringify(body), {
+    headers: { "content-type": "application/json", ...corsHeaders },
+    ...init,
+  });
 }
 
 serve(async (req) => {
@@ -19,64 +20,50 @@ serve(async (req) => {
   }
 
   try {
-    const { token, email }: MagicLinkVerifyRequest = await req.json();
+    const { token, email } = await req.json();
 
     if (!token || !email) {
-      return new Response(
-        JSON.stringify({ success: false, error: 'Token and email are required' }),
-        { 
-          status: 400, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-        }
-      );
+      return json({ 
+        success: false, 
+        error: 'Token and email are required' 
+      }, { status: 400 });
     }
 
     console.log(`🔍 Validating magic link token for: ${email}`);
-    console.log('🔍 Received token:', token);
-    console.log('🔍 Received email:', email);
 
-    // Validate the token in user_sessions table and get associated subscriber
-    console.log('🔍 Querying user_sessions table...');
-    const { data: sessionData, error: sessionError } = await supabase
-      .from('user_sessions')
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabase = createClient(supabaseUrl, serviceKey);
+
+    // Validate the token in magic_links table
+    const { data: magicLink, error: magicLinkError } = await supabase
+      .from('magic_links')
       .select('*')
-      .eq('session_token', token)
+      .eq('token', token)
+      .eq('email', email.toLowerCase().trim())
+      .eq('used', false)
       .gt('expires_at', new Date().toISOString())
       .single();
 
-    console.log('🔍 Session query result:', { sessionData, sessionError });
-
-    if (sessionError || !sessionData) {
-      console.error('❌ Invalid or expired token:', sessionError);
-      return new Response(
-        JSON.stringify({ 
-          success: false, 
-          error: 'Invalid or expired magic link token' 
-        }),
-        { 
-          status: 401, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-        }
-      );
+    if (magicLinkError || !magicLink) {
+      console.error('❌ Invalid or expired token:', magicLinkError);
+      return json({ 
+        success: false, 
+        error: 'Invalid or expired magic link token' 
+      }, { status: 401 });
     }
 
     // Call Beehiiv API directly for real-time tier verification
     console.log('🔍 Calling Beehiiv API for real-time tier verification...');
     const beehiivApiKey = Deno.env.get('BEEHIIV_API_KEY');
-    const publicationId = 'pub_e08d5f43-7f7c-4c24-b546-f301ccd42a77'; // Weekly Wizdom publication ID
+    const publicationId = 'pub_e08d5f43-7f7c-4c24-b546-f301ccd42a77';
     
     if (!beehiivApiKey || beehiivApiKey.length < 10) {
       console.error('❌ BEEHIIV_API_KEY missing or invalid');
-      return new Response(
-        JSON.stringify({ 
-          success: false, 
-          error: 'Authentication service temporarily unavailable' 
-        }),
-        { 
-          status: 500, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-        }
-      );
+      return json({ 
+        success: false, 
+        error: 'Authentication service temporarily unavailable' 
+      }, { status: 500 });
     }
 
     // Make direct API call to Beehiiv for fresh subscription data
@@ -104,16 +91,10 @@ serve(async (req) => {
         // Continue with free tier
       } else {
         console.error(`❌ Beehiiv API error: ${beehiivResponse.status}`);
-        return new Response(
-          JSON.stringify({ 
-            success: false, 
-            error: 'Unable to verify subscription status' 
-          }),
-          { 
-            status: 500, 
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-          }
-        );
+        return json({ 
+          success: false, 
+          error: 'Unable to verify subscription status' 
+        }, { status: 500 });
       }
     } else {
       const beehiivData = await beehiivResponse.json();
@@ -208,18 +189,14 @@ serve(async (req) => {
       throw sessionCreateError;
     }
 
-    // Mark the user session as used (update by token and email match)
+    // Mark the magic link as used
     await supabase
-      .from('user_sessions')
+      .from('magic_links')
       .update({ 
-        updated_at: new Date().toISOString(),
-        metadata: { 
-          supabase_user_id: authUser?.id,
-          login_completed_at: new Date().toISOString(),
-          used_for_login: true
-        }
+        used: true,
+        used_at: new Date().toISOString()
       })
-      .eq('session_token', token);
+      .eq('token', token);
 
     // Log successful authentication
     await supabase
@@ -229,47 +206,35 @@ serve(async (req) => {
         auth_method: 'magic_link',
         action_type: 'login_success',
         metadata: {
-          session_token: token,
+          token: token.substring(0, 8) + '...',
           subscription_tier: subscriber.subscription_tier,
           supabase_user_id: authUser?.id,
-          source: sessionData.source
+          source: 'magic_link_verify'
         }
       });
 
     console.log(`✅ Magic link verification successful for ${email}`);
 
-    return new Response(
-      JSON.stringify({ 
-        success: true,
-        user: {
-          id: authUser?.id,
-          email: email,
-          subscription_tier: subscriber.subscription_tier,
-          source: 'beehiiv'
-        },
-        session: {
-          access_token: sessionResult.properties?.access_token,
-          refresh_token: sessionResult.properties?.refresh_token,
-          expires_at: sessionResult.properties?.expires_at
-        }
-      }),
-      { 
-        status: 200, 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+    return json({ 
+      success: true,
+      user: {
+        id: authUser?.id,
+        email: email,
+        subscription_tier: subscriber.subscription_tier,
+        source: 'beehiiv'
+      },
+      session: {
+        access_token: sessionResult.properties?.access_token,
+        refresh_token: sessionResult.properties?.refresh_token,
+        expires_at: sessionResult.properties?.expires_at
       }
-    );
+    });
 
   } catch (error) {
     console.error('❌ Magic link verification error:', error);
-    return new Response(
-      JSON.stringify({ 
-        success: false, 
-        error: 'Internal server error during verification' 
-      }),
-      { 
-        status: 500, 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-      }
-    );
+    return json({ 
+      success: false, 
+      error: 'Internal server error during verification' 
+    }, { status: 500 });
   }
 });
