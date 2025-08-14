@@ -7,7 +7,7 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instanciate createClient with right options
+  // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "12.2.3 (519615d)"
@@ -3727,16 +3727,16 @@ export type Database = {
       assign_progressive_newsletter_dates: {
         Args: Record<PropertyKey, never>
         Returns: {
-          updated_count: number
           message: string
+          updated_count: number
         }[]
       }
       blacklist_newsletter: {
-        Args: { p_beehiiv_post_id: string; p_title?: string; p_reason?: string }
+        Args: { p_beehiiv_post_id: string; p_reason?: string; p_title?: string }
         Returns: undefined
       }
       calculate_detection_confidence: {
-        Args: { message_text: string; extracted_data?: Json }
+        Args: { extracted_data?: Json; message_text: string }
         Returns: number
       }
       can_manage_admin_role: {
@@ -3753,8 +3753,8 @@ export type Database = {
       }
       check_rate_limit: {
         Args: {
-          p_identifier: string
           p_endpoint: string
+          p_identifier: string
           p_max_attempts?: number
           p_window_minutes?: number
         }
@@ -3762,10 +3762,10 @@ export type Database = {
       }
       classify_newsletter_content_type: {
         Args: {
-          p_title?: string
           p_excerpt?: string
           p_html_content?: string
           p_plain_content?: string
+          p_title?: string
         }
         Returns: string
       }
@@ -3810,7 +3810,7 @@ export type Database = {
         Returns: undefined
       }
       comprehensive_sanitize_input: {
-        Args: { input_value: string; input_type?: string }
+        Args: { input_type?: string; input_value: string }
         Returns: string
       }
       conduct_access_review: {
@@ -3820,10 +3820,10 @@ export type Database = {
       create_2fa_session: {
         Args: {
           p_admin_email: string
+          p_device_fingerprint?: string
           p_expires_minutes?: number
           p_ip_address?: string
           p_user_agent?: string
-          p_device_fingerprint?: string
         }
         Returns: string
       }
@@ -3832,16 +3832,16 @@ export type Database = {
         Returns: Json
       }
       create_topic_from_keywords: {
-        Args: { keywords: string[]; first_message_time?: string }
+        Args: { first_message_time?: string; keywords: string[] }
         Returns: string
       }
       create_unified_session: {
         Args: {
           p_email: string
-          p_session_token: string
-          p_tier?: Database["public"]["Enums"]["subscription_tier"]
-          p_source?: string
           p_expires_at?: string
+          p_session_token: string
+          p_source?: string
+          p_tier?: Database["public"]["Enums"]["subscription_tier"]
         }
         Returns: Json
       }
@@ -3869,10 +3869,10 @@ export type Database = {
         Args:
           | { data_to_encrypt: string; key_id?: string }
           | {
-              p_user_id: string
+              p_classification?: Database["public"]["Enums"]["data_classification"]
               p_data_type: string
               p_raw_value: string
-              p_classification?: Database["public"]["Enums"]["data_classification"]
+              p_user_id: string
             }
         Returns: string
       }
@@ -3883,9 +3883,9 @@ export type Database = {
       find_duplicate_messages: {
         Args: Record<PropertyKey, never>
         Returns: {
+          count: number
           duplicate_id: string
           telegram_message_id: number
-          count: number
         }[]
       }
       force_refresh_user_tier: {
@@ -3963,7 +3963,7 @@ export type Database = {
         Returns: string
       }
       get_or_create_unified_identity: {
-        Args: { p_email: string; p_auth_user_id?: string }
+        Args: { p_auth_user_id?: string; p_email: string }
         Returns: string
       }
       get_security_dashboard: {
@@ -3973,11 +3973,11 @@ export type Database = {
       get_topic_statistics: {
         Args: Record<PropertyKey, never>
         Returns: {
-          topic_name: string
-          message_count: number
           last_message: string
-          unique_users: number
+          message_count: number
+          topic_name: string
           trending_score: number
+          unique_users: number
         }[]
       }
       get_user_role: {
@@ -3989,13 +3989,13 @@ export type Database = {
         Returns: boolean
       }
       has_permission: {
-        Args: { _user_id: string; _permission_name: string; _action: string }
+        Args: { _action: string; _permission_name: string; _user_id: string }
         Returns: boolean
       }
       has_role: {
         Args: {
-          _user_id: string
           _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
         }
         Returns: boolean
       }
@@ -4009,21 +4009,21 @@ export type Database = {
       }
       insert_telegram_message: {
         Args: {
-          p_telegram_message_id: number
           p_chat_id: number
-          p_user_id?: number
-          p_username?: string
           p_first_name?: string
-          p_last_name?: string
-          p_message_text?: string
-          p_message_type?: string
-          p_message_thread_id?: number
-          p_reply_to_message_id?: number
           p_forwarded_from?: string
-          p_media_url?: string
+          p_last_name?: string
           p_media_type?: string
+          p_media_url?: string
+          p_message_text?: string
+          p_message_thread_id?: number
+          p_message_type?: string
+          p_reply_to_message_id?: number
+          p_telegram_message_id: number
           p_timestamp?: string
           p_topic_name?: string
+          p_user_id?: number
+          p_username?: string
         }
         Returns: string
       }
@@ -4044,7 +4044,7 @@ export type Database = {
         Returns: boolean
       }
       is_device_authorized: {
-        Args: { device_fingerprint: string; admin_email: string }
+        Args: { admin_email: string; device_fingerprint: string }
         Returns: boolean
       }
       is_feedback_submission_allowed: {
@@ -4053,7 +4053,7 @@ export type Database = {
       }
       is_ip_allowed: {
         Args:
-          | { ip_address: unknown; admin_email: string }
+          | { admin_email: string; ip_address: unknown }
           | { p_admin_email: string; p_ip_address: unknown }
         Returns: boolean
       }
@@ -4064,160 +4064,160 @@ export type Database = {
       list_public_tables_rls: {
         Args: Record<PropertyKey, never>
         Returns: {
-          table_name: string
-          rls_enabled: boolean
           policy_count: number
+          rls_enabled: boolean
+          table_name: string
         }[]
       }
       log_admin_security_event: {
         Args:
-          | { event_type: string; event_details?: Json; admin_email?: string }
+          | { admin_email?: string; event_details?: Json; event_type: string }
           | {
               p_admin_email: string
-              p_event_type: string
-              p_event_details?: Json
-              p_ip_address?: string
-              p_user_agent?: string
               p_device_fingerprint?: string
+              p_event_details?: Json
+              p_event_type: string
+              p_ip_address?: string
               p_success?: boolean
+              p_user_agent?: string
             }
         Returns: undefined
       }
       log_auth_event: {
         Args: {
-          p_user_email: string
-          p_auth_method: string
           p_action_type: string
+          p_auth_method: string
           p_ip_address?: string
-          p_user_agent?: string
           p_metadata?: Json
+          p_user_agent?: string
+          p_user_email: string
         }
         Returns: undefined
       }
       log_comprehensive_security_event: {
         Args:
           | {
+              p_action_details: Json
+              p_actor_email: string
               p_category: string
               p_event_type: string
-              p_severity: string
-              p_actor_email: string
-              p_target_resource: string
-              p_target_id: string
-              p_action_details: Json
               p_risk_score: number
+              p_severity: string
+              p_target_id: string
+              p_target_resource: string
             }
           | {
-              p_event_category: string
-              p_event_type: string
-              p_actor_email?: string
-              p_target_resource?: string
               p_action_details?: Json
-              p_ip_address?: unknown
-              p_user_agent?: string
-              p_session_id?: string
-              p_severity_level?: string
-            }
-          | {
-              p_event_type: string
               p_actor_email?: string
               p_actor_type?: string
-              p_target_resource?: string
-              p_target_id?: string
-              p_action_details?: Json
-              p_ip_address?: unknown
-              p_user_agent?: string
+              p_event_type: string
               p_geolocation?: Json
-              p_session_id?: string
-              p_severity_level?: string
+              p_ip_address?: unknown
               p_is_suspicious?: boolean
               p_risk_score?: number
+              p_session_id?: string
+              p_severity_level?: string
+              p_target_id?: string
+              p_target_resource?: string
+              p_user_agent?: string
             }
           | {
+              p_action_details?: Json
+              p_actor_email?: string
+              p_event_category: string
               p_event_type: string
-              p_severity: string
-              p_user_email?: string
               p_ip_address?: unknown
+              p_session_id?: string
+              p_severity_level?: string
+              p_target_resource?: string
               p_user_agent?: string
+            }
+          | {
+              p_correlation_id?: string
               p_device_fingerprint?: string
               p_event_data?: Json
+              p_event_type: string
               p_geo_location?: Json
-              p_session_id?: string
-              p_correlation_id?: string
+              p_ip_address?: unknown
               p_risk_score?: number
+              p_session_id?: string
+              p_severity: string
+              p_user_agent?: string
+              p_user_email?: string
             }
-          | { p_event_type: string; p_severity?: string; p_details?: Json }
+          | { p_details?: Json; p_event_type: string; p_severity?: string }
         Returns: undefined
       }
       log_data_access: {
         Args:
           | {
-              admin_email: string
-              action_type: string
-              resource_type: string
-              resource_id?: string
               access_granted?: boolean
+              action_type: string
+              admin_email: string
+              resource_id?: string
+              resource_type: string
             }
           | {
-              p_user_id?: string
-              p_admin_email?: string
-              p_resource_type?: string
-              p_resource_id?: string
-              p_action_type?: string
-              p_ip_address?: unknown
-              p_user_agent?: string
-              p_geo_location?: Json
-              p_device_fingerprint?: string
               p_access_granted?: boolean
+              p_action_type?: string
+              p_admin_email?: string
               p_denial_reason?: string
+              p_device_fingerprint?: string
+              p_geo_location?: Json
+              p_ip_address?: unknown
+              p_resource_id?: string
+              p_resource_type?: string
               p_risk_score?: number
+              p_user_agent?: string
+              p_user_id?: string
             }
         Returns: string
       }
       log_security_event: {
         Args:
           | {
-              p_event_type: string
-              p_actor_email?: string
-              p_target_resource?: string
               p_action_details?: Json
+              p_actor_email?: string
+              p_event_type: string
               p_ip_address?: unknown
-              p_user_agent?: string
               p_risk_score?: number
+              p_target_resource?: string
+              p_user_agent?: string
             }
           | {
-              p_event_type: string
               p_admin_email: string
-              p_success: boolean
               p_details: Json
+              p_event_type: string
+              p_success: boolean
             }
           | {
-              p_event_type: string
               p_admin_email: string
-              p_success?: boolean
               p_device_fingerprint?: string
-              p_ip_address?: string
-              p_user_agent?: string
               p_event_details?: Json
+              p_event_type: string
+              p_ip_address?: string
+              p_success?: boolean
+              p_user_agent?: string
             }
           | {
-              p_event_type: string
-              p_severity: string
-              p_user_email?: string
-              p_ip_address?: unknown
-              p_user_agent?: string
+              p_correlation_id?: string
               p_device_fingerprint?: string
               p_event_data?: Json
+              p_event_type: string
               p_geo_location?: Json
+              p_ip_address?: unknown
               p_session_id?: string
-              p_correlation_id?: string
+              p_severity: string
+              p_user_agent?: string
+              p_user_email?: string
             }
           | {
               p_event_type: string
-              p_user_email?: string
               p_ip_address?: string
-              p_user_agent?: string
-              p_success?: boolean
               p_metadata?: Json
+              p_success?: boolean
+              p_user_agent?: string
+              p_user_email?: string
             }
         Returns: undefined
       }
@@ -4239,13 +4239,13 @@ export type Database = {
       }
       require_secure_data_access: {
         Args:
-          | { p_operation_type: string; p_resource_id?: string }
           | {
+              p_device_fingerprint?: string
+              p_ip_address?: unknown
               p_operation_type: string
               p_resource_type?: string
-              p_ip_address?: unknown
-              p_device_fingerprint?: string
             }
+          | { p_operation_type: string; p_resource_id?: string }
         Returns: boolean
       }
       revoke_suspicious_sessions: {
@@ -4281,21 +4281,21 @@ export type Database = {
       update_topic_activity: {
         Args:
           | {
+              p_last_activity?: string
               p_topic_id: number
               p_topic_name: string
-              p_last_activity?: string
             }
           | { topic_id: number }
         Returns: undefined
       }
       upsert_user_preference: {
-        Args: { p_preference_type: string; p_preference_data: Json }
+        Args: { p_preference_data: Json; p_preference_type: string }
         Returns: Json
       }
       upsert_user_profile_basic: {
         Args: {
-          p_display_name?: string
           p_avatar_url?: string
+          p_display_name?: string
           p_tour_disabled?: boolean
         }
         Returns: Json
