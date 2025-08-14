@@ -1,5 +1,9 @@
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { Resend } from 'npm:resend@2.0.0';
+import { renderAsync } from 'npm:@react-email/components@0.0.22';
+import React from 'npm:react@18.3.1';
+import { MagicLinkEmail } from './_templates/magic-link.tsx';
 
 const corsHeaders = {
   "access-control-allow-origin": "*",
@@ -134,30 +138,77 @@ serve(async (req) => {
 
     console.log(`✅ User verification complete - Email: ${email}, Exists: ${userExists}, Tier: ${tier}`);
 
-    // Create Supabase client for OTP
+    // Create Supabase clients
     const anonSupabase = createClient(supabaseUrl, supabaseAnonKey);
+    const serviceSupabase = createClient(supabaseUrl, serviceKey);
 
-    // Send OTP magic link via Supabase Auth
+    // Generate magic link token
+    const token = generateToken(32);
+    const tokenHash = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(token))
+      .then(buffer => Array.from(new Uint8Array(buffer)).map(b => b.toString(16).padStart(2, '0')).join(''));
+
     const redirectUrl = `${req.headers.get('origin') || 'https://www.weeklywizdom.com'}/auth/callback?tier=${tier}`;
     
-    const { error: otpError } = await anonSupabase.auth.signInWithOtp({
-      email: email,
-      options: {
-        emailRedirectTo: redirectUrl,
-        shouldCreateUser: true,
-        data: {
+    // Store magic link in database
+    const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+    const { error: insertError } = await serviceSupabase
+      .from('magic_links')
+      .insert({
+        email: email,
+        token: tokenHash,
+        expires_at: expiresAt.toISOString(),
+        metadata: {
           tier: tier,
           beehiiv_verified: userExists,
-          source: 'beehiiv'
+          source: 'beehiiv',
+          redirect_url: redirectUrl
         }
-      }
-    });
+      });
 
-    if (otpError) {
-      console.error('❌ Supabase OTP error:', otpError);
+    if (insertError) {
+      console.error('❌ Failed to store magic link:', insertError);
       return json({ 
         success: false, 
-        error: 'Failed to send magic link' 
+        error: 'Failed to generate magic link' 
+      }, { status: 500 });
+    }
+
+    // Generate the full magic link URL
+    const magicLinkUrl = `${redirectUrl}&token=${token}&email=${encodeURIComponent(email)}`;
+
+    // Send email using Resend
+    try {
+      const resend = new Resend(Deno.env.get('RESEND_API_KEY'));
+      
+      const html = await renderAsync(
+        React.createElement(MagicLinkEmail, {
+          magicLink: magicLinkUrl,
+          userTier: tier,
+          email: email,
+        })
+      );
+
+      const emailResult = await resend.emails.send({
+        from: 'Weekly Wizdom <noreply@weeklywizdom.app>',
+        to: [email],
+        subject: 'Your secure login link for Weekly Wizdom',
+        html,
+      });
+
+      if (emailResult.error) {
+        console.error('❌ Resend email error:', emailResult.error);
+        return json({ 
+          success: false, 
+          error: 'Failed to send magic link email' 
+        }, { status: 500 });
+      }
+
+      console.log('✅ Magic link email sent via Resend:', emailResult.data?.id);
+    } catch (emailError) {
+      console.error('❌ Email sending error:', emailError);
+      return json({ 
+        success: false, 
+        error: 'Failed to send magic link email' 
       }, { status: 500 });
     }
 
