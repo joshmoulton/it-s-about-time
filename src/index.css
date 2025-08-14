@@ -547,7 +547,6 @@
       transition-duration: 0.01ms !important;
     }
   }
-}
 
 /* Cross-browser utilities and mobile enhancements */
 @layer utilities {
