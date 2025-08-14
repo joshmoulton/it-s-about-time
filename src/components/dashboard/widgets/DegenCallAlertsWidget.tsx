@@ -195,12 +195,7 @@ export function DegenCallAlertsWidget({
 
       <ModernCardContent className={`flex-1 flex flex-col ${hideHeader ? 'pt-0' : 'pt-0'} px-4 pb-4`}>
         <div className="flex-1 flex flex-col gap-3">
-          {/* Testing notice - centered and attention-grabbing */}
-          <div className="w-full flex justify-center">
-            <Badge variant="outline" className="px-3 py-1.5 text-sm font-extrabold uppercase tracking-wider bg-orange-400/20 border-orange-300/60 text-orange-100 shadow-md backdrop-blur-sm animate-pulse" aria-live="polite">
-              TESTING ONLY — DISREGARD
-            </Badge>
-          </div>
+          {/* Remove testing badge for production */}
 
             {isLoading ? <div className="flex-1 flex items-center justify-center">
               <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-orange-500" />

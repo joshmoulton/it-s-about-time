@@ -83,15 +83,7 @@ export function FullDegenCallAlertsView({ subscriber }: FullDegenCallAlertsViewP
     <div className="space-y-4 sm:space-y-6 h-full">
       {/* Mobile-optimized header with refresh button */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-0">
-        <div className="flex items-center gap-3">
-          <Badge
-            variant="outline"
-            className="px-2 sm:px-3 py-1 sm:py-1.5 text-xs sm:text-sm font-extrabold uppercase tracking-wider bg-orange-400/20 border-orange-300/60 text-orange-100 shadow-md backdrop-blur-sm animate-pulse w-fit"
-            aria-live="polite"
-          >
-            TESTING ONLY — DISREGARD
-          </Badge>
-        </div>
+        {/* Remove testing badge for production */}
         <Button 
           size="sm" 
           variant="ghost" 
