@@ -456,8 +456,7 @@
   
   /* Mobile-first performance optimizations */
   .mobile-optimized {
-    contain: layout style paint;
-    content-visibility: auto;
+    /* Remove containment that breaks modal positioning */
   }
   
   .reduce-motion {
@@ -473,11 +472,11 @@
   
   /* Enhanced mobile performance optimizations */
   @media (max-width: 768px) {
-    /* Critical performance: reduce animations on mobile */
-    *, *::before, *::after {
-      animation-duration: 0.1s !important;
-      animation-iteration-count: 1 !important;
-      transition-duration: 0.1s !important;
+    /* Reduce animations on mobile but keep modal positioning */
+    .animate-fade-in-up,
+    .animate-gradient-shift,
+    .animate-button-glow {
+      animation-duration: 0.3s !important;
     }
     
     /* For users who prefer reduced motion */
@@ -496,8 +495,7 @@
     -webkit-text-size-adjust: 100%;
     -ms-text-size-adjust: 100%;
     font-size: 16px; /* Prevent zoom on inputs */
-    /* Hardware acceleration */
-    -webkit-transform: translateZ(0);
+    /* Hardware acceleration - removed to fix modal positioning */
     transform: translateZ(0);
     /* Critical performance */
     contain: layout style;
