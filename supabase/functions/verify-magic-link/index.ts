@@ -125,36 +125,34 @@ serve(async (req) => {
 
     console.log(`✅ Magic link verified successfully for ${tokenData.email}, creating real session...`);
     
-    // Generate real Supabase JWT tokens for the user
-    const { data: sessionTokens, error: tokenError } = await supabase.auth.admin.generateAccessToken(authUser.id);
+    // Generate real Supabase JWT tokens for the user using createSession
+    const { data: sessionData, error: sessionError } = await supabase.auth.admin.createSession({
+      user_id: authUser.id,
+      session_duration: 3600 // 1 hour
+    });
     
-    if (tokenError || !sessionTokens) {
-      console.error('❌ Error generating access token:', tokenError);
+    if (sessionError || !sessionData) {
+      console.error('❌ Error creating session:', sessionError);
       return new Response('Failed to create session', { status: 500 });
     }
 
-    console.log(`✅ Real JWT tokens generated for ${tokenData.email}`);
+    console.log(`✅ Real JWT session created for ${tokenData.email}`);
     
     // Prepare session data with real Supabase tokens
-    const sessionData = {
-      access_token: sessionTokens.access_token,
-      refresh_token: sessionTokens.refresh_token,
-      expires_in: sessionTokens.expires_in,
-      expires_at: sessionTokens.expires_at,
-      token_type: 'bearer',
-      user: {
-        id: authUser.id,
-        email: authUser.email,
-        user_metadata: authUser.user_metadata,
-        app_metadata: authUser.app_metadata
-      }
+    const realSessionData = {
+      access_token: sessionData.access_token,
+      refresh_token: sessionData.refresh_token,
+      expires_in: sessionData.expires_in,
+      expires_at: sessionData.expires_at,
+      token_type: sessionData.token_type || 'bearer',
+      user: sessionData.user
     };
 
     console.log(`✅ Real session data prepared for ${tokenData.email}`);
     
     // Redirect with session data as URL parameters
     const redirectUrl = new URL(redirect);
-    redirectUrl.searchParams.set('session_data', btoa(JSON.stringify(sessionData)));
+    redirectUrl.searchParams.set('session_data', btoa(JSON.stringify(realSessionData)));
     redirectUrl.searchParams.set('verified', 'true');
     redirectUrl.searchParams.set('tier', tokenData.tier);
     
