@@ -49,6 +49,11 @@ const AuthVerify = () => {
         });
         
         console.log('🔍 Function call response:', { verifyData, verifyError });
+        console.log('🔍 Full response details:', { 
+          data: verifyData, 
+          error: verifyError,
+          errorMessage: verifyError?.message 
+        });
 
         console.log('🔍 Verification response:', { verifyData, verifyError });
 
