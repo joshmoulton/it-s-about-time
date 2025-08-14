@@ -21,6 +21,10 @@ function generateSecureToken(): string {
   return Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('');
 }
 
+// Rate limiting cache to prevent duplicate requests
+const pendingRequests = new Map();
+const rateLimitCache = new Map();
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -30,9 +34,52 @@ serve(async (req) => {
     });
   }
 
+  const startTime = Date.now();
+  let email: string;
+
   try {
-    const { email }: MagicLinkRequest = await req.json()
+    const body = await req.json();
+    email = body.email?.toLowerCase().trim();
     
+    if (!email) {
+      return new Response(
+        JSON.stringify({ success: false, error: 'Email is required' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Rate limiting - only allow one request per email per 10 seconds
+    const now = Date.now();
+    const rateLimitKey = `rate_limit_${email}`;
+    const lastRequestTime = rateLimitCache.get(rateLimitKey) || 0;
+    
+    if (now - lastRequestTime < 10000) {
+      console.log(`🚫 Rate limited: ${email} - last request was ${now - lastRequestTime}ms ago`);
+      return new Response(
+        JSON.stringify({ 
+          success: false, 
+          error: 'Please wait before requesting another magic link' 
+        }),
+        { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+    
+    // Check for pending requests for this email
+    if (pendingRequests.has(email)) {
+      console.log(`🔄 Request already in progress for: ${email}`);
+      return new Response(
+        JSON.stringify({ 
+          success: false, 
+          error: 'A magic link request is already being processed for this email' 
+        }),
+        { status: 409, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+    
+    // Mark request as pending
+    pendingRequests.set(email, startTime);
+    rateLimitCache.set(rateLimitKey, now);
+
     console.log(`🪄 Magic link request for: ${email}`)
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey)
@@ -206,5 +253,10 @@ serve(async (req) => {
       JSON.stringify({ success: false, error: 'Internal server error' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
+  } finally {
+    // Always clean up pending request
+    if (email) {
+      pendingRequests.delete(email);
+    }
   }
 })
