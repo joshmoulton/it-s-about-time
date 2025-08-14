@@ -298,11 +298,15 @@ export const ModernAuthModal: React.FC<ModernAuthModalProps> = memo(({ open, onO
 
   return (
     <Dialog open={open} onOpenChange={handleModalClose}>
-      <DialogContent className="max-w-lg mx-auto p-0 bg-transparent border-none shadow-none [&>button]:hidden modal-allowed"
+      <DialogContent className="w-full max-w-md mx-auto my-8 p-6 bg-background border rounded-lg shadow-lg"
         style={{
-          width: 'min(90vw, 28rem)',
+          position: 'fixed',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
           maxHeight: '90vh',
-          overflow: 'auto'
+          overflowY: 'auto',
+          zIndex: 9999
         }}
       >
         <DialogTitle className="sr-only">Authentication</DialogTitle>
