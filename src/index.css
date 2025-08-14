@@ -465,23 +465,9 @@
     transition: none !important;
   }
   
-  /* Modal optimizations - disable problematic transforms when modal is open */
+  /* Simplified modal optimization */
   .modal-open {
     overflow: hidden;
-  }
-  
-  .modal-open *:not(.modal-allowed) {
-    /* Disable transforms that create new stacking contexts */
-    transform: none !important;
-    perspective: none !important;
-    filter: none !important;
-    will-change: auto !important;
-  }
-  
-  /* Allow transforms only on modal content */
-  .modal-allowed {
-    /* Re-enable transforms for modal animations */
-    transform: var(--modal-transform, none) !important;
   }
   
   

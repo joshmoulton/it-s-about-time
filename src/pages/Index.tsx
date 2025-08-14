@@ -113,6 +113,11 @@ const Index = () => {
         }} 
       />
 
+      <AuthOptionsModal 
+        open={authModalOpen} 
+        onOpenChange={setAuthModalOpen} 
+      />
+
       {/* 1. Navigation (built into hero) + 2. Hero + Dashboard Preview (two-column layout) */}
       <ReorganizedHeroSection 
         onAuthClick={() => !isAuthenticated && setAuthModalOpen(true)} 
