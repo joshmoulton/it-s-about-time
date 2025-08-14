@@ -1,15 +1,11 @@
 project_id = "wrvvlmevpvcenauglcyz"
 
 [auth]
-# Enable auth webhook for custom email handling
+# Disable Supabase email sending - we handle emails via custom functions
 enable_signup = true
 enable_confirmations = false
-external_email_enabled = true
-hook_send_email_enabled = true
-hook_send_email_uri = "https://wrvvlmevpvcenauglcyz.supabase.co/functions/v1/auth-webhook"
-
-[functions.auth-webhook]
-verify_jwt = false
+external_email_enabled = false
+hook_send_email_enabled = false
 
 [functions.active-alerts-widget]
 verify_jwt = false

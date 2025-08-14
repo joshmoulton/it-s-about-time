@@ -136,43 +136,29 @@ export const SimplifiedAuthModal: React.FC<SimplifiedAuthModalProps> = memo(({ o
           return;
         }
         
-        // Use Supabase's native magic link 
+        // Use our custom magic link function that sends via Resend directly
         const result = await authRequestDeduplication.deduplicateRequest(
           email.toLowerCase().trim(),
           'magic_link',
           async () => {
-            console.log('📧 Sending Supabase magic link...');
+            console.log('📧 Sending custom magic link via Resend...');
             
-            // First verify tier with Beehiiv
-            const { data: verifyData, error: verifyError } = await supabase.functions.invoke('beehiiv-subscriber-verify', {
+            // Use our custom send-magic-link function instead of Supabase's
+            const { data, error } = await supabase.functions.invoke('send-magic-link', {
               body: { email: email.toLowerCase().trim() }
             });
 
-            if (verifyError) {
-              console.error('❌ Tier verification error:', verifyError);
-              throw new Error('Unable to verify subscription status');
-            }
-
-            if (!verifyData?.success) {
-              throw new Error('Email not found in our subscription list');
-            }
-
-            // Send Supabase magic link - our auth webhook will intercept and send via Resend
-            const { data, error } = await supabase.auth.signInWithOtp({
-              email: email.toLowerCase().trim(),
-              options: {
-                emailRedirectTo: `${window.location.origin}/auth/callback?tier=${verifyData.tier}`,
-                shouldCreateUser: true
-              }
-            });
-
             if (error) {
-              console.error('❌ Supabase magic link error:', error);
+              console.error('❌ Custom magic link error:', error);
               throw new Error(error.message || 'Failed to send magic link');
             }
 
-            console.log('✅ Magic link sent via auth webhook');
-            return { success: true, tier: verifyData.tier || 'free' };
+            if (!data?.success) {
+              throw new Error(data?.error || 'Failed to send magic link');
+            }
+
+            console.log('✅ Custom magic link sent successfully via Resend');
+            return { success: true, tier: data.tier || 'free' };
           }
         );
         

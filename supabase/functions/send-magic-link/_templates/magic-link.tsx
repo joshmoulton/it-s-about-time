@@ -7,16 +7,13 @@ import {
   Link,
   Preview,
   Text,
-  Section,
-  Button,
-  Hr,
-} from 'npm:@react-email/components@0.0.22'
-import * as React from 'npm:react@18.3.1'
+} from 'npm:@react-email/components@0.0.22';
+import * as React from 'npm:react@18.3.1';
 
 interface MagicLinkEmailProps {
-  magicLink: string
-  userTier: string
-  email: string
+  magicLink: string;
+  userTier: string;
+  email: string;
 }
 
 export const MagicLinkEmail = ({
@@ -29,135 +26,102 @@ export const MagicLinkEmail = ({
     <Preview>Your secure login link for Weekly Wizdom</Preview>
     <Body style={main}>
       <Container style={container}>
-        <Heading style={h1}>🪄 Weekly Wizdom</Heading>
+        <Heading style={h1}>Weekly Wizdom</Heading>
         
         <Text style={text}>
-          Hi there! Click the button below to securely sign in to your Weekly Wizdom account.
-        </Text>
-
-        <Section style={buttonContainer}>
-          <Button
-            href={magicLink}
-            style={button}
-          >
-            Sign in to Weekly Wizdom
-          </Button>
-        </Section>
-
-        <Text style={smallText}>
-          Or copy and paste this link in your browser:
+          Click the button below to securely access your Weekly Wizdom account:
         </Text>
         
-        <Text style={linkText}>
-          {magicLink}
+        <Link
+          href={magicLink}
+          target="_blank"
+          style={{
+            ...button,
+            display: 'block',
+            marginBottom: '24px',
+            padding: '12px 24px',
+            backgroundColor: '#2563eb',
+            color: '#ffffff',
+            textDecoration: 'none',
+            borderRadius: '8px',
+            textAlign: 'center' as const,
+            fontWeight: '600',
+            fontSize: '16px'
+          }}
+        >
+          Sign In to Your Account
+        </Link>
+        
+        <Text style={{ ...text, fontSize: '14px', color: '#6b7280' }}>
+          This link expires in 15 minutes for security. If you didn't expect this invitation, you can safely ignore this email.
         </Text>
-
-        <Hr style={hr} />
-
-        <Text style={tierText}>
-          Account tier: <strong>{userTier === 'premium' ? 'Premium' : 'Free'}</strong>
-        </Text>
-
-        <Text style={footerText}>
-          This link will expire in 24 hours. If you didn't request this login link, you can safely ignore this email.
-        </Text>
-
+        
         <Text style={footer}>
-          Best regards,<br />
-          The Weekly Wizdom Team
+          <Link
+            href="https://www.weeklywizdom.com"
+            target="_blank"
+            style={{ ...link, color: '#898989' }}
+          >
+            Weekly Wizdom
+          </Link>
+          <br />
+          Your weekly dose of crypto market wisdom
         </Text>
       </Container>
     </Body>
   </Html>
-)
+);
 
-export default MagicLinkEmail
+export default MagicLinkEmail;
 
 const main = {
   backgroundColor: '#ffffff',
   fontFamily: '-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen-Sans,Ubuntu,Cantarell,"Helvetica Neue",sans-serif',
-}
+};
 
 const container = {
   margin: '0 auto',
   padding: '20px 0 48px',
-  maxWidth: '560px',
-}
+  maxWidth: '580px',
+};
 
 const h1 = {
-  color: '#1f2937',
-  fontSize: '32px',
+  color: '#333',
+  fontSize: '24px',
   fontWeight: 'bold',
-  margin: '40px 0 20px',
+  margin: '40px 0',
   padding: '0',
+};
+
+const button = {
+  backgroundColor: '#2563eb',
+  borderRadius: '8px',
+  color: '#ffffff',
+  fontSize: '16px',
+  fontWeight: '600',
+  textDecoration: 'none',
   textAlign: 'center' as const,
-}
+  display: 'block',
+  padding: '12px 24px',
+};
+
+const link = {
+  color: '#2563eb',
+  fontSize: '14px',
+  textDecoration: 'underline',
+};
 
 const text = {
   color: '#374151',
   fontSize: '16px',
-  lineHeight: '26px',
-  margin: '0 0 20px',
-}
-
-const buttonContainer = {
-  textAlign: 'center' as const,
-  margin: '32px 0',
-}
-
-const button = {
-  backgroundColor: '#3b82f6',
-  borderRadius: '8px',
-  color: '#ffffff',
-  fontSize: '16px',
-  fontWeight: 'bold',
-  textDecoration: 'none',
-  textAlign: 'center' as const,
-  display: 'inline-block',
-  padding: '14px 32px',
-  lineHeight: '100%',
-}
-
-const smallText = {
-  color: '#6b7280',
-  fontSize: '14px',
-  lineHeight: '20px',
-  margin: '20px 0 8px',
-}
-
-const linkText = {
-  color: '#3b82f6',
-  fontSize: '14px',
-  lineHeight: '20px',
-  wordBreak: 'break-all' as const,
-  margin: '0 0 20px',
-}
-
-const hr = {
-  borderColor: '#e5e7eb',
-  margin: '32px 0',
-}
-
-const tierText = {
-  color: '#374151',
-  fontSize: '14px',
-  lineHeight: '20px',
-  margin: '0 0 16px',
-  padding: '12px 16px',
-  backgroundColor: '#f3f4f6',
-  borderRadius: '6px',
-}
-
-const footerText = {
-  color: '#6b7280',
-  fontSize: '12px',
-  lineHeight: '18px',
-  margin: '0 0 20px',
-}
+  margin: '24px 0',
+  lineHeight: '24px',
+};
 
 const footer = {
-  color: '#374151',
-  fontSize: '14px',
-  lineHeight: '20px',
-  margin: '0',
-}
+  color: '#898989',
+  fontSize: '12px',
+  lineHeight: '22px',
+  marginTop: '12px',
+  marginBottom: '24px',
+};
