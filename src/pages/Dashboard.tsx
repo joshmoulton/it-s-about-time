@@ -57,15 +57,44 @@ const Dashboard = () => {
   const memoizedCurrentUser = useMemo(() => currentUser, [currentUser?.id, currentUser?.email, currentUser?.metadata]);
   
   // Convert currentUser to subscriber format for components that expect it
+  // For magic link users, check localStorage for tier information
   const subscriberForComponents = memoizedCurrentUser ? {
     id: memoizedCurrentUser.id,
     email: memoizedCurrentUser.email,
     status: memoizedCurrentUser.status || 'active',
-    subscription_tier: (memoizedCurrentUser.subscription_tier as 'free' | 'paid' | 'premium') || 'free',
+    subscription_tier: (() => {
+      // First try the currentUser tier
+      if (memoizedCurrentUser.subscription_tier && memoizedCurrentUser.subscription_tier !== 'free') {
+        return memoizedCurrentUser.subscription_tier as 'free' | 'paid' | 'premium';
+      }
+      
+      // For magic link users, check localStorage
+      const authMethod = localStorage.getItem('auth_method');
+      const authTier = localStorage.getItem('auth_tier');
+      const authEmail = localStorage.getItem('auth_user_email');
+      
+      if (authMethod === 'magic_link' && authEmail === memoizedCurrentUser.email && authTier) {
+        return authTier as 'free' | 'paid' | 'premium';
+      }
+      
+      return 'free';
+    })(),
     created_at: memoizedCurrentUser.created_at || new Date().toISOString(),
     updated_at: memoizedCurrentUser.updated_at || new Date().toISOString(),
     metadata: memoizedCurrentUser.metadata || {}
   } : null;
+
+  // Debug logging for magic link authentication issues
+  console.log('🔍 Dashboard Auth Debug:', {
+    currentUser: !!memoizedCurrentUser,
+    email: memoizedCurrentUser?.email,
+    tier: memoizedCurrentUser?.subscription_tier,
+    subscriber: !!subscriberForComponents,
+    subscriberTier: subscriberForComponents?.subscription_tier,
+    authMethod: localStorage.getItem('auth_method'),
+    authTier: localStorage.getItem('auth_tier'),
+    authEmail: localStorage.getItem('auth_user_email')
+  });
 
   // Simplified tour initialization without delays for admin users
   const tourController = TOUR_ENABLED ? GuidedTourController({
