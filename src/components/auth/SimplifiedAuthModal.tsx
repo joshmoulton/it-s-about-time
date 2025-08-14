@@ -284,7 +284,7 @@ export const SimplifiedAuthModal: React.FC<SimplifiedAuthModalProps> = memo(({ o
 
   return (
     <Dialog open={open} onOpenChange={handleModalClose}>
-      <DialogContent className="p-6">
+      <DialogContent className="p-0">
         <DialogTitle className="sr-only">Authentication</DialogTitle>
         <DialogDescription className="sr-only">
           Get access to Weekly Wizdom premium features and newsletter content.
