@@ -16,41 +16,24 @@ export function SimpleAuth() {
 
     setIsLoading(true);
     setStatus('checking');
-    setMessage('Verifying your subscription...');
+    setMessage('Sending secure login link...');
 
     try {
-      // First verify with Beehiiv
-      const { data: verifyData, error: verifyError } = await supabase.functions.invoke(
-        'beehiiv-subscriber-verify',
+      // Use send-magic-link which handles both Beehiiv verification and sends beautiful Resend email
+      const { data, error } = await supabase.functions.invoke(
+        'send-magic-link',
         { body: { email: email.toLowerCase().trim() } }
       );
 
-      if (verifyError || !verifyData?.success) {
+      if (error || !data?.success) {
         setStatus('error');
-        setMessage('Email not found in our subscription list. Please sign up for Weekly Wizdom newsletter first.');
+        setMessage(data?.error || 'Email not found in our subscription list. Please sign up for Weekly Wizdom newsletter first.');
         setIsLoading(false);
         return;
       }
 
-      setMessage('Subscription verified! Sending login link...');
-
-      // Send Supabase magic link with proper redirect
-      const redirectUrl = `${window.location.origin}/auth/callback`;
-      const { error: authError } = await supabase.auth.signInWithOtp({
-        email: email.toLowerCase().trim(),
-        options: {
-          emailRedirectTo: redirectUrl
-        }
-      });
-
-      if (authError) {
-        setStatus('error');
-        setMessage('Failed to send login link. Please try again.');
-        console.error('Auth error:', authError);
-      } else {
-        setStatus('sent');
-        setMessage('Login link sent! Check your email and click the link to access your dashboard.');
-      }
+      setStatus('sent');
+      setMessage('Login link sent! Check your email and click the link to access your dashboard.');
     } catch (error) {
       console.error('Login error:', error);
       setStatus('error');
