@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { TrendingUp, AlertTriangle, RefreshCw, Filter, ChevronDown, ChevronUp } from 'lucide-react';
-import { useActiveAlertsRest } from '@/hooks/useActiveAlertsRest';
+import { useLiveAlerts } from '@/hooks/useLiveAlerts';
 
 interface Subscriber {
   id: string;
@@ -22,53 +22,41 @@ interface FullAlertsViewProps {
 
 export function FullAlertsView({ subscriber }: FullAlertsViewProps) {
   const {
-    alerts,
-    tradingAlerts,
-    awaitingAlerts,
-    tradingCount,
-    awaitingCount,
-    totalCount,
-    isConnected,
-    isConnecting,
-    error,
-    reconnect
-  } = useActiveAlertsRest();
+    data: liveAlerts,
+    isLoading
+  } = useLiveAlerts(20, subscriber); // Get more alerts for the full view
   
   const [selectedCaller, setSelectedCaller] = useState<string>('all');
   const [defaultAccordionValue, setDefaultAccordionValue] = useState<string[]>(['active', 'pending']);
   
-  // Use the properly categorized alerts from the REST API
-  const activeAlerts = tradingAlerts;
-  const pendingAlerts = awaitingAlerts;
+  // Use the live alerts data - filter by status
+  const activeAlerts = liveAlerts?.filter(alert => alert.status === 'active') || [];
+  const pendingAlerts = liveAlerts?.filter(alert => alert.status === 'awaiting') || [];
   
   // Debug logging
   console.log('🔍 FullAlertsView Debug:', {
-    totalAlerts: alerts.length,
-    tradingAlertsCount: tradingCount,
-    awaitingAlertsCount: awaitingCount,
+    totalAlerts: liveAlerts?.length || 0,
     activeAlertsCount: activeAlerts.length,
     pendingAlertsCount: pendingAlerts.length,
-    isConnected,
-    isConnecting
+    isLoading
   });
-  
-  const isLoading = isConnecting;
 
   const refreshAlerts = () => {
-    reconnect();
+    // The useLiveAlerts hook handles automatic refreshing via real-time subscriptions
+    window.location.reload(); // Simple refresh for now
   };
 
   // Get unique callers for filtering
-  const allCallers = [...new Set([...activeAlerts, ...pendingAlerts].map(alert => alert.caller).filter(Boolean))];
+  const allCallers = [...new Set([...activeAlerts, ...pendingAlerts].map(alert => alert.trader).filter(Boolean))];
 
   // Filter alerts by caller
   const filteredActiveAlerts = selectedCaller === 'all' 
     ? activeAlerts 
-    : activeAlerts.filter(alert => alert.caller === selectedCaller);
+    : activeAlerts.filter(alert => alert.trader === selectedCaller);
     
   const filteredPendingAlerts = selectedCaller === 'all' 
     ? pendingAlerts 
-    : pendingAlerts.filter(alert => alert.caller === selectedCaller);
+    : pendingAlerts.filter(alert => alert.trader === selectedCaller);
 
   const formatPrice = (price: number): string => {
     if (price < 0.000001) {
@@ -92,14 +80,14 @@ export function FullAlertsView({ subscriber }: FullAlertsViewProps) {
     }).format(price);
   };
 
-  const CompactAlertCard = ({ alert, type }: { alert: any, type: 'active' | 'pending' }) => {
-    const currentPrice = alert.currentPrice || alert.entryPrice;
-    const entryPrice = alert.entryPrice || 0;
-    const stopLoss = alert.stopLoss || 0;
-    const target = alert.target || 0;
+    const CompactAlertCard = ({ alert, type }: { alert: any, type: 'active' | 'pending' }) => {
+    const currentPrice = alert.current_price || alert.entry_price;
+    const entryPrice = typeof alert.entry_price === 'number' ? alert.entry_price : 0;
+    const stopLoss = alert.stop_loss_price || 0;
+    const target = alert.take_profit_price || (alert.targets && alert.targets[0]) || 0;
     
     // Calculate gain/loss for active positions
-    const isLong = alert.positionDirection?.toLowerCase() === 'long';
+    const isLong = alert.position_type?.toLowerCase() === 'long';
     let gainLossPercentage = 0;
     let progressPercentage = 0;
     
@@ -148,13 +136,13 @@ export function FullAlertsView({ subscriber }: FullAlertsViewProps) {
           {/* Header with coin and badges */}
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-3">
-              <div className={`w-10 h-10 ${getCoinGradient(alert.coin)} rounded-full flex items-center justify-center 
+              <div className={`w-10 h-10 ${getCoinGradient(alert.symbol)} rounded-full flex items-center justify-center 
                               text-white font-bold text-sm shadow-md`}>
-                {alert.coin?.charAt(0) || 'C'}
+                {alert.symbol?.charAt(0) || 'C'}
               </div>
               <div>
-                <div className="font-semibold text-foreground">{alert.coin}</div>
-                <div className="text-xs text-muted-foreground">{alert.caller}</div>
+                <div className="font-semibold text-foreground">{alert.symbol}</div>
+                <div className="text-xs text-muted-foreground">{alert.trader}</div>
               </div>
             </div>
             
@@ -166,7 +154,7 @@ export function FullAlertsView({ subscriber }: FullAlertsViewProps) {
                     : 'bg-gradient-to-r from-red-500 to-red-600 text-white border-red-500/20'
                 }`}
               >
-                {alert.positionDirection}
+                {alert.position_type}
               </Badge>
               
               {type === 'active' && gainLossPercentage !== 0 && (
@@ -254,7 +242,7 @@ export function FullAlertsView({ subscriber }: FullAlertsViewProps) {
                   <SelectItem value="all">All Callers ({activeAlerts.length + pendingAlerts.length})</SelectItem>
                   {allCallers.map((caller) => (
                     <SelectItem key={caller} value={caller}>
-                      {caller} ({[...activeAlerts, ...pendingAlerts].filter(alert => alert.caller === caller).length})
+                      {caller} ({[...activeAlerts, ...pendingAlerts].filter(alert => alert.trader === caller).length})
                     </SelectItem>
                   ))}
                 </SelectContent>

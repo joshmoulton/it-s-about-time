@@ -15,6 +15,7 @@ import { ModernEdgeWidget } from './widgets/ModernEdgeWidget';
 import { ModernAlertsWidget } from './widgets/ModernAlertsWidget';
 import { ModernChatWidget } from './widgets/ModernChatWidget';
 import { DegenCallAlertsWidget } from './widgets/DegenCallAlertsWidget';
+import { LiveAlertsWidget } from './widgets/LiveAlertsWidget';
 import { UnifiedChatWidget } from './widgets/UnifiedChatWidget';
 import { FullAlertsView } from './widgets/FullAlertsView';
 import { FullDegenCallAlertsView } from './widgets/FullDegenCallAlertsView';
@@ -89,6 +90,9 @@ export function DashboardContent({
         break;
       case 'alerts':
         navigate('/dashboard?section=alerts');
+        break;
+      case 'live-alerts':
+        navigate('/dashboard?section=live-alerts');
         break;
       case 'chat':
         navigate('/dashboard?section=chat');
@@ -186,9 +190,9 @@ export function DashboardContent({
           {/* Second Row - Live Alerts takes full width - Premium only */}
           <div className="grid grid-cols-1 gap-6 lg:gap-8">
             <FreemiumWidgetWrapper
-              featureName="Live Trading Alerts"
+              featureName="🧙‍♂️ Live Trading Alerts"
               className="h-[380px] lg:h-[400px] overflow-hidden"
-              gradientTheme="green"
+              gradientTheme="blue"
               showTeaserStats={true}
               teaserStats={{
                 activeAlerts: 12,
@@ -196,11 +200,11 @@ export function DashboardContent({
                 awaitingEntry: 5,
                 avgDailyPnL: "$2,847"
               }}
-              widgetType="alerts"
+              widgetType="live-alerts"
             >
-              <div className="h-full cursor-pointer" onClick={() => handleWidgetClick('alerts')}>
+              <div className="h-full cursor-pointer" onClick={() => handleWidgetClick('live-alerts')}>
                 <WidgetErrorBoundary widgetName="Live Alerts">
-                  <ModernAlertsWidget subscriber={subscriber} hideHeader={false} summaryMode={true} />
+                  <LiveAlertsWidget subscriber={subscriber} hideHeader={false} />
                 </WidgetErrorBoundary>
               </div>
             </FreemiumWidgetWrapper>
@@ -398,6 +402,50 @@ export function DashboardContent({
                   />
                 </WidgetErrorBoundary>
               </div>
+            </div>
+          </div>;
+      case 'live-alerts':
+        return <div className="h-full w-full relative" style={{ zIndex: 10 }}>
+            {/* Header */}
+            <div className="px-8 py-6 border-b border-border/50 flex-shrink-0 bg-background">
+              <div className="flex items-center justify-between">
+                <div className="space-y-2">
+                  <div className="flex items-center gap-3">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => navigate('/dashboard')}
+                      className="bg-muted/20 border-border/50 text-foreground hover:bg-muted/50 hover:border-border"
+                    >
+                      <ArrowLeft className="h-4 w-4 mr-2" />
+                      Back to Dashboard
+                    </Button>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 bg-blue-500/10 rounded-xl flex items-center justify-center">
+                      <TrendingUp className="h-6 w-6 text-blue-500" />
+                    </div>
+                    <div>
+                      <h1 className="text-3xl font-bold text-foreground mb-1">🧙‍♂️ Live Trading Alerts</h1>
+                      <p className="text-muted-foreground">Real-time trading signals and market opportunities</p>
+                    </div>
+                  </div>
+                </div>
+                
+                <Badge className="bg-blue-500/10 text-blue-500 border-blue-500/20 px-4 py-2">
+                  <span className="w-2 h-2 bg-blue-500 rounded-full animate-pulse mr-2"></span>
+                  Live Alerts
+                </Badge>
+              </div>
+            </div>
+            
+            {/* Content with proper scrolling */}
+            <div className="flex-1 overflow-y-auto px-4 sm:px-8 py-4 sm:py-6">
+              <WidgetErrorBoundary widgetName="Live Alerts View">
+                <div className="max-w-4xl mx-auto grid gap-4">
+                  <LiveAlertsWidget subscriber={subscriber} hideHeader={true} />
+                </div>
+              </WidgetErrorBoundary>
             </div>
           </div>;
       case 'degen-calls':

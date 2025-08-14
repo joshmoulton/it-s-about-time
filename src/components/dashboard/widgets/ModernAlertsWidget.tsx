@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { TrendingUp, AlertTriangle, RefreshCw, Filter, ExternalLink, Clock } from 'lucide-react';
-import { useActiveAlertsRest } from '@/hooks/useActiveAlertsRest';
+import { useLiveAlerts } from '@/hooks/useLiveAlerts';
 import { FreemiumWidgetWrapper } from '@/components/freemium/FreemiumWidgetWrapper';
 
 interface Subscriber {
@@ -30,30 +30,25 @@ export function ModernAlertsWidget({
 }: ModernAlertsWidgetProps) {
   const navigate = useNavigate();
   const {
-    tradingAlerts,
-    awaitingAlerts,
-    tradingCount,
-    awaitingCount,
-    isConnected,
-    isConnecting,
-    reconnect
-  } = useActiveAlertsRest();
+    data: liveAlerts,
+    isLoading
+  } = useLiveAlerts(5, subscriber); // Get 5 alerts for the widget
   
   const [selectedCaller, setSelectedCaller] = useState<string>('all');
-  const activeAlerts = tradingAlerts;
-  const pendingAlerts = awaitingAlerts;
-  const isLoading = isConnecting;
+  const activeAlerts = liveAlerts?.filter(alert => alert.status === 'active') || [];
+  const pendingAlerts = liveAlerts?.filter(alert => alert.status === 'awaiting') || [];
   
   const refreshAlerts = () => {
-    reconnect();
+    // The useLiveAlerts hook handles automatic refreshing via real-time subscriptions
+    window.location.reload(); // Simple refresh for now
   };
 
   // Get unique callers for filtering
-  const allCallers = [...new Set([...activeAlerts, ...pendingAlerts].map(alert => alert.caller).filter(Boolean))];
+  const allCallers = [...new Set([...activeAlerts, ...pendingAlerts].map(alert => alert.trader).filter(Boolean))];
 
   // Filter alerts by caller and apply summary mode limits
-  let filteredActiveAlerts = selectedCaller === 'all' ? activeAlerts : activeAlerts.filter(alert => alert.caller === selectedCaller);
-  let filteredPendingAlerts = selectedCaller === 'all' ? pendingAlerts : pendingAlerts.filter(alert => alert.caller === selectedCaller);
+  let filteredActiveAlerts = selectedCaller === 'all' ? activeAlerts : activeAlerts.filter(alert => alert.trader === selectedCaller);
+  let filteredPendingAlerts = selectedCaller === 'all' ? pendingAlerts : pendingAlerts.filter(alert => alert.trader === selectedCaller);
 
   // Apply summary mode limits (2 items each)
   if (summaryMode) {
@@ -91,10 +86,10 @@ export function ModernAlertsWidget({
     type: 'active' | 'pending';
   }) => {
     // Calculate current progress and P&L (mock data for now)
-    const currentPrice = alert.entryPrice; // Would be real current price from API
-    const entryPrice = alert.entryPrice || 0;
-    const stopLoss = alert.stopLoss || 0;
-    const target = alert.target || 0;
+    const currentPrice = alert.current_price || alert.entry_price; // Would be real current price from API
+    const entryPrice = typeof alert.entry_price === 'number' ? alert.entry_price : 0;
+    const stopLoss = alert.stop_loss_price || 0;
+    const target = alert.take_profit_price || (alert.targets && alert.targets[0]) || 0;
 
     // Calculate percentage from entry
     const percentageFromEntry = currentPrice && entryPrice ? (currentPrice - entryPrice) / entryPrice * 100 : 0;
@@ -110,19 +105,19 @@ export function ModernAlertsWidget({
         {/* Header with badges in top right */}
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center space-x-2">
-            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold text-white ${alert.coin === 'PEPE' ? 'bg-green-600' : alert.coin === 'SUI' ? 'bg-blue-600' : alert.coin === 'FARTCOIN' ? 'bg-purple-600' : alert.coin === 'LINK' ? 'bg-blue-500' : alert.coin === 'SOL' ? 'bg-purple-500' : 'bg-slate-600'}`}>
-              {alert.coin?.charAt(0) || 'C'}
+            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold text-white ${alert.symbol === 'PEPE' ? 'bg-green-600' : alert.symbol === 'SUI' ? 'bg-blue-600' : alert.symbol === 'FARTCOIN' ? 'bg-purple-600' : alert.symbol === 'LINK' ? 'bg-blue-500' : alert.symbol === 'SOL' ? 'bg-purple-500' : 'bg-slate-600'}`}>
+              {alert.symbol?.charAt(0) || 'C'}
             </div>
             <div>
-              <div className="font-bold text-sm text-white">{alert.coin}</div>
-              <div className="text-xs text-slate-400">{alert.caller}</div>
+              <div className="font-bold text-sm text-white">{alert.symbol}</div>
+              <div className="text-xs text-slate-400">{alert.trader}</div>
             </div>
           </div>
           
           {/* Badges moved to top right */}
           <div className="flex flex-col items-end space-y-1">
-            <span className={`px-2 py-0.5 rounded text-xs font-medium ${alert.positionDirection === 'Long' ? 'bg-emerald-900/50 text-emerald-400' : 'bg-red-900/50 text-red-400'}`}>
-              {alert.positionDirection}
+            <span className={`px-2 py-0.5 rounded text-xs font-medium ${alert.position_type === 'long' ? 'bg-emerald-900/50 text-emerald-400' : 'bg-red-900/50 text-red-400'}`}>
+              {alert.position_type}
             </span>
             <span className={`px-2 py-0.5 rounded text-xs font-medium ${type === 'active' ? 'bg-blue-900/50 text-blue-400' : 'bg-yellow-900/50 text-yellow-400'}`}>
               {type === 'active' ? 'Active' : 'Pending'}
@@ -173,15 +168,15 @@ export function ModernAlertsWidget({
     const isProfit = percentageFromEntry > 0;
     return <div className="flex items-center justify-between p-4 bg-slate-900/50 border border-slate-700/30 rounded-lg hover:bg-slate-800/60 transition-all duration-200">
         <div className="flex items-center space-x-4 flex-1">
-          <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold text-white ${alert.coin === 'PEPE' ? 'bg-green-600' : alert.coin === 'SUI' ? 'bg-blue-600' : alert.coin === 'FARTCOIN' ? 'bg-purple-600' : alert.coin === 'LINK' ? 'bg-blue-500' : alert.coin === 'SOL' ? 'bg-purple-500' : 'bg-slate-600'}`}>
-            {alert.coin?.charAt(0) || 'C'}
+          <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold text-white ${alert.symbol === 'PEPE' ? 'bg-green-600' : alert.symbol === 'SUI' ? 'bg-blue-600' : alert.symbol === 'FARTCOIN' ? 'bg-purple-600' : alert.symbol === 'LINK' ? 'bg-blue-500' : alert.symbol === 'SOL' ? 'bg-purple-500' : 'bg-slate-600'}`}>
+            {alert.symbol?.charAt(0) || 'C'}
           </div>
           <div className="flex-1">
-            <div className="font-bold text-base text-white">{alert.coin}</div>
+            <div className="font-bold text-base text-white">{alert.symbol}</div>
             <div className="text-sm text-slate-400 flex items-center space-x-2">
-              <span>{alert.caller}</span>
-              <span className={`px-2 py-0.5 rounded text-xs ${alert.positionDirection === 'Long' ? 'bg-emerald-900/50 text-emerald-400' : 'bg-red-900/50 text-red-400'}`}>
-                {alert.positionDirection}
+              <span>{alert.trader}</span>
+              <span className={`px-2 py-0.5 rounded text-xs ${alert.position_type === 'long' ? 'bg-emerald-900/50 text-emerald-400' : 'bg-red-900/50 text-red-400'}`}>
+                {alert.position_type}
               </span>
               <span className={`px-2 py-0.5 rounded text-xs ${type === 'active' ? 'bg-blue-900/50 text-blue-400' : 'bg-yellow-900/50 text-yellow-400'}`}>
                 {type === 'active' ? 'Active' : 'Pending'}
