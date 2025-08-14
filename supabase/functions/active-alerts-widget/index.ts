@@ -41,6 +41,7 @@ serve(async (req) => {
     // Extract user info for access control
     let userEmail: string | null = null;
     let isAdmin = false;
+    let isPremiumUser = false;
 
     try {
       // Create client with user's token for RLS
@@ -59,15 +60,33 @@ serve(async (req) => {
       const { data: { user } } = await userSupabase.auth.getUser();
       userEmail = user?.email || null;
 
-      // Check admin status
+      // Check user access (admin or premium)
       if (userEmail) {
+        // Check admin status
         const { data: adminData } = await supabase
           .rpc('is_current_user_admin_fast')
           .single();
         isAdmin = adminData || false;
+
+        // Check premium subscription
+        const { data: userData } = await supabase
+          .from('beehiiv_subscribers')
+          .select('subscription_tier')
+          .eq('email', userEmail)
+          .single();
+        
+        isPremiumUser = userData?.subscription_tier === 'premium' || userData?.subscription_tier === 'paid';
       }
     } catch (error) {
       console.error('Error checking user auth:', error);
+    }
+
+    // Only allow access to premium users or admins
+    if (!isAdmin && !isPremiumUser) {
+      return new Response(
+        JSON.stringify({ error: 'Premium subscription required' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
     // Mock active alerts data for premium users and admins
