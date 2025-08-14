@@ -3717,6 +3717,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: number
       }
+      cleanup_user_sessions: {
+        Args: { p_user_email?: string }
+        Returns: undefined
+      }
       cleanup_user_sessions_for_email: {
         Args: { p_email: string }
         Returns: Json

@@ -57,23 +57,32 @@ const Dashboard = () => {
   const memoizedCurrentUser = useMemo(() => currentUser, [currentUser?.id, currentUser?.email, currentUser?.metadata]);
   
   // Convert currentUser to subscriber format for components that expect it
-  // For magic link users, check localStorage for tier information
+  // For magic link users, check localStorage for tier information and ensure premium users get proper access
   const subscriberForComponents = memoizedCurrentUser ? {
     id: memoizedCurrentUser.id,
     email: memoizedCurrentUser.email,
     status: memoizedCurrentUser.status || 'active',
     subscription_tier: (() => {
-      // First try the currentUser tier
-      if (memoizedCurrentUser.subscription_tier && memoizedCurrentUser.subscription_tier !== 'free') {
-        return memoizedCurrentUser.subscription_tier as 'free' | 'paid' | 'premium';
+      // For enhanced auth (magic link) users, prioritize the currentUser tier
+      if (memoizedCurrentUser.subscription_tier) {
+        // Normalize tier to match expected format
+        const tier = memoizedCurrentUser.subscription_tier;
+        if (tier === 'premium' || tier === 'paid') {
+          return 'premium';
+        }
+        return tier as 'free' | 'paid' | 'premium';
       }
       
-      // For magic link users, check localStorage
+      // For magic link users, check localStorage as fallback
       const authMethod = localStorage.getItem('auth_method');
       const authTier = localStorage.getItem('auth_tier');
       const authEmail = localStorage.getItem('auth_user_email');
       
       if (authMethod === 'magic_link' && authEmail === memoizedCurrentUser.email && authTier) {
+        // Normalize tier from localStorage
+        if (authTier === 'premium' || authTier === 'paid') {
+          return 'premium';
+        }
         return authTier as 'free' | 'paid' | 'premium';
       }
       
