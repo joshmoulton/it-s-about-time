@@ -120,10 +120,11 @@ export function UserProfileSection() {
 
     setIsUploadingAvatar(true);
     try {
-      // Generate unique filename
+      // Generate unique filename using email for magic link users or id for regular users
       const fileExt = file.name.split('.').pop();
-      const fileName = `${currentUser.id}_${Date.now()}.${fileExt}`;
-      const filePath = `avatars/${fileName}`;
+      const userIdentifier = currentUser.email || currentUser.id;
+      const fileName = `${userIdentifier}_${Date.now()}.${fileExt}`;
+      const filePath = `${userIdentifier}/${fileName}`;
 
       // Upload to Supabase storage
       const { error: uploadError } = await supabase.storage

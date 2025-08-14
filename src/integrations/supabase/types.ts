@@ -4235,11 +4235,13 @@ export type Database = {
         Returns: Json
       }
       upsert_user_profile_basic: {
-        Args: {
-          p_avatar_url?: string
-          p_display_name?: string
-          p_tour_disabled?: boolean
-        }
+        Args:
+          | { p_avatar_url?: string; p_display_name?: string }
+          | {
+              p_avatar_url?: string
+              p_display_name?: string
+              p_tour_disabled?: boolean
+            }
         Returns: Json
       }
       user_has_paid_tier: {
