@@ -136,34 +136,42 @@ export const SimplifiedAuthModal: React.FC<SimplifiedAuthModalProps> = memo(({ o
           return;
         }
         
-        // Use our custom send-magic-link function instead of Supabase OTP
+        // Use Supabase's native magic link but with custom tier verification
         const result = await authRequestDeduplication.deduplicateRequest(
           email.toLowerCase().trim(),
           'magic_link',
           async () => {
-            console.log('📧 Sending custom magic link via Resend...');
+            console.log('📧 Sending Supabase magic link with tier verification...');
             
-            try {
-              // Call our custom send-magic-link function
-              const { data: magicLinkData, error: magicLinkError } = await supabase.functions.invoke('send-magic-link', {
-                body: { email: email.toLowerCase().trim() }
-              });
+            // First verify tier with Beehiiv
+            const { data: verifyData, error: verifyError } = await supabase.functions.invoke('beehiiv-subscriber-verify', {
+              body: { email: email.toLowerCase().trim() }
+            });
 
-              if (magicLinkError) {
-                console.error('❌ Custom magic link error:', magicLinkError);
-                throw new Error(magicLinkError.message || 'Failed to send magic link');
-              }
-
-              if (magicLinkData?.success) {
-                console.log('✅ Custom magic link sent successfully:', magicLinkData);
-                return { success: true, tier: magicLinkData.tier || 'free' };
-              } else {
-                throw new Error(magicLinkData?.error || 'Failed to send magic link');
-              }
-            } catch (functionError: any) {
-              console.error('❌ Magic link sending failed:', functionError);
-              throw new Error(functionError.message || 'Network error occurred');
+            if (verifyError) {
+              console.error('❌ Tier verification error:', verifyError);
+              throw new Error('Unable to verify subscription status');
             }
+
+            if (!verifyData?.success) {
+              throw new Error('Email not found in our subscription list');
+            }
+
+            // Send Supabase magic link with custom redirect
+            const { data, error } = await supabase.auth.signInWithOtp({
+              email: email.toLowerCase().trim(),
+              options: {
+                emailRedirectTo: `${window.location.origin}/auth/callback?tier=${verifyData.tier}`
+              }
+            });
+
+            if (error) {
+              console.error('❌ Supabase magic link error:', error);
+              throw new Error(error.message || 'Failed to send magic link');
+            }
+
+            console.log('✅ Supabase magic link sent successfully');
+            return { success: true, tier: verifyData.tier || 'free' };
           }
         );
         

@@ -12,39 +12,9 @@ export function AuthCallback() {
   useEffect(() => {
     const handleAuthCallback = async () => {
       try {
-        console.log('🔄 Processing auth callback...');
+        console.log('🔄 Processing Supabase auth callback...');
         
-        // Check if this is a custom magic link verification
-        const token = searchParams.get('token');
-        const email = searchParams.get('email');
-        
-        if (token && email) {
-          console.log('🔗 Processing custom magic link verification...');
-          setMessage('Verifying your magic link...');
-          
-          // Verify the magic link token
-          const { data: verifyData, error: verifyError } = await supabase.functions.invoke('verify-magic-link', {
-            body: { 
-              token: token,
-              email: decodeURIComponent(email) 
-            }
-          });
-
-          if (verifyError || !verifyData?.success) {
-            console.error('❌ Magic link verification failed:', verifyError);
-            setStatus('error');
-            setMessage('Invalid or expired magic link. Please try again.');
-            return;
-          }
-
-          console.log('✅ Magic link verified successfully:', verifyData);
-          setMessage('Magic link verified! Completing authentication...');
-          
-          // The verify-magic-link function should have created a session
-          // Let's proceed to check the session
-        }
-        
-        // Get the current session (either from magic link or regular auth)
+        // Handle standard Supabase magic link callback
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
         
         if (sessionError) {
@@ -62,30 +32,29 @@ export function AuthCallback() {
         }
 
         console.log('✅ Session found for user:', session.user.email);
-        setMessage('Syncing your subscription status...');
+        setMessage('Verifying your subscription tier...');
 
-        // Sync with Beehiiv to update premium status
-        try {
-          console.log('🔄 Calling sync-beehiiv function...');
-          const { data: syncData, error: syncError } = await supabase.functions.invoke('sync-beehiiv', {
-            headers: {
-              Authorization: `Bearer ${session.access_token}`
+        // Verify tier with Beehiiv
+        if (session.user.email) {
+          try {
+            const { data: verifyData, error: verifyError } = await supabase.functions.invoke('beehiiv-subscriber-verify', {
+              body: { email: session.user.email }
+            });
+            
+            if (verifyData?.success) {
+              console.log(`✅ User tier verified: ${verifyData.tier}`);
+              setMessage(`Welcome! Your subscription tier: ${verifyData.tier}`);
+            } else {
+              console.warn('⚠️ Could not verify tier:', verifyError);
+              setMessage('Welcome! Subscription tier verification pending...');
             }
-          });
-
-          if (syncError) {
-            console.error('❌ Sync error:', syncError);
-            // Don't fail auth for sync errors, just log them
-          } else {
-            console.log('✅ Premium status synced successfully:', syncData);
+          } catch (verifyError) {
+            console.warn('⚠️ Could not verify tier:', verifyError);
+            setMessage('Welcome! Subscription tier verification pending...');
           }
-        } catch (syncError) {
-          console.error('❌ Sync function error:', syncError);
-          // Don't fail auth for sync errors
         }
 
         setStatus('success');
-        setMessage('Authentication successful! Redirecting...');
         
         // Small delay for user feedback
         setTimeout(() => {
@@ -100,7 +69,7 @@ export function AuthCallback() {
     };
 
     handleAuthCallback();
-  }, [navigate]);
+  }, [navigate, searchParams]);
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
