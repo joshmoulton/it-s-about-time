@@ -112,6 +112,8 @@ export const SimplifiedAuthModal: React.FC<SimplifiedAuthModalProps> = memo(({ o
     try {
       if (mode === 'magic') {
         console.log('🔄 Sending magic link for:', email.toLowerCase().trim());
+        console.log('🔍 Modal Instance ID:', Date.now(), 'Component:', 'SimplifiedAuthModal');
+        console.log('🔍 Current mode:', mode, 'Stack trace:', new Error().stack?.split('\n').slice(0, 5));
         
         const { data, error } = await supabase.functions.invoke('send-magic-link', {
           body: { email: email.toLowerCase().trim() }
