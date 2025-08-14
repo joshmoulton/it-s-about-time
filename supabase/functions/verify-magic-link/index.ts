@@ -59,31 +59,87 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Get the subscriber data separately using email
-    console.log('🔍 Querying beehiiv_subscribers table for email:', email);
-    const { data: subscriber, error: subscriberError } = await supabase
-      .from('beehiiv_subscribers')
-      .select('id, email, subscription_tier, status')
-      .eq('email', email)
-      .single();
-
-    console.log('🔍 Subscriber query result:', { subscriber, subscriberError });
-
-    if (subscriberError || !subscriber) {
-      console.error('❌ No subscriber found:', subscriberError);
+    // Call Beehiiv API directly for real-time tier verification
+    console.log('🔍 Calling Beehiiv API for real-time tier verification...');
+    const beehiivApiKey = Deno.env.get('BEEHIIV_API_KEY');
+    const publicationId = 'pub_e08d5f43-7f7c-4c24-b546-f301ccd42a77'; // Weekly Wizdom publication ID
+    
+    if (!beehiivApiKey || beehiivApiKey.length < 10) {
+      console.error('❌ BEEHIIV_API_KEY missing or invalid');
       return new Response(
         JSON.stringify({ 
           success: false, 
-          error: 'User not found' 
+          error: 'Authentication service temporarily unavailable' 
         }),
         { 
-          status: 404, 
+          status: 500, 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
         }
       );
     }
 
-    console.log(`✅ Valid token found for ${email}, tier: ${subscriber.subscription_tier}`);
+    // Make direct API call to Beehiiv for fresh subscription data
+    const beehiivUrl = `https://api.beehiiv.com/v2/publications/${publicationId}/subscriptions/by_email/${encodeURIComponent(email)}`;
+    console.log(`📡 Making API request to: ${beehiivUrl}`);
+
+    const beehiivResponse = await fetch(beehiivUrl, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${beehiivApiKey}`,
+        'Content-Type': 'application/json',
+      },
+    });
+
+    console.log(`📡 Beehiiv API Response Status: ${beehiivResponse.status} ${beehiivResponse.statusText}`);
+
+    let subscriber: { subscription_tier: 'free' | 'paid' | 'premium'; status: string } = {
+      subscription_tier: 'free',
+      status: 'active'
+    };
+
+    if (!beehiivResponse.ok) {
+      if (beehiivResponse.status === 404) {
+        console.log(`✅ Email not found in Beehiiv: ${email} - treating as free tier`);
+        // Continue with free tier
+      } else {
+        console.error(`❌ Beehiiv API error: ${beehiivResponse.status}`);
+        return new Response(
+          JSON.stringify({ 
+            success: false, 
+            error: 'Unable to verify subscription status' 
+          }),
+          { 
+            status: 500, 
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+          }
+        );
+      }
+    } else {
+      const beehiivData = await beehiivResponse.json();
+      console.log(`✅ Beehiiv API response for ${email}:`, JSON.stringify(beehiivData, null, 2));
+
+      if (beehiivData?.data) {
+        const subscription = beehiivData.data;
+        const apiTier = subscription.subscription_tier;
+        
+        // Determine tier from Beehiiv API response
+        if (
+          apiTier === 'premium' ||
+          apiTier === 'Premium' ||
+          (Array.isArray(subscription.subscription_premium_tier_names) && subscription.subscription_premium_tier_names.length > 0)
+        ) {
+          subscriber.subscription_tier = 'premium';
+        } else if (apiTier === 'paid' || apiTier === 'Paid') {
+          subscriber.subscription_tier = 'paid';
+        } else {
+          subscriber.subscription_tier = 'free';
+        }
+        
+        subscriber.status = subscription.status || 'active';
+      }
+    }
+
+    console.log(`✅ Valid token found for ${email}, live tier from Beehiiv API: ${subscriber.subscription_tier}`);
 
     // Check if Supabase auth user already exists
     const { data: existingUser } = await supabase.auth.admin.getUserByEmail(email);
