@@ -20,14 +20,14 @@ interface PricingCardProps {
 
 export const PricingCard: React.FC<PricingCardProps> = ({ plan, onCheckout }) => {
   return (
-    <div className={`relative p-4 sm:p-6 rounded-xl border transition-all duration-200 hover:shadow-lg touch-manipulation ${
+    <div className={`relative p-3 sm:p-4 lg:p-6 rounded-xl border transition-all duration-200 hover:shadow-md touch-manipulation ${
       plan.popular 
-        ? 'ring-2 ring-primary border-primary shadow-lg bg-primary/5' 
+        ? 'ring-2 ring-primary border-primary shadow-md bg-primary/5' 
         : 'border-primary/20 hover:border-primary/50 bg-gradient-to-br from-primary/5 to-primary/10'
     }`}>
       {plan.popular && (
-        <div className="absolute -top-2 sm:-top-3 left-1/2 transform -translate-x-1/2">
-          <Badge className="bg-primary text-primary-foreground text-xs font-semibold px-2 sm:px-3 py-1 rounded-full">
+        <div className="absolute -top-2 left-1/2 transform -translate-x-1/2">
+          <Badge className="bg-primary text-primary-foreground text-xs font-semibold px-2 py-1 rounded-full">
             Most Popular
           </Badge>
         </div>
