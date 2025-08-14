@@ -144,9 +144,27 @@ function DegenCallsList() {
     return size; // Return original if not recognized
   };
 
-  // Remove real-time price functions since we only show call-time price
-  // const formatPrice = (price: number) => { ... };
-  // const getPriceForTicker = (ticker: string) => { ... };
+  const formatPrice = (price: number | null | undefined) => {
+    if (price == null || isNaN(price)) return 'N/A';
+    
+    // Format with appropriate precision and remove trailing zeros
+    let formatted: string;
+    if (price >= 1) {
+      // For prices >= $1, use up to 8 decimals but remove trailing zeros
+      formatted = price.toLocaleString(undefined, {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 8
+      });
+    } else if (price >= 0.01) {
+      // For prices >= $0.01, use up to 6 decimals
+      formatted = price.toFixed(6).replace(/\.?0+$/, '');
+    } else {
+      // For very small prices, use up to 8 decimals
+      formatted = price.toFixed(8).replace(/\.?0+$/, '');
+    }
+    
+    return `$${formatted}`;
+  };
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 pb-4">
@@ -191,16 +209,16 @@ function DegenCallsList() {
             </div>
           )}
 
-          {/* Call-time Price Section */}
+          {/* Market Price Section */}
           <div className="bg-black/20 rounded-md p-2 sm:p-2.5">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-1.5">
                 <DollarSign className="w-3 h-3 text-blue-400" />
-                <span className="text-xs sm:text-sm text-orange-200/80">Call Price:</span>
+                <span className="text-xs sm:text-sm text-orange-200/80">Market Price:</span>
               </div>
               <span className="text-white font-semibold text-sm sm:text-base">
                 {call.entry_price && call.entry_price !== 'Market' 
-                  ? `$${Number(call.entry_price).toLocaleString()}`
+                  ? formatPrice(Number(call.entry_price))
                   : 'Market'
                 }
               </span>
@@ -216,7 +234,7 @@ function DegenCallsList() {
                 <span className="text-xs sm:text-sm text-orange-200/80">Entry:</span>
               </div>
               <span className="text-white font-medium text-xs sm:text-sm">
-                {call.entry_price && call.entry_price !== 'Market' ? `$${Number(call.entry_price).toLocaleString()}` : 'Market'}
+                {call.entry_price && call.entry_price !== 'Market' ? formatPrice(Number(call.entry_price)) : 'Market'}
               </span>
             </div>
 
@@ -227,7 +245,7 @@ function DegenCallsList() {
                 <span className="text-xs sm:text-sm text-orange-200/80">Stop Loss:</span>
               </div>
               <span className="text-white font-medium text-xs sm:text-sm">
-                {call.stop_loss ? `$${Number(call.stop_loss).toLocaleString()}` : 'N/A'}
+                {call.stop_loss ? formatPrice(Number(call.stop_loss)) : 'N/A'}
               </span>
             </div>
 
@@ -238,7 +256,7 @@ function DegenCallsList() {
                 <span className="text-xs sm:text-sm text-orange-200/80">Target:</span>
               </div>
               <span className="text-white font-medium text-xs sm:text-sm">
-                {call.targets && call.targets.length > 0 ? `$${Number(call.targets[0]).toLocaleString()}` : 'N/A'}
+                {call.targets && call.targets.length > 0 ? formatPrice(Number(call.targets[0])) : 'N/A'}
               </span>
             </div>
 
