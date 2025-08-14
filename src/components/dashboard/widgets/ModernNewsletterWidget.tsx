@@ -154,11 +154,15 @@ export function ModernNewsletterWidget({
         </div>
 
 
-        {/* Fixed position button */}
-        <div className="mt-auto">
-          <Button size="sm" className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl h-12 text-sm font-medium shadow-sm transition-all duration-200" onClick={() => navigate('/newsletters')}>
-            <ExternalLink className="h-4 w-4 mr-2 flex-shrink-0" />
-            View All Newsletters
+        {/* Fixed position button - improved mobile spacing */}
+        <div className="mt-auto pt-2">
+          <Button 
+            size="sm" 
+            className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl h-10 sm:h-12 text-xs sm:text-sm font-medium shadow-sm transition-all duration-200" 
+            onClick={() => navigate('/newsletters')}
+          >
+            <ExternalLink className="h-3 w-3 sm:h-4 sm:w-4 mr-2 flex-shrink-0" />
+            <span className="truncate">View All Newsletters</span>
           </Button>
         </div>
       </ModernCardContent>

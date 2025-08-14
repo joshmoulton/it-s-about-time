@@ -131,7 +131,7 @@ export function DashboardContent({
           {/* Top Row - Newsletter (always accessible), Edge, and Degen Calls */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
             {/* Newsletter Widget - Always accessible to all users with new gradient styling */}
-            <div className="h-[300px] sm:h-[340px] overflow-hidden flex flex-col">
+            <div className="h-[280px] sm:h-[300px] lg:h-[340px] overflow-hidden flex flex-col">
               <WidgetErrorBoundary widgetName="Newsletter">
                 <div className="h-full flex flex-col">
                   <ModernNewsletterWidget 
