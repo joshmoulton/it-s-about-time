@@ -16,7 +16,7 @@ import { AccessibilityProvider } from "@/components/AccessibilityProvider";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 // Critical components (loaded immediately)
-import { Index, Login } from "@/components/LazyComponents";
+import { Index } from "@/components/LazyComponents";
 
 // Lazy loaded components
 import {
@@ -73,7 +73,7 @@ const App = () => {
                   <Suspense fallback={<PageLoader />}>
                     <Routes>
                       <Route path="/" element={<Index />} />
-                      <Route path="/login" element={<Login />} />
+                      
                       <Route path="/auth/verify" element={<AuthVerify />} />
                       <Route
                         path="/dashboard/*"

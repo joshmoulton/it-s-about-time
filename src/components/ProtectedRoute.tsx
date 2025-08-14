@@ -98,7 +98,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   // If not authenticated, redirect to login once loading completes or after timeout
   if (!isAuthenticated && (authTimeout || !isLoading) && !withinGrace) {
     logger.warn('Not authenticated (post-load or timeout), redirecting to login');
-    return <Navigate to="/login" replace />;
+    return <Navigate to="/" replace />;
   }
 
   // For regular users, check subscription tier (simplified - focus on Whop users)

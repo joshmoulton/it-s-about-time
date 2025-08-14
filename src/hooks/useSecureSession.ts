@@ -46,11 +46,11 @@ export const useSecureSession = () => {
       await supabase.auth.signOut();
       
       // Redirect to login
-      window.location.href = '/login';
+      window.location.href = '/';
     } catch (error) {
       console.error('Secure sign out error:', error);
       // Force redirect even if sign out fails
-      window.location.href = '/login';
+      window.location.href = '/';
     }
   }, []);
 

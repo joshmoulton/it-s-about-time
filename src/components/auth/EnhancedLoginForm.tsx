@@ -276,7 +276,7 @@ export const EnhancedLoginForm: React.FC<EnhancedLoginFormProps> = ({ onSuccess 
         email,
         password: data.password,
         options: { 
-          emailRedirectTo: `${window.location.origin}/login?method=signin`,
+          emailRedirectTo: `${window.location.origin}/?verified=true`,
           data: {
             account_type: 'free',
             subscription_tier: 'free'

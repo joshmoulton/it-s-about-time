@@ -40,7 +40,7 @@ export default function SecureUserManagement() {
   // Redirect to login if not authenticated
   if (!isLoading && !isAuthenticated) {
     console.log('🚫 Not authenticated, redirecting to login');
-    return <Navigate to="/login" replace />;
+    return <Navigate to="/" replace />;
   }
 
   // Super admin access check - allow both supabase_admin and whop_admin super admins

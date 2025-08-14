@@ -3,7 +3,7 @@ import { useState, lazy, Suspense, useEffect } from "react";
 import { useEnhancedAuth } from "@/contexts/EnhancedAuthContext";
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
-import AuthOptionsModal from "@/components/AuthOptionsModal";
+import { SimplifiedAuthModal } from '@/components/auth/SimplifiedAuthModal';
 import { PricingModal } from "@/components/pricing/PricingModal";
 import ReorganizedHeroSection from "@/components/ReorganizedHeroSection";
 import FeaturesRowSection from "@/components/FeaturesRowSection";
@@ -114,9 +114,10 @@ const Index = () => {
         }} 
       />
 
-      <AuthOptionsModal 
+      <SimplifiedAuthModal 
         open={authModalOpen} 
-        onOpenChange={setAuthModalOpen} 
+        onOpenChange={setAuthModalOpen}
+        onExplicitClose={() => setAuthModalOpen(false)}
       />
 
       {/* 1. Navigation (built into hero) + 2. Hero + Dashboard Preview (two-column layout) */}

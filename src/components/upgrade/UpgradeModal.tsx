@@ -41,7 +41,7 @@ export const UpgradeModal: React.FC<UpgradeModalProps> = ({
     if (!subscriber) {
       toast.error('Please sign in to continue');
       onOpenChange(false);
-      navigate('/login');
+      navigate('/');
       return;
     }
 

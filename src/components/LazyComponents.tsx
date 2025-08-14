@@ -2,7 +2,6 @@ import { lazy } from 'react';
 
 // Critical components - loaded immediately
 export { default as Index } from '../pages/Index';
-export { default as Login } from '../pages/Login';
 
 // Non-critical components - lazy loaded
 export const Dashboard = lazy(() => import('../pages/Dashboard'));

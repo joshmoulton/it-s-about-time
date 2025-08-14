@@ -139,7 +139,7 @@ const HeroNavigation = ({
               variant="outline" 
               size="sm" 
               className="font-medium font-montserrat border-[#3355FF] text-[#3355FF] hover:bg-[#3355FF] hover:text-white text-xs sm:text-sm px-3 sm:px-4 h-9 rounded-full transition-all duration-300 hover:scale-105 hover:translate-y-[-2px] shadow-[0_2px_4px_rgba(51,85,255,0.2)] hover:shadow-[0_4px_8px_rgba(51,85,255,0.3)] drop-shadow-md" 
-              onClick={() => navigate('/login')}
+              onClick={onAuthClick}
               disabled={isLoading}
             >
               {isLoading ? 'Loading...' : 'Sign In'}
