@@ -9,10 +9,8 @@ import { EnhancedAuthProvider } from "@/contexts/EnhancedAuthContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { DeveloperProvider, DeveloperToggle } from "@/components/dev/DeveloperToggle";
 import { AccessibilityProvider } from "@/components/AccessibilityProvider";
-import { MobilePerfOptimizer } from "@/components/MobilePerfOptimizer";
-import MobileScrollGuard from "@/components/MobileScrollGuard";
-import { MobileTouchOptimizer } from "@/components/MobileTouchOptimizer";
-import { optimizeFontDisplay, enableLayoutShiftPrevention } from "@/utils/performanceUtils";
+// Performance optimizations temporarily removed to fix modal issues
+// import { optimizeFontDisplay, enableLayoutShiftPrevention } from "@/utils/performanceUtils";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 // Critical components (loaded immediately)
@@ -46,11 +44,7 @@ const PageLoader = () => (
 const queryClient = new QueryClient();
 
 const App = () => {
-  // Apply safe performance optimizations on load
-  useEffect(() => {
-    optimizeFontDisplay();
-    enableLayoutShiftPrevention();
-  }, []);
+  // Performance optimizations disabled to fix modal issues
 
   return (
     <QueryClientProvider client={queryClient}>
@@ -60,9 +54,7 @@ const App = () => {
             <AccessibilityProvider>
                 <Toaster />
                 <Sonner />
-                <MobileScrollGuard />
-                <MobileTouchOptimizer />
-                {/* <MobilePerfOptimizer /> */}
+                {/* All mobile performance optimizations disabled to fix modal issues */}
                 <DeveloperProvider>
                 <EnhancedAuthProvider>
                 <DeveloperToggle />
