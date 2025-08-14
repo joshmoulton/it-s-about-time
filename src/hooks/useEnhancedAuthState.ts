@@ -38,13 +38,13 @@ export const useEnhancedAuthState = () => {
   const refreshCurrentUser = async () => {
     if (!currentUser) return;
     
-    console.log('🔄 Refreshing current user data...');
+    console.log('🔄 Background: Refreshing current user data...');
     
     try {
       // Import supabase here to avoid circular dependencies
       const { supabase } = await import('@/integrations/supabase/client');
       
-      // Always verify against Beehiiv for current tier
+      // Background verification without blocking UI
       if (currentUser.email) {
         const { data: verificationResult, error: verifyError } = await supabase.functions.invoke(
           'beehiiv-subscriber-verify',
@@ -55,18 +55,23 @@ export const useEnhancedAuthState = () => {
           const updatedTierRaw = (verificationResult.tier as 'free' | 'paid' | 'premium') || 'free';
           const updatedTier = (updatedTierRaw === 'free' ? 'free' : 'premium') as 'free' | 'premium';
           
-          const refreshedUserData: CurrentUser = {
-            ...currentUser,
-            subscription_tier: updatedTier,
-            updated_at: new Date().toISOString()
-          };
-          
-          setCurrentUser(refreshedUserData);
-          console.log(`✅ User tier refreshed to: ${updatedTier} (raw: ${updatedTierRaw})`);
+          // Only update if tier actually changed
+          if (updatedTier !== currentUser.subscription_tier) {
+            const refreshedUserData: CurrentUser = {
+              ...currentUser,
+              subscription_tier: updatedTier,
+              updated_at: new Date().toISOString()
+            };
+            
+            setCurrentUser(refreshedUserData);
+            console.log(`✅ Background: User tier updated from ${currentUser.subscription_tier} to ${updatedTier}`);
+          } else {
+            console.log(`✅ Background: User tier verified as ${updatedTier} (no change needed)`);
+          }
         }
       }
     } catch (error) {
-      console.error('Failed to refresh current user:', error);
+      console.log('Background refresh failed (non-critical):', error);
     }
   };
 

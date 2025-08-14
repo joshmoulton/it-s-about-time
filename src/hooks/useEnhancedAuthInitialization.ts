@@ -181,60 +181,94 @@ export const useEnhancedAuthInitialization = ({
           console.log('🔍 Determining tier for cached Supabase session...');
           setSupabaseUser(session.user);
           
-          // CRITICAL FIX: Determine correct tier before setting user state
-          try {
-            const { data: isAdminResult } = await supabase.rpc('is_current_user_admin_fast');
-            const isAdmin = !!isAdminResult;
-            
-            let subscriptionTier: 'free' | 'premium' = 'free';
-            let userType: 'supabase_admin' | 'supabase_user' = 'supabase_user';
-            
-            if (isAdmin) {
-              subscriptionTier = 'premium';
-              userType = 'supabase_admin';
-              localStorage.setItem('auth_method', 'supabase_admin');
-              console.log('✅ Admin user in cached session - tier: premium');
-            } else {
-              localStorage.setItem('auth_method', 'supabase_user');
+            // CRITICAL FIX: Fast auth init with background verification
+            try {
+              const { data: isAdminResult } = await supabase.rpc('is_current_user_admin_fast');
+              const isAdmin = !!isAdminResult;
               
-              try {
-                console.log('🔍 Beehiiv verification for cached session...');
-                const { data: verifyData, error: verifyError } = await supabase.functions.invoke('beehiiv-subscriber-verify', {
-                  body: { email: session.user.email.toLowerCase().trim() }
+              let subscriptionTier: 'free' | 'premium' = 'free';
+              let userType: 'supabase_admin' | 'supabase_user' = 'supabase_user';
+              
+              if (isAdmin) {
+                subscriptionTier = 'premium';
+                userType = 'supabase_admin';
+                localStorage.setItem('auth_method', 'supabase_admin');
+                console.log('✅ Admin user in cached session - tier: premium');
+                
+                // Set admin user immediately
+                setCurrentUser({
+                  id: session.user.id,
+                  email: session.user.email!,
+                  subscription_tier: subscriptionTier,
+                  user_type: userType,
+                  status: 'active',
+                  created_at: session.user.created_at,
+                  updated_at: new Date().toISOString(),
+                  metadata: session.user.user_metadata
                 });
-                if (!verifyError && verifyData?.success) {
-                  const tierRaw = verifyData.tier as 'free' | 'premium' | 'paid';
-                  subscriptionTier = tierRaw === 'free' ? 'free' : 'premium';
-                  console.log(`✅ Cached Beehiiv tier: ${verifyData.tier} (mapped to ${subscriptionTier})`);
-                } else {
-                  console.warn('⚠️ Cached Beehiiv verification failed; using free');
-                }
-              } catch (apiError) {
-                console.warn('⚠️ Cached Beehiiv verification error:', apiError);
+              } else {
+                localStorage.setItem('auth_method', 'supabase_user');
+                
+                // Set user with free tier immediately, verify in background
+                setCurrentUser({
+                  id: session.user.id,
+                  email: session.user.email!,
+                  subscription_tier: 'free', // Default to free
+                  user_type: userType,
+                  status: 'active',
+                  created_at: session.user.created_at,
+                  updated_at: new Date().toISOString(),
+                  metadata: session.user.user_metadata
+                });
+                
+                // Background tier verification
+                setTimeout(async () => {
+                  try {
+                    console.log('🔍 Background Beehiiv verification for cached session...');
+                    const { data: verifyData, error: verifyError } = await supabase.functions.invoke('beehiiv-subscriber-verify', {
+                      body: { email: session.user.email.toLowerCase().trim() }
+                    });
+                    if (!verifyError && verifyData?.success) {
+                      const tierRaw = verifyData.tier as 'free' | 'premium' | 'paid';
+                      const updatedTier = tierRaw === 'free' ? 'free' : 'premium';
+                      console.log(`✅ Background Beehiiv tier: ${verifyData.tier} (mapped to ${updatedTier})`);
+                      
+                      // Update user if tier changed
+                      if (updatedTier !== 'free') {
+                        setCurrentUser({
+                          id: session.user.id,
+                          email: session.user.email!,
+                          subscription_tier: updatedTier,
+                          user_type: userType,
+                          status: 'active',
+                          created_at: session.user.created_at,
+                          updated_at: new Date().toISOString(),
+                          metadata: session.user.user_metadata
+                        });
+                      }
+                    } else {
+                      console.warn('⚠️ Background Beehiiv verification failed; keeping free tier');
+                    }
+                  } catch (apiError) {
+                    console.warn('⚠️ Background Beehiiv verification error:', apiError);
+                  }
+                }, 100);
               }
+            } catch (error) {
+              console.error('❌ Error determining tier for cached session:', error);
+              // Fallback to basic user
+              const basicUser = {
+                id: session.user.id,
+                email: session.user.email!,
+                subscription_tier: 'free' as const,
+                user_type: 'supabase_user' as const,
+                status: 'active',
+                created_at: session.user.created_at,
+                updated_at: new Date().toISOString(),
+                metadata: session.user.user_metadata
+              };
+              setCurrentUser(basicUser);
             }
-            
-            const finalUser = {
-              id: session.user.id,
-              email: session.user.email,
-              subscription_tier: subscriptionTier,
-              user_type: userType
-            };
-            
-            console.log('✅ Setting cached session user with correct tier:', subscriptionTier);
-            setCurrentUser(finalUser);
-            
-          } catch (error) {
-            console.error('❌ Error determining tier for cached session:', error);
-            // Fallback to basic user
-            const basicUser = {
-              id: session.user.id,
-              email: session.user.email,
-              subscription_tier: 'free' as const,
-              user_type: 'supabase_user' as const
-            };
-            setCurrentUser(basicUser);
-          }
           
           setIsLoading(false);
           isInitialized.current = true;
