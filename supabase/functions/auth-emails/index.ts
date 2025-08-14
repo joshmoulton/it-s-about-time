@@ -23,15 +23,23 @@ Deno.serve(async (req) => {
     return new Response('Method not allowed', { status: 405, headers: corsHeaders })
   }
 
+  // DISABLE AUTH EMAILS - We use custom send-magic-link function instead
+  console.log('🚫 Auth emails webhook called but disabled - using custom magic link system');
+  
+  return new Response(JSON.stringify({ 
+    success: true, 
+    message: 'Auth emails disabled - using custom magic link system',
+    disabled: true
+  }), {
+    status: 200,
+    headers: { 'Content-Type': 'application/json', ...corsHeaders },
+  })
+
+  // The rest of the original code is commented out to prevent duplicate emails
+  /*
   try {
     const payload = await req.text()
     const headers = Object.fromEntries(req.headers)
-    
-    // If webhook secret is configured, verify the webhook
-    let eventData: any
-    if (hookSecret) {
-      const wh = new Webhook(hookSecret)
-      eventData = wh.verify(payload, headers)
     } else {
       // Fallback for direct API calls
       eventData = JSON.parse(payload)
