@@ -68,12 +68,12 @@ export function DegenCallAlertsWidget({
             console.error('❌ Fetch telegram_messages error:', msgsErr);
           }
         } else if (msgs && msgs.length) {
-          // Updated regex to handle both formats:
+          // Updated regex to handle up to 8 decimal places:
           // !degen TICKER [params] OR !degen DIRECTION TICKER [params]
-          const re = /^\s*!degen\s+(?:(long|short)\s+)?(\$?[A-Za-z]{2,15})(?:\s+(here))?(?:\s+entry\s+([0-9]+(?:\.[0-9]+)?))?(?:\s+stop\s+([0-9]+(?:\.[0-9]+)?))?(?:\s+target\s+([0-9]+(?:\.[0-9]+)?))?(?:\s+size\s+(tiny|low|med|high|huge))?/i;
+          const re = /^\s*!degen\s+(?:(long|short)\s+)?(\$?[A-Za-z]{2,15})(?:\s+(here))?(?:\s+entry\s+([0-9]+(?:\.[0-9]{1,8})?))?(?:\s+stop\s+([0-9]+(?:\.[0-9]{1,8})?))?(?:\s+target\s+([0-9]+(?:\.[0-9]{1,8})?))?(?:\s+size\s+(tiny|low|med|high|huge))?/i;
           const toNum = (v: any) => {
             const n = typeof v === 'number' ? v : parseFloat(String(v));
-            return Number.isFinite(n) ? n : null;
+            return Number.isFinite(n) ? parseFloat(n.toFixed(8)) : null;
           };
           for (const m of msgs) {
             const text = m.message_text || '';
@@ -156,9 +156,9 @@ export function DegenCallAlertsWidget({
     if (price == null || isNaN(price)) return 'N/A';
     if (price >= 1) return `$${price.toLocaleString(undefined, {
       minimumFractionDigits: 2,
-      maximumFractionDigits: 2
+      maximumFractionDigits: 8
     })}`;
-    if (price >= 0.01) return `$${price.toFixed(4)}`;
+    if (price >= 0.01) return `$${price.toFixed(6)}`;
     return `$${price.toFixed(8)}`;
   };
   // Remove real-time price functions since we only show call-time price
@@ -226,7 +226,7 @@ export function DegenCallAlertsWidget({
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-1.5">
                         <DollarSign className="w-3 h-3 text-blue-400" />
-                        <span className="text-xs text-orange-200/80">Call Price:</span>
+                        <span className="text-xs text-orange-200/80">Market Price:</span>
                       </div>
                       <span className="text-white font-semibold text-sm">
                         {call.entry_price && call.entry_price !== 'Market' 
@@ -246,7 +246,7 @@ export function DegenCallAlertsWidget({
                         <span className="text-xs text-orange-200/80">Entry:</span>
                       </div>
                       <span className="text-white font-medium text-xs">
-                        {call.entry_price && call.entry_price !== 'Market' ? `$${Number(call.entry_price).toLocaleString()}` : 'Market'}
+                        {call.entry_price && call.entry_price !== 'Market' ? formatPrice(Number(call.entry_price)) : 'Market'}
                       </span>
                     </div>
 
@@ -257,7 +257,7 @@ export function DegenCallAlertsWidget({
                         <span className="text-xs text-orange-200/80">Stop Loss:</span>
                       </div>
                       <span className="text-white font-medium text-xs">
-                        {call.stop_loss ? `$${Number(call.stop_loss).toLocaleString()}` : 'N/A'}
+                        {call.stop_loss ? formatPrice(Number(call.stop_loss)) : 'N/A'}
                       </span>
                     </div>
 
@@ -268,7 +268,7 @@ export function DegenCallAlertsWidget({
                         <span className="text-xs text-orange-200/80">Target:</span>
                       </div>
                       <span className="text-white font-medium text-xs">
-                        {call.targets && call.targets.length > 0 ? `$${Number(call.targets[0]).toLocaleString()}` : 'N/A'}
+                        {call.targets && call.targets.length > 0 ? formatPrice(Number(call.targets[0])) : 'N/A'}
                       </span>
                     </div>
 

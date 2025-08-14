@@ -462,24 +462,24 @@ export class AnalystCallDetector {
         const params = additionalParams.trim().toLowerCase();
         console.log(`🔍 Parsing params: "${params}"`);
         
-        // Look for entry price - matches "entry 3.47"
-        const entryMatch = params.match(/entry\s+([0-9.]+)/i);
+        // Look for entry price - matches "entry 3.47" or "0.728" with up to 8 decimal places
+        const entryMatch = params.match(/entry\s+([0-9]+(?:\.[0-9]{1,8})?)/i);
         if (entryMatch) {
-          entryPrice = parseFloat(entryMatch[1]);
+          entryPrice = parseFloat(parseFloat(entryMatch[1]).toFixed(8));
           console.log(`📊 Found entry price: ${entryPrice}`);
         }
 
-        // Look for stop loss - matches "stop 2.94"
-        const stopMatch = params.match(/stop\s+([0-9.]+)/i);
+        // Look for stop loss - matches "stop 2.94" with up to 8 decimal places
+        const stopMatch = params.match(/stop\s+([0-9]+(?:\.[0-9]{1,8})?)/i);
         if (stopMatch) {
-          stopLoss = parseFloat(stopMatch[1]);
+          stopLoss = parseFloat(parseFloat(stopMatch[1]).toFixed(8));
           console.log(`🛑 Found stop loss: ${stopLoss}`);
         }
 
-        // Look for targets - matches "target 4.28"
-        const targetMatch = params.match(/target\s+([0-9.]+)/i);
+        // Look for targets - matches "target 4.28" with up to 8 decimal places
+        const targetMatch = params.match(/target\s+([0-9]+(?:\.[0-9]{1,8})?)/i);
         if (targetMatch) {
-          targets = [parseFloat(targetMatch[1])];
+          targets = [parseFloat(parseFloat(targetMatch[1]).toFixed(8))];
           console.log(`🎯 Found target: ${targets}`);
         }
 
