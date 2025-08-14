@@ -65,42 +65,15 @@ const PricingTier: React.FC<PricingTierProps> = ({
     setLoading(true);
 
     try {
-      // Call the send-magic-link edge function for free tier signup
-      const { data, error } = await supabase.functions.invoke('send-magic-link', {
-        body: { email: email.toLowerCase().trim() }
+      // REMOVED MAGIC LINK - Now use main auth modal instead
+      console.log('🚫 PricingSection: Free tier signup should use main auth modal');
+      toast({
+        title: "Please use Sign In",
+        description: "Click the 'Sign In' button at the top to get started with your free account.",
+        variant: "default"
       });
-
-      if (error || !data?.success) {
-        const errorMessage = data?.error || error?.message || 'Failed to send access link';
-        toast({
-          title: "Error",
-          description: errorMessage,
-          variant: "destructive"
-        });
-      } else {
-        setIsSuccess(true);
-        setEmail('');
-        
-        // Show appropriate success message based on user status
-        if (data.is_new_user) {
-          setSuccessMessage({
-            title: "Welcome to Weekly Wizdom!",
-            description: "We've created your free subscription and sent you an access link via email. Check your inbox to get started!"
-          });
-        } else {
-          setSuccessMessage({
-            title: "Access Link Sent!",
-            description: "Check your email and click the link to sign in to your account."
-          });
-        }
-        
-        setShowSuccessModal(true);
-        
-        // Reset success state after 3 seconds
-        setTimeout(() => setIsSuccess(false), 3000);
-      }
     } catch (error) {
-      console.error('Magic link error:', error);
+      console.error('Free signup error:', error);
       toast({
         title: "Error",
         description: "Something went wrong. Please try again.",
