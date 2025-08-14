@@ -1,5 +1,5 @@
 import React from 'react';
-import { ModernAuthModal } from './auth/ModernAuthModal';
+import { SimplifiedAuthModal } from './auth/SimplifiedAuthModal';
 
 interface AuthOptionsModalProps {
   open: boolean;
@@ -8,7 +8,7 @@ interface AuthOptionsModalProps {
 
 const AuthOptionsModal: React.FC<AuthOptionsModalProps> = ({ open, onOpenChange }) => {
   return (
-    <ModernAuthModal 
+    <SimplifiedAuthModal 
       open={open} 
       onOpenChange={onOpenChange} 
     />

@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback, memo, Suspense, useRef, useEffect } from 'react';
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { useEnhancedAuth } from '@/contexts/EnhancedAuthContext';
@@ -8,7 +7,7 @@ import { AuthModalSkeleton } from './AuthModalSkeleton';
 import { WelcomeView } from './components/WelcomeView';
 import { MagicLinkView, SignInView, SignUpView } from './components/AuthFormViews';
 
-interface ModernAuthModalProps {
+interface SimplifiedAuthModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onExplicitClose?: () => void;
@@ -16,7 +15,7 @@ interface ModernAuthModalProps {
 
 type AuthMode = 'welcome' | 'signin' | 'signup' | 'magic';
 
-export const ModernAuthModal: React.FC<ModernAuthModalProps> = memo(({ open, onOpenChange, onExplicitClose }) => {
+export const SimplifiedAuthModal: React.FC<SimplifiedAuthModalProps> = memo(({ open, onOpenChange, onExplicitClose }) => {
   const { setAuthenticatedUser, isAuthenticated } = useEnhancedAuth();
   const navigate = useNavigate();
   const [mode, setMode] = useState<AuthMode>('welcome');
@@ -38,19 +37,6 @@ export const ModernAuthModal: React.FC<ModernAuthModalProps> = memo(({ open, onO
       navigate('/dashboard');
     }
   }, [isAuthenticated, open, onOpenChange, navigate]);
-
-  // Manage body modal state
-  useEffect(() => {
-    if (open) {
-      document.body.classList.add('modal-open');
-    } else {
-      document.body.classList.remove('modal-open');
-    }
-    
-    return () => {
-      document.body.classList.remove('modal-open');
-    };
-  }, [open]);
 
   const resetForm = useCallback(() => {
     setEmail('');
@@ -298,15 +284,12 @@ export const ModernAuthModal: React.FC<ModernAuthModalProps> = memo(({ open, onO
 
   return (
     <Dialog open={open} onOpenChange={handleModalClose}>
-      <DialogContent className="w-full max-w-md mx-auto my-8 p-6 bg-background border rounded-lg shadow-lg"
+      <DialogContent 
+        className="w-full max-w-md p-6 bg-background border rounded-lg"
         style={{
-          position: 'fixed',
-          top: '50%',
-          left: '50%',
-          transform: 'translate(-50%, -50%)',
+          margin: '0 auto',
           maxHeight: '90vh',
-          overflowY: 'auto',
-          zIndex: 9999
+          overflowY: 'auto'
         }}
       >
         <DialogTitle className="sr-only">Authentication</DialogTitle>
@@ -322,4 +305,4 @@ export const ModernAuthModal: React.FC<ModernAuthModalProps> = memo(({ open, onO
   );
 });
 
-ModernAuthModal.displayName = 'ModernAuthModal';
+SimplifiedAuthModal.displayName = 'SimplifiedAuthModal';
