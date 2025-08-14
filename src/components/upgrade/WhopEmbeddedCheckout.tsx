@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { WhopCheckoutEmbed } from '@whop/react/checkout';
-import { Loader2 } from 'lucide-react';
+import { Loader2, X } from 'lucide-react';
 import { openWhopCheckout } from '@/utils/whopCheckoutUtils';
 
 interface WhopEmbeddedCheckoutProps {
@@ -38,26 +38,33 @@ export const WhopEmbeddedCheckout: React.FC<WhopEmbeddedCheckoutProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-4xl w-full max-h-[90vh] bg-background border border-border shadow-2xl p-0 overflow-hidden" 
+      <DialogContent className="p-0 w-[95vw] max-w-md sm:max-w-lg md:max-w-2xl lg:max-w-4xl h-[95vh] max-h-[800px] overflow-hidden flex flex-col" 
         onPointerDownOutside={(e) => e.preventDefault()}>
-        <div className="flex flex-col max-h-[90vh]">
-          <DialogHeader className="px-6 py-4 border-b shrink-0">
-            <DialogTitle className="text-center">
+        <div className="flex flex-col h-full">
+          <DialogHeader className="px-4 sm:px-6 py-3 sm:py-4 border-b flex-shrink-0 relative">
+            <button
+              onClick={() => onOpenChange(false)}
+              className="absolute right-3 top-3 sm:right-4 sm:top-4 z-10 text-muted-foreground hover:text-foreground transition-colors"
+              aria-label="Close checkout"
+            >
+              <X className="h-5 w-5" />
+            </button>
+            <DialogTitle className="text-center text-lg sm:text-xl pr-8">
               Complete Your Purchase - {productTitle}
             </DialogTitle>
-            <DialogDescription className="text-center text-muted-foreground">
+            <DialogDescription className="text-center text-muted-foreground text-sm sm:text-base">
               Secure checkout for {productTitle}
             </DialogDescription>
           </DialogHeader>
 
-          <div className="flex-1 min-h-0 overflow-y-auto">
-            <div className="h-full min-h-[500px]">
+          <div className="flex-1 min-h-0 overflow-hidden">
+            <div className="h-full w-full">
               <WhopCheckoutEmbed 
                 planId={productId!} 
                 theme="light"
                 onComplete={handleSuccess}
                 fallback={
-                  <div className="flex flex-col items-center justify-center min-h-[500px] space-y-4">
+                  <div className="flex flex-col items-center justify-center h-full min-h-[400px] space-y-4 p-6">
                     <Loader2 className="h-8 w-8 animate-spin text-primary" />
                     <div className="text-center space-y-2">
                       <p className="text-lg font-medium text-foreground">Loading secure checkout...</p>
@@ -69,14 +76,12 @@ export const WhopEmbeddedCheckout: React.FC<WhopEmbeddedCheckoutProps> = ({
             </div>
           </div>
 
-          <div className="flex items-center justify-between text-sm text-muted-foreground border-t px-6 py-4">
-            <div className="flex items-center gap-4">
-              <div className="flex items-center justify-center gap-2">
-                <div className="w-4 h-4 bg-green-500 rounded-full flex items-center justify-center">
-                  <span className="text-xs text-white">✓</span>
-                </div>
-                <span>Secure payment processing by Whop</span>
+          <div className="flex items-center justify-center text-xs sm:text-sm text-muted-foreground border-t px-4 sm:px-6 py-3 flex-shrink-0 bg-muted/30">
+            <div className="flex items-center justify-center gap-2">
+              <div className="w-3 h-3 bg-green-500 rounded-full flex items-center justify-center">
+                <span className="text-xs text-white">✓</span>
               </div>
+              <span>Secure payment processing by Whop</span>
             </div>
           </div>
         </div>
