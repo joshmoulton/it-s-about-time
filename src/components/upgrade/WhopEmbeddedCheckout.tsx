@@ -19,19 +19,12 @@ export const WhopEmbeddedCheckout: React.FC<WhopEmbeddedCheckoutProps> = ({
   productTitle = 'Product',
   onSuccess
 }) => {
-  // Minimal setup - remove aggressive CSS that causes issues
+  // Always try embedded checkout first, only fallback if absolutely necessary
   useEffect(() => {
     if (open && productId) {
-      const isInIframe = typeof window !== 'undefined' && window.top !== window.self;
-      if (isInIframe) {
-        // Fallback to opening checkout in a new tab when inside an iframe (preview environment)
-        openWhopCheckout(productId, { utm_source: 'app', utm_medium: 'embed_fallback' });
-        onOpenChange(false);
-        return;
-      }
-      console.log('Whop checkout modal opened');
+      console.log('Whop checkout modal opened for product:', productId);
     }
-  }, [open, productId, onOpenChange]);
+  }, [open, productId]);
 
   if (!productId) {
     return null;
@@ -42,8 +35,6 @@ export const WhopEmbeddedCheckout: React.FC<WhopEmbeddedCheckoutProps> = ({
     onSuccess?.();
     onOpenChange(false);
   };
-
-  const isInIframe = typeof window !== 'undefined' && window.top !== window.self;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -61,26 +52,20 @@ export const WhopEmbeddedCheckout: React.FC<WhopEmbeddedCheckoutProps> = ({
 
           <div className="flex-1 min-h-0 overflow-y-auto">
             <div className="h-full min-h-[500px]">
-              {!isInIframe ? (
-                <WhopCheckoutEmbed 
-                  planId={productId!} 
-                  theme="light"
-                  onComplete={handleSuccess}
-                  fallback={
-                    <div className="flex flex-col items-center justify-center min-h-[500px] space-y-4">
-                      <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                      <div className="text-center space-y-2">
-                        <p className="text-lg font-medium text-foreground">Loading secure checkout...</p>
-                        <p className="text-sm text-muted-foreground">This should only take a moment</p>
-                      </div>
+              <WhopCheckoutEmbed 
+                planId={productId!} 
+                theme="light"
+                onComplete={handleSuccess}
+                fallback={
+                  <div className="flex flex-col items-center justify-center min-h-[500px] space-y-4">
+                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                    <div className="text-center space-y-2">
+                      <p className="text-lg font-medium text-foreground">Loading secure checkout...</p>
+                      <p className="text-sm text-muted-foreground">This should only take a moment</p>
                     </div>
-                  } 
-                />
-              ) : (
-                <div className="flex flex-col items-center justify-center min-h-[500px] space-y-2">
-                  <p className="text-foreground">Redirecting to secure checkout...</p>
-                </div>
-              )}
+                  </div>
+                } 
+              />
             </div>
           </div>
 

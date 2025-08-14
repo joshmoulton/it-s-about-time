@@ -94,12 +94,12 @@ export const PricingModal: React.FC<PricingModalProps> = ({ open, onOpenChange }
             <div className="p-4 sm:p-6 flex-shrink-0 relative">
               <button
                 onClick={() => onOpenChange(false)}
-                className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+                className="absolute right-3 top-3 sm:right-4 sm:top-4 z-10 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 bg-background/80 hover:bg-background p-1"
                 aria-label="Close modal"
               >
                 <X className="h-4 w-4" />
               </button>
-              <DialogHeader className="text-center space-y-2 sm:space-y-3 pr-8">
+              <DialogHeader className="text-center space-y-2 sm:space-y-3 pr-10 sm:pr-12">
                 <DialogTitle className="text-xl sm:text-2xl font-bold flex items-center justify-center gap-2">
                   <Sparkles className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
                   Upgrade to Premium
@@ -117,17 +117,18 @@ export const PricingModal: React.FC<PricingModalProps> = ({ open, onOpenChange }
             </div>
 
             <div className="flex-1 overflow-y-auto px-4 sm:px-6 min-h-0">
-              <div className="space-y-3 sm:space-y-4 py-2">
+              <div className="space-y-4 sm:space-y-5 py-3">
                 {currentPlans.map((plan, index) => (
-                  <PricingCard
-                    key={index}
-                    plan={plan}
-                    onCheckout={() => handleCheckout(plan.productId, plan.title)}
-                  />
+                  <div key={index} className={plan.popular ? 'pt-2' : ''}>
+                    <PricingCard
+                      plan={plan}
+                      onCheckout={() => handleCheckout(plan.productId, plan.title)}
+                    />
+                  </div>
                 ))}
               </div>
 
-              <div className="mt-4 sm:mt-6 pb-4">
+              <div className="mt-6 sm:mt-8 pb-6">
                 <PremiumFeatures />
               </div>
             </div>
