@@ -3,7 +3,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { Resend } from 'npm:resend@2.0.0';
 import { renderAsync } from 'npm:@react-email/components@0.0.22';
 import React from 'npm:react@18.3.1';
-import { MagicLinkEmail } from '../send-magic-link/_templates/magic-link.tsx';
+import { MagicLinkEmail } from './_templates/magic-link.tsx';
 
 const corsHeaders = {
   "access-control-allow-origin": "*",
