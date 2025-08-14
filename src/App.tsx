@@ -77,6 +77,11 @@ const App = () => {
                     <Routes>
                       <Route path="/" element={<Index />} />
                       
+                      <Route path="/auth" element={
+                        <Suspense fallback={<PageLoader />}>
+                          <AuthVerify />
+                        </Suspense>
+                      } />
                       <Route path="/auth/verify" element={<AuthVerify />} />
                       <Route path="/auth/callback" element={<AuthCallback />} />
                       <Route

@@ -53,10 +53,10 @@ export function AuthCallback() {
           return;
         }
 
-        console.log('✅ Session found for user:', session.user.email);
+        console.log('✅ Supabase session found for user:', session.user.email);
         setMessage('Verifying your subscription tier...');
 
-        // Verify tier with Beehiiv
+        // Verify tier with Beehiiv and update user metadata
         if (session.user.email) {
           try {
             const { data: verifyData, error: verifyError } = await supabase.functions.invoke('beehiiv-subscriber-verify', {
@@ -65,6 +65,16 @@ export function AuthCallback() {
             
             if (verifyData?.success) {
               console.log(`✅ User tier verified: ${verifyData.tier}`);
+              
+              // Update user metadata with tier info
+              await supabase.auth.updateUser({
+                data: {
+                  subscription_tier: verifyData.tier,
+                  source: 'beehiiv',
+                  verified_at: new Date().toISOString()
+                }
+              });
+              
               setMessage(`Welcome! Your subscription tier: ${verifyData.tier}`);
             } else {
               console.warn('⚠️ Could not verify tier:', verifyError);
