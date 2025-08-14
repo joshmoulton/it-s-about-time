@@ -30,7 +30,7 @@ serve(async (req) => {
       return json({ success: false, error: 'Email is required' }, { status: 400 });
     }
 
-    console.log(`📧 Sending NEW custom magic link for: ${email}`);
+    console.log(`📧 Sending UPDATED custom magic link for: ${email}`);
 
     // Initialize Supabase client
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
