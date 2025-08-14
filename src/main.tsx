@@ -4,9 +4,7 @@ import { startTransition } from 'react'
 import App from './App.tsx'
 import './index.css'
 
-import { initializeBrowserOptimizations, monitorPerformance } from './utils/browserOptimization'
 import { initProductionSecurity } from './utils/productionSecurity'
-import { optimizeForMobile } from './utils/mobileOptimization'
 import { logger } from './utils/secureLogger'
 
 // Critical performance setup - run immediately
@@ -26,19 +24,8 @@ const initializeApp = () => {
     addHint('dns-prefetch', 'https://wrvvlmevpvcenauglcyz.supabase.co');
   } catch {}
 
-  // Initialize mobile optimizations for immediate performance boost
-  optimizeForMobile();
-  
-  // Initialize browser optimizations
-  initializeBrowserOptimizations();
-  
-  // Initialize production security measures
+  // Initialize production security measures only
   initProductionSecurity();
-  
-  // Performance monitoring in development only
-  if (import.meta.env.DEV) {
-    monitorPerformance();
-  }
 
   // Defer non-critical analytics (PostHog) to idle/load
   const loadAnalytics = () => import('./utils/postHogWrapper').catch(() => {});

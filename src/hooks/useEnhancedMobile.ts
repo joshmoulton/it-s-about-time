@@ -18,14 +18,13 @@ export function useEnhancedMobile() {
   const [currentGesture, setCurrentGesture] = useState<TouchGesture | null>(null);
 
   useEffect(() => {
-    // Import browser optimization utilities
-    import('../utils/browserOptimization').then(({ getBrowserInfo, initializeBrowserOptimizations }) => {
-      const browser = getBrowserInfo();
-      setBrowserInfo(browser);
-      
-      // Initialize browser optimizations
-      initializeBrowserOptimizations();
-    });
+    // Minimal browser detection only
+    const browser = {
+      isMobile: /Mobi|Android/i.test(navigator.userAgent),
+      isIOS: /iPad|iPhone|iPod/.test(navigator.userAgent),
+      isAndroid: /Android/.test(navigator.userAgent)
+    };
+    setBrowserInfo(browser);
 
     const checkOrientation = () => {
       // Use both methods for better compatibility
