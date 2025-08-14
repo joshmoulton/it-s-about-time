@@ -53,8 +53,8 @@ const Dashboard = () => {
     setActiveSection(newSection);
   }, [sectionFromUrl, isContentRoute]);
 
-  // Memoize currentUser to prevent unnecessary re-renders
-  const memoizedCurrentUser = useMemo(() => currentUser, [currentUser?.id, currentUser?.email, currentUser?.metadata]);
+  // Stable memoization to prevent re-renders
+  const memoizedCurrentUser = useMemo(() => currentUser, [currentUser?.id, currentUser?.subscription_tier]);
   
   // Convert currentUser to subscriber format for components that expect it
   // Use the tier directly from the authenticated user's data - no localStorage needed
@@ -74,17 +74,13 @@ const Dashboard = () => {
     metadata: memoizedCurrentUser.metadata || {}
   } : null;
 
-  // Debug logging for magic link authentication issues
-  console.log('🔍 Dashboard Auth Debug:', {
-    currentUser: !!memoizedCurrentUser,
-    email: memoizedCurrentUser?.email,
-    tier: memoizedCurrentUser?.subscription_tier,
-    subscriber: !!subscriberForComponents,
-    subscriberTier: subscriberForComponents?.subscription_tier,
-    authMethod: localStorage.getItem('auth_method'),
-    authTier: localStorage.getItem('auth_tier'),
-    authEmail: localStorage.getItem('auth_user_email')
-  });
+  // Reduced logging for performance
+  if (process.env.NODE_ENV === 'development') {
+    console.log('🔍 Dashboard Auth:', {
+      authenticated: !!memoizedCurrentUser,
+      tier: memoizedCurrentUser?.subscription_tier
+    });
+  }
 
   // Simplified tour initialization without delays for admin users
   const tourController = TOUR_ENABLED ? GuidedTourController({

@@ -151,24 +151,11 @@ export const useEnhancedAuthInitialization = ({
         console.log('🚀 Initializing enhanced auth with priority hierarchy...');
         setIsLoading(true);
         
-        // Sanitize legacy auth artifacts before proceeding
+        // Clean up legacy artifacts
         try {
-          const legacy = localStorage.getItem('auth_persistence_data');
-          if (legacy) {
-            const parsed = JSON.parse(legacy);
-            if (parsed.auth_method === 'whop') {
-              console.log('🧹 Removing legacy Whop persistence data during init');
-              localStorage.removeItem('auth_persistence_data');
-            }
-          }
-          // Remove any lingering whop-related flags
           Object.keys(localStorage)
-            .filter(k => k.toLowerCase().includes('whop'))
+            .filter(k => k.toLowerCase().includes('whop') || k === 'auth_persistence_data')
             .forEach(k => localStorage.removeItem(k));
-          const method = localStorage.getItem('auth_method');
-          if (method && method.startsWith('whop')) {
-            localStorage.removeItem('auth_method');
-          }
         } catch {}
         
         // PRIORITY 1: Check for Supabase session FIRST
@@ -177,184 +164,136 @@ export const useEnhancedAuthInitialization = ({
         if (error) {
           console.error('❌ Error getting Supabase session:', error);
         } else if (session?.user) {
-          console.log('✅ Found Supabase user session for:', session.user.email);
-          
-          console.log('🔍 Determining tier for cached Supabase session...');
+          console.log('✅ Found Supabase session for:', session.user.email);
           setSupabaseUser(session.user);
           
-            // CRITICAL FIX: Fast auth init with background verification
-            try {
-              const { data: isAdminResult } = await supabase.rpc('is_current_user_admin_fast');
-              const isAdmin = !!isAdminResult;
-              
-              let subscriptionTier: 'free' | 'premium' = 'free';
-              let userType: 'supabase_admin' | 'supabase_user' = 'supabase_user';
-              
-              if (isAdmin) {
-                subscriptionTier = 'premium';
-                userType = 'supabase_admin';
-                localStorage.setItem('auth_method', 'supabase_admin');
-                console.log('✅ Admin user in cached session - tier: premium');
-                
-                // Set admin user immediately
-                setCurrentUser({
-                  id: session.user.id,
-                  email: session.user.email!,
-                  subscription_tier: subscriptionTier,
-                  user_type: userType,
-                  status: 'active',
-                  created_at: session.user.created_at,
-                  updated_at: new Date().toISOString(),
-                  metadata: session.user.user_metadata
-                });
-                
-                // Set Supabase context for RLS policies
-                await setSupabaseAuthContext({
-                  authMethod: 'supabase_admin',
-                  authTier: 'premium',
-                  userEmail: session.user.email
-                });
-              } else {
-                localStorage.setItem('auth_method', 'supabase_user');
-                
-                // Set user with free tier immediately, verify in background
-                setCurrentUser({
-                  id: session.user.id,
-                  email: session.user.email!,
-                  subscription_tier: 'free', // Default to free
-                  user_type: userType,
-                  status: 'active',
-                  created_at: session.user.created_at,
-                  updated_at: new Date().toISOString(),
-                  metadata: session.user.user_metadata
-                });
-                
-                // Background tier verification
-                setTimeout(async () => {
-                  try {
-                    console.log('🔍 Background Beehiiv verification for cached session...');
-                    const { data: verifyData, error: verifyError } = await supabase.functions.invoke('beehiiv-subscriber-verify', {
-                      body: { email: session.user.email.toLowerCase().trim() }
-                    });
-                    if (!verifyError && verifyData?.success) {
-                      const tierRaw = verifyData.tier as 'free' | 'premium' | 'paid';
-                      const updatedTier = tierRaw === 'free' ? 'free' : 'premium';
-                      console.log(`✅ Background Beehiiv tier: ${verifyData.tier} (mapped to ${updatedTier})`);
-                      
-                       // Update user if tier changed
-                       if (updatedTier !== 'free') {
-                         setCurrentUser({
-                           id: session.user.id,
-                           email: session.user.email!,
-                           subscription_tier: updatedTier,
-                           user_type: userType,
-                           status: 'active',
-                           created_at: session.user.created_at,
-                           updated_at: new Date().toISOString(),
-                           metadata: session.user.user_metadata
-                         });
-                         
-                         // Update Supabase context for RLS policies
-                         await setSupabaseAuthContext({
-                           authMethod: 'supabase_user',
-                           authTier: updatedTier,
-                           userEmail: session.user.email
-                         });
-                       }
-                    } else {
-                      console.warn('⚠️ Background Beehiiv verification failed; keeping free tier');
-                    }
-                  } catch (apiError) {
-                    console.warn('⚠️ Background Beehiiv verification error:', apiError);
-                  }
-                }, 100);
-              }
-            } catch (error) {
-              console.error('❌ Error determining tier for cached session:', error);
-              // Fallback to basic user
-              const basicUser = {
+          // Determine user type and tier quickly
+          try {
+            const { data: isAdminResult } = await supabase.rpc('is_current_user_admin_fast');
+            const isAdmin = !!isAdminResult;
+            
+            const userType = isAdmin ? 'supabase_admin' : 'supabase_user';
+            const authMethod = isAdmin ? 'supabase_admin' : 'supabase_user';
+            
+            // Set immediate user data - admin gets premium, others get verified tier
+            if (isAdmin) {
+              const userData = {
                 id: session.user.id,
                 email: session.user.email!,
-                subscription_tier: 'free' as const,
-                user_type: 'supabase_user' as const,
+                subscription_tier: 'premium' as const,
+                user_type: userType as 'supabase_admin',
                 status: 'active',
                 created_at: session.user.created_at,
                 updated_at: new Date().toISOString(),
                 metadata: session.user.user_metadata
               };
-              setCurrentUser(basicUser);
+              
+              localStorage.setItem('auth_method', authMethod);
+              setCurrentUser(userData);
+              
+              await setSupabaseAuthContext({
+                authMethod,
+                authTier: 'premium',
+                userEmail: session.user.email
+              });
+            } else {
+              // For non-admin users, verify with Beehiiv immediately
+              const { data: verifyData } = await supabase.functions.invoke('unified-auth-verify', {
+                body: { email: session.user.email.toLowerCase().trim() }
+              });
+              
+              const tier = (verifyData?.tier === 'free') ? 'free' : 'premium';
+              
+              const userData = {
+                id: session.user.id,
+                email: session.user.email!,
+                subscription_tier: tier as 'free' | 'premium',
+                user_type: userType as 'supabase_user',
+                status: 'active',
+                created_at: session.user.created_at,
+                updated_at: new Date().toISOString(),
+                metadata: session.user.user_metadata
+              };
+              
+              localStorage.setItem('auth_method', authMethod);
+              setCurrentUser(userData);
+              
+              await setSupabaseAuthContext({
+                authMethod,
+                authTier: tier,
+                userEmail: session.user.email
+              });
             }
+          } catch (error) {
+            console.error('❌ Error determining user tier:', error);
+            // Fallback
+            setCurrentUser({
+              id: session.user.id,
+              email: session.user.email!,
+              subscription_tier: 'free',
+              user_type: 'supabase_user',
+              status: 'active',
+              created_at: session.user.created_at,
+              updated_at: new Date().toISOString(),
+              metadata: session.user.user_metadata
+            });
+          }
           
           setIsLoading(false);
           isInitialized.current = true;
-          
           return;
         }
 
-        // PRIORITY 2: Check for cached session
-        console.log('ℹ️ No Supabase admin session, checking cached auth...');
+        // PRIORITY 2: Check for magic link session
         const cachedEmail = localStorage.getItem('auth_user_email');
-        if (cachedEmail) {
-          console.log('✅ Found cached auth for:', cachedEmail);
+        const sessionToken = localStorage.getItem('enhanced_session_token');
+        
+        if (cachedEmail && sessionToken) {
+          console.log('✅ Found magic link session for:', cachedEmail);
           
-          // Bridge the session to Supabase for proper admin access
+          // Try to create Supabase session for magic link users
           try {
-            console.log('🌉 Bridging Whop session to Supabase for admin access...');
-            const sessionToken = localStorage.getItem('enhanced_session_token');
-            
-            if (sessionToken) {
-              const { data: bridgeData, error: bridgeError } = await supabase.functions.invoke('bridge-auth-session', {
-                body: {
-                  session_token: sessionToken,
-                  email: cachedEmail
-                }
-              });
-              
-              if (!bridgeError && bridgeData?.access_token) {
-                console.log('✅ Session bridged successfully - setting Supabase session');
-                
-                // Set the Supabase session with the bridged token
-                const { error: sessionSetError } = await supabase.auth.setSession({
-                  access_token: bridgeData.access_token,
-                  refresh_token: bridgeData.refresh_token
-                });
-                
-                if (!sessionSetError) {
-                  console.log('✅ Supabase session established for Whop user');
-                  // The auth state change handler will pick this up
-                  return;
-                } else {
-                  console.error('❌ Failed to set Supabase session:', sessionSetError);
-                }
-              } else {
-                console.error('❌ Failed to bridge session:', bridgeError);
-              }
-            }
-          } catch (bridgeError) {
-            console.error('❌ Session bridging failed:', bridgeError);
-          }
-          
-          // Verify tier via Beehiiv for cached auth (magic link)
-          try {
-            const { data: verifyData, error: verifyError } = await supabase.functions.invoke('beehiiv-subscriber-verify', {
+            const { data: verifyData } = await supabase.functions.invoke('unified-auth-verify', {
               body: { email: cachedEmail.toLowerCase().trim() }
             });
-            if (!verifyError && verifyData?.success) {
-              const tierRaw = (verifyData.tier as 'free' | 'paid' | 'premium') || 'free';
-              const subscriptionTier = tierRaw === 'free' ? 'free' : 'premium';
-              const user = {
-                id: 'magic_link_user',
+            
+            if (verifyData?.success) {
+              const tier = verifyData.tier === 'free' ? 'free' : 'premium';
+              
+              // Try to establish Supabase session for proper RLS access
+              if (verifyData.session_token) {
+                try {
+                  const { data: bridgeData } = await supabase.functions.invoke('bridge-auth-session', {
+                    body: { session_token: verifyData.session_token, email: cachedEmail }
+                  });
+                  
+                  if (bridgeData?.access_token) {
+                    await supabase.auth.setSession({
+                      access_token: bridgeData.access_token,
+                      refresh_token: bridgeData.refresh_token
+                    });
+                    console.log('✅ Supabase session established for magic link user');
+                    return; // Let auth state handler take over
+                  }
+                } catch (bridgeError) {
+                  console.warn('⚠️ Session bridging failed, using fallback auth:', bridgeError);
+                }
+              }
+              
+              // Fallback: Set user without Supabase session
+              const userData = {
+                id: crypto.randomUUID(),
                 email: cachedEmail,
-                subscription_tier: subscriptionTier as 'free' | 'premium',
+                subscription_tier: tier as 'free' | 'premium',
                 user_type: 'unified_user' as const
               };
-              localStorage.setItem('auth_method', 'magic_link');
-              setCurrentUser(user);
               
-              // Set Supabase context for RLS policies
+              localStorage.setItem('auth_method', 'magic_link');
+              setCurrentUser(userData);
+              
               await setSupabaseAuthContext({
                 authMethod: 'magic_link',
-                authTier: subscriptionTier,
+                authTier: tier,
                 userEmail: cachedEmail
               });
               
@@ -362,36 +301,17 @@ export const useEnhancedAuthInitialization = ({
               isInitialized.current = true;
               return;
             }
-          } catch (beehiivErr) {
-            console.warn('⚠️ Beehiiv verification failed for cached auth; clearing cached session', beehiivErr);
-            setCurrentUser(null);
+          } catch (error) {
+            console.warn('⚠️ Magic link verification failed:', error);
+            // Clear invalid session
+            localStorage.removeItem('auth_user_email');
+            localStorage.removeItem('enhanced_session_token');
           }
-        } else {
-          console.log('ℹ️ No valid enhanced session found, checking persistence data...');
-          
-          // PRIORITY 3: No valid session found; clear legacy artifacts and unauthenticate
-          try {
-            const persistenceData = localStorage.getItem('auth_persistence_data');
-            if (persistenceData) {
-              const parsed = JSON.parse(persistenceData);
-              if (parsed.auth_method === 'whop') {
-                console.log('🧹 Clearing legacy Whop persistence data');
-                localStorage.removeItem('auth_persistence_data');
-              }
-            }
-            // Remove any legacy whop-related flags
-            Object.keys(localStorage)
-              .filter(k => k.toLowerCase().includes('whop'))
-              .forEach(k => localStorage.removeItem(k));
-            const authMethod = localStorage.getItem('auth_method');
-            if (authMethod && authMethod.startsWith('whop')) {
-              localStorage.removeItem('auth_method');
-            }
-          } catch {}
-          
-          console.log('ℹ️ No valid session found, user not authenticated');
-          setCurrentUser(null);
         }
+        
+        // No valid session found
+        console.log('ℹ️ No valid session found, user not authenticated');
+        setCurrentUser(null);
       } catch (error) {
         console.error('❌ Enhanced auth initialization error:', error);
         setCurrentUser(null);

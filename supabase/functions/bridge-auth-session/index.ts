@@ -1,157 +1,144 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3'
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-interface BridgeAuthRequest {
+const supabase = createClient(
+  Deno.env.get('SUPABASE_URL') ?? '',
+  Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+)
+
+interface BridgeRequest {
   session_token: string;
   email: string;
 }
 
-serve(async (req) => {
-  // Handle CORS preflight requests
+Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    console.log('🌉 Bridge auth session request received');
-    
-    const { session_token, email }: BridgeAuthRequest = await req.json();
-    
+    const { session_token, email }: BridgeRequest = await req.json();
+
     if (!session_token || !email) {
       return new Response(
-        JSON.stringify({ error: 'Missing session_token or email' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        JSON.stringify({ success: false, error: 'Session token and email required' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
       );
     }
 
-    // Create Supabase admin client
-    const supabaseAdmin = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
-      {
-        auth: {
-          autoRefreshToken: false,
-          persistSession: false
-        }
-      }
-    );
-
-    // Validate session token against user_sessions table
-    console.log('🔍 Validating session token for:', email);
-    const { data: sessionData, error: sessionError } = await supabaseAdmin
+    // Validate session token exists and is active
+    const { data: sessionData, error: sessionError } = await supabase
       .from('user_sessions')
-      .select(`
-        *,
-        beehiiv_subscribers!inner(*)
-      `)
+      .select('*')
       .eq('session_token', session_token)
-      .eq('beehiiv_subscribers.email', email)
+      .eq('email', email)
       .gt('expires_at', new Date().toISOString())
       .single();
 
     if (sessionError || !sessionData) {
-      console.log('❌ Invalid session token or expired');
+      console.log('❌ Invalid session token:', sessionError);
       return new Response(
-        JSON.stringify({ error: 'Invalid or expired session token' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        JSON.stringify({ success: false, error: 'Invalid or expired session' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 401 }
       );
     }
 
-    console.log('✅ Session token validated for:', email);
+    // Get or create Supabase auth user
+    let userId: string | null = null;
+
+    // First try to find existing user
+    const { data: { users }, error: listError } = await supabase.auth.admin.listUsers();
     
-    // Check if Supabase user exists
-    const { data: existingUser } = await supabaseAdmin.auth.admin.getUserByEmail(email);
-    
-    let supabaseUser;
-    
-    if (existingUser?.user) {
-      // Update existing user
-      console.log('🔄 Updating existing Supabase user:', email);
-      const { data: updatedUser, error: updateError } = await supabaseAdmin.auth.admin.updateUserById(
-        existingUser.user.id,
-        {
-          user_metadata: {
-            subscription_tier: sessionData.beehiiv_subscribers.subscription_tier,
-            auth_method: 'enhanced_whop',
-            last_bridge_at: new Date().toISOString()
-          }
-        }
-      );
-      
-      if (updateError) {
-        console.error('❌ Error updating user:', updateError);
-        throw updateError;
+    if (!listError) {
+      const existingUser = users.find(u => u.email === email);
+      if (existingUser) {
+        userId = existingUser.id;
+        console.log('✅ Found existing Supabase user:', userId);
       }
-      
-      supabaseUser = updatedUser.user;
-    } else {
-      // Create new Supabase user
-      console.log('🆕 Creating new Supabase user for:', email);
-      const { data: newUser, error: createError } = await supabaseAdmin.auth.admin.createUser({
-        email: email,
+    }
+
+    // Create user if doesn't exist
+    if (!userId) {
+      const { data: newUser, error: createError } = await supabase.auth.admin.createUser({
+        email,
         email_confirm: true,
         user_metadata: {
-          subscription_tier: sessionData.beehiiv_subscribers.subscription_tier,
-          auth_method: 'enhanced_whop',
-          created_via_bridge: true,
-          last_bridge_at: new Date().toISOString()
+          auth_source: 'magic_link',
+          session_token: session_token.substring(0, 8) + '...'
         }
       });
-      
+
       if (createError) {
-        console.error('❌ Error creating user:', createError);
-        throw createError;
+        console.error('❌ Failed to create user:', createError);
+        return new Response(
+          JSON.stringify({ success: false, error: 'Failed to create user session' }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
+        );
       }
-      
-      supabaseUser = newUser.user;
+
+      userId = newUser.user?.id;
+      console.log('✅ Created new Supabase user:', userId);
     }
 
-    // Generate access token for the user
-    console.log('🎫 Generating access token for user:', supabaseUser?.id);
-    const { data: tokenData, error: tokenError } = await supabaseAdmin.auth.admin.generateAccessToken(
-      supabaseUser!.id
-    );
-
-    if (tokenError) {
-      console.error('❌ Error generating access token:', tokenError);
-      throw tokenError;
+    if (!userId) {
+      return new Response(
+        JSON.stringify({ success: false, error: 'Failed to get user ID' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
+      );
     }
 
-    console.log('✅ Access token generated successfully');
+    // Generate Supabase session tokens
+    const { data: sessionResult, error: tokenError } = await supabase.auth.admin.generateLink({
+      type: 'magiclink',
+      email,
+      options: {
+        redirectTo: 'https://www.weeklywizdom.com/dashboard'
+      }
+    });
 
-    // Update last activity in user_sessions
-    await supabaseAdmin
-      .from('user_sessions')
-      .update({ last_activity_at: new Date().toISOString() })
-      .eq('session_token', session_token);
+    if (tokenError || !sessionResult) {
+      console.error('❌ Failed to generate session:', tokenError);
+      return new Response(
+        JSON.stringify({ success: false, error: 'Failed to generate session tokens' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
+      );
+    }
 
-    // Return the access token and user data
+    // Extract tokens from the magic link
+    const magicLink = sessionResult.properties?.action_link || '';
+    const urlParams = new URL(magicLink).searchParams;
+    const accessToken = urlParams.get('access_token');
+    const refreshToken = urlParams.get('refresh_token');
+
+    if (!accessToken || !refreshToken) {
+      console.error('❌ Failed to extract tokens from magic link');
+      return new Response(
+        JSON.stringify({ success: false, error: 'Failed to extract session tokens' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
+      );
+    }
+
+    console.log(`✅ Session bridged successfully for ${email}`);
+
     return new Response(
       JSON.stringify({
-        access_token: tokenData.access_token,
-        refresh_token: tokenData.refresh_token,
-        user: {
-          id: supabaseUser!.id,
-          email: supabaseUser!.email,
-          subscription_tier: sessionData.beehiiv_subscribers.subscription_tier
-        }
+        success: true,
+        access_token: accessToken,
+        refresh_token: refreshToken,
+        user_id: userId
       }),
-      { 
-        status: 200, 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-      }
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
   } catch (error) {
-    console.error('❌ Bridge auth session error:', error);
+    console.error('Bridge session error:', error);
     return new Response(
-      JSON.stringify({ error: 'Internal server error' }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      JSON.stringify({ success: false, error: 'Internal server error' }),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
     );
   }
 });

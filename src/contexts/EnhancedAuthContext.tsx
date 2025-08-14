@@ -94,49 +94,31 @@ export const EnhancedAuthProvider: React.FC<EnhancedAuthProviderProps> = ({ chil
 
   const isAuthenticated = useMemo(() => !!currentUser, [currentUser]);
 
-  // Only log auth state changes when they actually change
-  const isAuthenticatedRef = useRef(false);
-  const currentUserEmailRef = useRef<string | null>(null);
+  // Reduced logging to prevent performance issues
+  const prevAuthState = useRef({ isAuthenticated: false, email: null as string | null });
   
-  if (isAuthenticatedRef.current !== isAuthenticated || currentUserEmailRef.current !== currentUser?.email) {
-    logger.info('Auth state change', { 
-      isLoading, 
-      currentUser: currentUser?.email,
-      authMethod: localStorage.getItem('auth_method')
+  if (prevAuthState.current.isAuthenticated !== isAuthenticated || 
+      prevAuthState.current.email !== currentUser?.email) {
+    console.log('🔄 Auth state change:', { 
+      isAuthenticated, 
+      email: currentUser?.email,
+      method: localStorage.getItem('auth_method')
     });
-    isAuthenticatedRef.current = isAuthenticated;
-    currentUserEmailRef.current = currentUser?.email || null;
+    prevAuthState.current = { isAuthenticated, email: currentUser?.email };
   }
 
-  // Memoize context value to prevent unnecessary re-renders
+  // Stable memoized context value to prevent unnecessary re-renders
   const value: AuthContextType = useMemo(() => {
     // Create subscriber object from currentUser for compatibility
-    // Ensure subscriber is null for non-authenticated users or has proper tier
     const subscriber = currentUser ? {
       id: currentUser.id,
       email: currentUser.email,
       status: currentUser.status || 'active',
-      // Apply developer override if set, otherwise use current tier
       subscription_tier: overrideTier || currentUser.subscription_tier || 'free',
       created_at: currentUser.created_at || new Date().toISOString(),
       updated_at: currentUser.updated_at || new Date().toISOString(),
       metadata: currentUser.metadata
     } : null;
-
-    // Debug logging for freemium wrapper
-    console.log('🔍 EnhancedAuthContext: Context value', {
-      isAuthenticated,
-      isLoading,
-      currentUserExists: !!currentUser,
-      subscriberExists: !!subscriber,
-      subscriberTier: subscriber?.subscription_tier,
-      originalTier: currentUser?.subscription_tier,
-      overrideTier,
-      isOverrideActive: !!overrideTier,
-      authMethod: localStorage.getItem('auth_method'),
-      userEmail: currentUser?.email,
-      userType: currentUser?.user_type
-    });
 
     return {
       subscriber,
@@ -148,16 +130,16 @@ export const EnhancedAuthProvider: React.FC<EnhancedAuthProviderProps> = ({ chil
       setAuthenticatedUser,
       refreshCurrentUser
     };
-  }, [currentUser, isLoading, isAuthenticated, login, enhancedLogout, setAuthenticatedUser, refreshCurrentUser, overrideTier]);
+  }, [
+    currentUser?.id, 
+    currentUser?.email, 
+    currentUser?.subscription_tier,
+    isLoading, 
+    isAuthenticated, 
+    overrideTier
+  ]);
 
-  // Only log final state changes when they actually change
-  const finalStateRef = useRef<any>(null);
-  const currentFinalState = { isAuthenticated, isLoading, userType: currentUser?.user_type, email: currentUser?.email };
-  
-  if (JSON.stringify(finalStateRef.current) !== JSON.stringify(currentFinalState)) {
-    logger.info('Auth final state', currentFinalState);
-    finalStateRef.current = currentFinalState;
-  }
+  // Performance optimized - remove final state logging
 
   return <EnhancedAuthContext.Provider value={value}>{children}</EnhancedAuthContext.Provider>;
 };
