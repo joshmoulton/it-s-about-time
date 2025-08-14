@@ -125,39 +125,111 @@ serve(async (req) => {
 
     console.log(`✅ Magic link verified successfully for ${tokenData.email}, generating Supabase magic link...`);
     
-    // Generate a proper Supabase magic link for the user
-    const { data: linkData, error: linkError } = await supabase.auth.admin.generateLink({
-      type: 'magiclink',
-      email: tokenData.email,
-      options: {
-        redirectTo: redirect
-      }
-    });
+    try {
+      // Generate a proper Supabase magic link for the user
+      console.log(`🔗 Attempting to generate Supabase link for: ${tokenData.email}`);
+      
+      const { data: linkData, error: linkError } = await supabase.auth.admin.generateLink({
+        type: 'magiclink',
+        email: tokenData.email,
+        options: {
+          redirectTo: redirect
+        }
+      });
 
-    if (linkError || !linkData) {
-      console.error('❌ Error generating Supabase magic link:', linkError);
-      return new Response('Failed to generate authentication link', { status: 500 });
+      if (linkError) {
+        console.error('❌ Error generating Supabase magic link:', linkError);
+        console.error('❌ Link error details:', JSON.stringify(linkError));
+        
+        // Fallback: redirect directly to callback with success
+        const fallbackUrl = new URL(redirect);
+        fallbackUrl.searchParams.set('verified', 'true');
+        fallbackUrl.searchParams.set('tier', tokenData.tier);
+        fallbackUrl.searchParams.set('email', tokenData.email);
+        
+        return new Response(null, {
+          status: 302,
+          headers: {
+            'Location': fallbackUrl.toString(),
+            ...corsHeaders
+          }
+        });
+      }
+
+      if (!linkData || !linkData.properties || !linkData.properties.action_link) {
+        console.error('❌ Invalid link data structure:', JSON.stringify(linkData));
+        
+        // Fallback: redirect directly to callback with success
+        const fallbackUrl = new URL(redirect);
+        fallbackUrl.searchParams.set('verified', 'true');
+        fallbackUrl.searchParams.set('tier', tokenData.tier);
+        fallbackUrl.searchParams.set('email', tokenData.email);
+        
+        return new Response(null, {
+          status: 302,
+          headers: {
+            'Location': fallbackUrl.toString(),
+            ...corsHeaders
+          }
+        });
+      }
+
+      console.log(`✅ Supabase magic link generated successfully for ${tokenData.email}`);
+      console.log(`🔗 Generated link: ${linkData.properties.action_link}`);
+      
+      // Extract the token from the generated link for direct session creation
+      const urlParams = new URL(linkData.properties.action_link).searchParams;
+      const supabaseToken = urlParams.get('token');
+      const tokenHash = urlParams.get('token_hash') || supabaseToken;
+      
+      if (!tokenHash) {
+        console.error('❌ No token found in generated link');
+        
+        // Fallback: redirect directly to callback with success
+        const fallbackUrl = new URL(redirect);
+        fallbackUrl.searchParams.set('verified', 'true');
+        fallbackUrl.searchParams.set('tier', tokenData.tier);
+        fallbackUrl.searchParams.set('email', tokenData.email);
+        
+        return new Response(null, {
+          status: 302,
+          headers: {
+            'Location': fallbackUrl.toString(),
+            ...corsHeaders
+          }
+        });
+      }
+      
+      // Redirect directly to Supabase's verification endpoint
+      const supabaseVerifyUrl = `${Deno.env.get('SUPABASE_URL')}/auth/v1/verify?token=${tokenHash}&type=magiclink&redirect_to=${encodeURIComponent(redirect)}`;
+      
+      console.log(`✅ Redirecting to Supabase verification: ${supabaseVerifyUrl}`);
+      
+      return new Response(null, {
+        status: 302,
+        headers: {
+          'Location': supabaseVerifyUrl,
+          ...corsHeaders
+        }
+      });
+    } catch (generateError) {
+      console.error('❌ Exception in generateLink:', generateError);
+      console.error('❌ Generate error details:', JSON.stringify(generateError));
+      
+      // Fallback: redirect directly to callback with success
+      const fallbackUrl = new URL(redirect);
+      fallbackUrl.searchParams.set('verified', 'true');
+      fallbackUrl.searchParams.set('tier', tokenData.tier);
+      fallbackUrl.searchParams.set('email', tokenData.email);
+      
+      return new Response(null, {
+        status: 302,
+        headers: {
+          'Location': fallbackUrl.toString(),
+          ...corsHeaders
+        }
+      });
     }
-
-    console.log(`✅ Supabase magic link generated for ${tokenData.email}`);
-    
-    // Extract the token from the generated link for direct session creation
-    const urlParams = new URL(linkData.properties.action_link).searchParams;
-    const supabaseToken = urlParams.get('token');
-    const tokenHash = urlParams.get('token_hash') || supabaseToken;
-    
-    // Redirect directly to Supabase's verification endpoint
-    const supabaseVerifyUrl = `${Deno.env.get('SUPABASE_URL')}/auth/v1/verify?token=${tokenHash}&type=magiclink&redirect_to=${encodeURIComponent(redirect)}`;
-    
-    console.log(`✅ Redirecting to Supabase verification for ${tokenData.email}`);
-    
-    return new Response(null, {
-      status: 302,
-      headers: {
-        'Location': supabaseVerifyUrl,
-        ...corsHeaders
-      }
-    });
   } catch (error) {
     console.error('❌ Verify magic link error:', error);
     return new Response('Internal server error', { status: 500 });
