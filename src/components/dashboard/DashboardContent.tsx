@@ -192,7 +192,7 @@ export function DashboardContent({
             <FreemiumWidgetWrapper
               featureName="🧙‍♂️ Live Trading Alerts"
               className="h-[380px] lg:h-[400px] overflow-hidden"
-              gradientTheme="blue"
+              gradientTheme="green"
               showTeaserStats={true}
               teaserStats={{
                 activeAlerts: 12,

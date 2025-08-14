@@ -79,12 +79,12 @@ export function LiveAlertsWidget({
   };
 
   return (
-    <ModernCard className="h-full min-h-[300px] flex flex-col bg-gradient-to-br from-blue-900/20 via-cyan-900/10 to-slate-800/50 border-blue-500/20 hover:border-blue-400/30 transition-all duration-200" interactive data-tour="live-alerts-widget">
+    <ModernCard className="h-full min-h-[300px] flex flex-col bg-gradient-to-br from-green-900/20 via-emerald-900/10 to-slate-800/50 border-green-500/20 hover:border-green-400/30 transition-all duration-200" interactive data-tour="live-alerts-widget">
       {!hideHeader && (
         <ModernCardHeader className="pb-2 pt-3 flex-shrink-0 px-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-lg flex items-center justify-center shadow-sm">
+              <div className="w-8 h-8 bg-gradient-to-br from-green-500 to-emerald-500 rounded-lg flex items-center justify-center shadow-sm">
                 <Activity className="h-4 w-4 text-white" />
               </div>
               <div>
@@ -101,16 +101,16 @@ export function LiveAlertsWidget({
         <div className="flex-1 flex flex-col gap-3">
           {isLoading ? (
             <div className="flex-1 flex items-center justify-center">
-              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500" />
+              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-green-500" />
             </div>
           ) : liveAlerts && liveAlerts.length > 0 ? (
             <div className="space-y-3">
               {liveAlerts.map(alert => (
-                <div key={alert.id} className="bg-blue-900/25 border border-blue-500/30 rounded-md px-2.5 py-2 hover:border-blue-400/40 hover:bg-blue-900/35 transition-all duration-200 shadow-sm space-y-2">
+                <div key={alert.id} className="bg-green-900/25 border border-green-500/30 rounded-md px-2.5 py-2 hover:border-green-400/40 hover:bg-green-900/35 transition-all duration-200 shadow-sm space-y-2">
                   {/* Header with symbol, direction, and timestamp */}
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <div className="w-5 h-5 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-md flex items-center justify-center">
+                      <div className="w-5 h-5 bg-gradient-to-br from-green-500 to-emerald-500 rounded-md flex items-center justify-center">
                         <Activity className="w-2.5 h-2.5 text-white" />
                       </div>
                       <div className="flex items-center gap-1.5">
@@ -125,7 +125,7 @@ export function LiveAlertsWidget({
                       </div>
                     </div>
                     <div className="text-right">
-                      <div className="flex items-center gap-1 text-xs text-blue-200/80">
+                      <div className="flex items-center gap-1 text-xs text-green-200/80">
                         <Clock className="w-2.5 h-2.5" />
                         <span>{formatTimeAgo(alert.created_at)}</span>
                       </div>
@@ -134,8 +134,8 @@ export function LiveAlertsWidget({
 
                   {/* Trader name */}
                   {alert.trader && (
-                    <div className="flex items-center gap-1.5 pb-1.5 border-b border-blue-500/20">
-                      <span className="text-xs text-blue-300">Called by:</span>
+                    <div className="flex items-center gap-1.5 pb-1.5 border-b border-green-500/20">
+                      <span className="text-xs text-green-300">Called by:</span>
                       <span className="text-xs text-white font-medium">{alert.trader}</span>
                     </div>
                   )}
@@ -144,8 +144,8 @@ export function LiveAlertsWidget({
                   <div className="bg-black/20 rounded-md p-1.5">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-1.5">
-                        <DollarSign className="w-3 h-3 text-cyan-400" />
-                        <span className="text-xs text-blue-200/80">Market Price:</span>
+                        <DollarSign className="w-3 h-3 text-emerald-400" />
+                        <span className="text-xs text-green-200/80">Market Price:</span>
                       </div>
                       <span className="text-white font-semibold text-sm">
                         {(() => {
@@ -161,8 +161,8 @@ export function LiveAlertsWidget({
                     {/* Entry */}
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-1.5">
-                        <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                        <span className="text-xs text-blue-200/80">Entry:</span>
+                        <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                        <span className="text-xs text-green-200/80">Entry:</span>
                       </div>
                       <span className="text-white font-medium text-xs">
                         {formatPrice(alert.entry_price)}
@@ -173,7 +173,7 @@ export function LiveAlertsWidget({
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-1.5">
                         <div className="w-2 h-2 bg-red-500 rounded-full"></div>
-                        <span className="text-xs text-blue-200/80">Stop Loss:</span>
+                        <span className="text-xs text-green-200/80">Stop Loss:</span>
                       </div>
                       <span className="text-white font-medium text-xs">
                         {formatPrice(alert.stop_loss_price)}
@@ -184,7 +184,7 @@ export function LiveAlertsWidget({
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-1.5">
                         <Target className="w-2.5 h-2.5 text-green-400" />
-                        <span className="text-xs text-blue-200/80">Target:</span>
+                        <span className="text-xs text-green-200/80">Target:</span>
                       </div>
                       <span className="text-white font-medium text-xs">
                         {formatPrice(alert.take_profit_price)}
@@ -196,7 +196,7 @@ export function LiveAlertsWidget({
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-1.5">
                           <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
-                          <span className="text-xs text-blue-200/80">Risk:</span>
+                          <span className="text-xs text-green-200/80">Risk:</span>
                         </div>
                         <span className="text-white font-medium text-xs">
                           {alert.risk_percentage}%
@@ -210,7 +210,7 @@ export function LiveAlertsWidget({
               <div className="pt-1">
                 <Button 
                   size="sm" 
-                  className="w-full bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white rounded-xl h-12 text-sm font-medium shadow-sm transition-all duration-200" 
+                  className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white rounded-xl h-12 text-sm font-medium shadow-sm transition-all duration-200" 
                   onClick={handleViewAllAlerts}
                 >
                   <ExternalLink className="h-4 w-4 mr-2 flex-shrink-0" />
@@ -219,7 +219,7 @@ export function LiveAlertsWidget({
               </div>
             </div>
           ) : (
-            <div className="flex-1 flex items-center justify-center text-blue-200/80">
+            <div className="flex-1 flex items-center justify-center text-green-200/80">
               No active live alerts
             </div>
           )}

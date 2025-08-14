@@ -32,6 +32,7 @@ const getWidgetHeader = (widgetType?: string) => {
         description: 'Market insights & analysis'
       };
     case 'alerts':
+    case 'live-alerts':
       return {
         title: 'Live Trading Alerts',
         icon: Bell,
@@ -117,6 +118,7 @@ const getWidgetMockContent = (widgetType?: string) => {
         }
       };
     case 'alerts':
+    case 'live-alerts':
       return {
         showTeaserStats: true,
         teaserStats: {
