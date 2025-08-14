@@ -1,9 +1,8 @@
-import React, { Suspense, lazy, useLayoutEffect } from 'react';
+import React, { useLayoutEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ArrowLeft, TrendingUp, MessageCircle, AlertTriangle, Crown, ArrowRight } from 'lucide-react';
-import { LazyWidgetLoader } from './widgets/LazyWidgetLoader';
 import { WidgetErrorBoundary } from './widgets/WidgetErrorBoundary';
 import { ContentSection } from './sections/ContentSection';
 import { AffiliateSection } from './sections/AffiliateSection';
@@ -19,17 +18,13 @@ import { DegenCallAlertsWidget } from './widgets/DegenCallAlertsWidget';
 import { UnifiedChatWidget } from './widgets/UnifiedChatWidget';
 import { FullAlertsView } from './widgets/FullAlertsView';
 import { FullDegenCallAlertsView } from './widgets/FullDegenCallAlertsView';
+import { CompactEdgeWidget } from './widgets/CompactEdgeWidget';
 import { useUnifiedRealtimeConnection } from '@/hooks/useUnifiedRealtimeConnection';
 import { useTelegramIntegration } from '@/hooks/useTelegramIntegration';
 import { useLiveSentiment } from '@/hooks/useLiveSentiment';
 import { FreemiumWidgetWrapper } from '../freemium/FreemiumWidgetWrapper';
 import { TierAccessManager } from '@/utils/tierAccess';
 import { useAdminCheck } from '@/hooks/useAdminCheck';
-
-// Keep lazy loading for non-critical widgets
-const CompactEdgeWidget = lazy(() => import('./widgets/CompactEdgeWidget').then(module => ({
-  default: module.CompactEdgeWidget
-})));
 
 interface Subscriber {
   id: string;
@@ -323,9 +318,7 @@ export function DashboardContent({
             <h1 className="text-2xl font-bold mb-6 text-foreground">Edge Content</h1>
             <div className="max-w-4xl">
               <WidgetErrorBoundary widgetName="Edge">
-                <Suspense fallback={<LazyWidgetLoader height="min-h-[400px]" />}>
-                  <CompactEdgeWidget subscriber={subscriber} />
-                </Suspense>
+                <CompactEdgeWidget subscriber={subscriber} />
               </WidgetErrorBoundary>
             </div>
           </div>;
