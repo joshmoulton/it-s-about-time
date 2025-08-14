@@ -128,7 +128,7 @@ export const SimplifiedAuthModal: React.FC<SimplifiedAuthModalProps> = memo(({ o
     
     try {
       if (mode === 'magic') {
-        console.log('🔄 Sending magic link for:', email.toLowerCase().trim());
+        console.log('🔄 Sending Supabase OTP for:', email.toLowerCase().trim());
         
         // Additional safety check before invoking function
         if (isSubmittingRef.current !== true) {
@@ -141,45 +141,64 @@ export const SimplifiedAuthModal: React.FC<SimplifiedAuthModalProps> = memo(({ o
           email.toLowerCase().trim(),
           'magic_link',
           async () => {
-            console.log('📧 Actually sending magic link request...');
+            console.log('📧 Actually sending Supabase OTP...');
             
             try {
-              const { data, error } = await supabase.functions.invoke('send-magic-link', {
+              // First verify the user's subscription tier with Beehiiv
+              const { data: verifyData, error: verifyError } = await supabase.functions.invoke('beehiiv-subscriber-verify', {
                 body: { email: email.toLowerCase().trim() }
               });
 
-              console.log('🔍 Supabase function response:', { data, error });
-
-              if (error) {
-                console.error('❌ Magic link error:', error);
-                throw new Error(error.message || 'Failed to send magic link');
+              let tier = 'free';
+              if (verifyData?.success && verifyData?.tier) {
+                tier = verifyData.tier;
               }
-              return data;
+
+              console.log('✅ User tier verified:', tier);
+
+              // Send OTP via Supabase Auth with tier info
+              const redirectUrl = `${window.location.origin}/auth/callback?tier=${tier}`;
+              
+              const { error: otpError } = await supabase.auth.signInWithOtp({
+                email: email.toLowerCase().trim(),
+                options: {
+                  emailRedirectTo: redirectUrl,
+                  shouldCreateUser: true,
+                  data: {
+                    tier: tier,
+                    source: 'beehiiv'
+                  }
+                }
+              });
+
+              if (otpError) {
+                console.error('❌ Supabase OTP error:', otpError);
+                throw new Error(otpError.message || 'Failed to send magic link');
+              }
+
+              return { success: true, tier: tier };
             } catch (functionError: any) {
-              console.error('❌ Function invocation failed:', functionError);
+              console.error('❌ OTP sending failed:', functionError);
               throw new Error(functionError.message || 'Network error occurred');
             }
           }
         );
         
-        console.log('✅ Magic link result:', result);
+        console.log('✅ OTP result:', result);
         
-        // The send-magic-link function only sends an email, it never logs users in immediately
         if (result && result.success) {
           console.log('📧 Magic link sent successfully, user must click email link to log in');
           setError(
             <div className="text-green-600 text-sm">
-              ✅ {result.message || 'Access link sent! Check your email and click the link to sign in.'}
-              {result.is_new_user && (
-                <div className="mt-2 text-blue-600">
-                  Welcome to Weekly Wizdom! We've created your free account.
-                </div>
-              )}
+              ✅ Magic link sent! Check your email and click the link to sign in.
+              <div className="mt-2 text-blue-600">
+                Tier: {result.tier}
+              </div>
             </div>
           );
           
           // Do NOT auto-login here - user must click the email link
-          // The actual login will happen when they visit the verification URL from their email
+          // The actual login will happen when they visit the callback URL from their email
         } else {
           throw new Error('Failed to send magic link');
         }

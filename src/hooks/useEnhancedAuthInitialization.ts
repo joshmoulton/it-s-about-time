@@ -75,23 +75,36 @@ export const useEnhancedAuthInitialization = ({
               localStorage.setItem('auth_method', 'supabase_admin');
               console.log('✅ Admin user detected - tier: premium');
             } else {
-              // Beehiiv is the single source of truth for subscription tier
+              // First sync with Beehiiv to update premium_members table
               try {
-                const { data: verifyData, error: verifyError } = await supabase.functions.invoke('beehiiv-subscriber-verify', {
-                  body: { email: session.user.email.toLowerCase().trim() }
+                console.log('🔄 Syncing premium status for authenticated user...');
+                
+                const { data: syncData, error: syncError } = await supabase.functions.invoke('sync-beehiiv', {
+                  headers: {
+                    Authorization: `Bearer ${session.access_token}`
+                  }
                 });
-                if (verifyError || !verifyData?.success) {
-                  console.warn('⚠️ Beehiiv verification failed, defaulting to free:', verifyError || verifyData);
-                  subscriptionTier = 'free';
+
+                if (syncError) {
+                  console.error('❌ Sync error:', syncError);
                 } else {
-                  const tierRaw = (verifyData.tier as 'free' | 'premium' | 'paid') || 'free';
-                  // Treat any non-free as premium for dashboard gating
-                  subscriptionTier = tierRaw === 'free' ? 'free' : 'premium';
-                  console.log(`✅ Beehiiv tier: ${verifyData.tier} (mapped to ${subscriptionTier})`);
+                  console.log('✅ Premium status synced successfully:', syncData);
+                }
+
+                // Now check if user is premium from the premium_members table
+                const { data: premiumData } = await supabase
+                  .from('premium_members')
+                  .select('tier, active')
+                  .eq('user_id', session.user.id)
+                  .eq('active', true)
+                  .maybeSingle();
+
+                if (premiumData?.tier) {
+                  subscriptionTier = premiumData.tier === 'free' ? 'free' : 'premium';
+                  console.log(`✅ Premium status confirmed: ${premiumData.tier} (mapped to ${subscriptionTier})`);
                 }
               } catch (error) {
-                console.warn('⚠️ Beehiiv verification error, defaulting to free:', error);
-                subscriptionTier = 'free';
+                console.warn('⚠️ Premium sync failed, defaulting to free:', error);
               }
             }
             

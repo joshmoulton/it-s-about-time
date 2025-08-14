@@ -6,6 +6,9 @@ const getWindow = (): any => typeof globalThis !== 'undefined' && 'window' in gl
 
 // Debug mode detection for production troubleshooting (dynamic check)
 export const isDebugMode = (): boolean => {
+  // FORCE DEBUG MODE ON for troubleshooting
+  return true;
+  
   if (isDevelopment) return true;
   const win = getWindow();
   if (!win) return false;
@@ -195,12 +198,13 @@ export const logger = new SecureLogger();
 // Initialize console security in production
 const win = getWindow();
 if (!isDevelopment && win) {
-  // Enable debug mode to troubleshoot authentication issues  
+  // FORCE ENABLE debug mode to troubleshoot authentication issues  
   const shouldEnableDebug = true; // Enable debug mode for troubleshooting
   
   if (shouldEnableDebug) {
     // Keep console methods enabled for debugging
-    originalConsole.info('🐛 Debug mode enabled for troubleshooting');
+    logger.enableDebugMode();
+    originalConsole.info('🐛 Debug mode FORCE ENABLED for troubleshooting');
   } else {
     // Disable console methods by default in production
     logger.disableConsole();

@@ -37,7 +37,7 @@ export function AuthCallback() {
         // Sync with Beehiiv to update premium status
         try {
           console.log('🔄 Calling sync-beehiiv function...');
-          const { error: syncError } = await supabase.functions.invoke('sync-beehiiv', {
+          const { data: syncData, error: syncError } = await supabase.functions.invoke('sync-beehiiv', {
             headers: {
               Authorization: `Bearer ${session.access_token}`
             }
@@ -47,7 +47,7 @@ export function AuthCallback() {
             console.error('❌ Sync error:', syncError);
             // Don't fail auth for sync errors, just log them
           } else {
-            console.log('✅ Premium status synced successfully');
+            console.log('✅ Premium status synced successfully:', syncData);
           }
         } catch (syncError) {
           console.error('❌ Sync function error:', syncError);
