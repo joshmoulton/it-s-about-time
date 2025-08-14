@@ -180,4 +180,3 @@ serve(async (req) => {
     pendingRequests.delete(email);
   }
 });
-});
