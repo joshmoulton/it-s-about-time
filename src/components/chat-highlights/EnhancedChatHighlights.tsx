@@ -38,7 +38,7 @@ export const EnhancedChatHighlights: React.FC = () => {
     queryKey: ['enhanced-highlights', selectedTopic, sortBy],
     queryFn: async () => {
       // Use a single optimized query with joins to reduce database round trips
-      const { data: result, error } = await supabase
+      let query = supabase
         .from('auto_highlights')
         .select(`
           id,
@@ -61,8 +61,15 @@ export const EnhancedChatHighlights: React.FC = () => {
           )
         `)
         .order('priority_score', { ascending: false })
-        .limit(25) // Reduced from 50 to 25 for better performance
+        .limit(50) // Increased back to 50 but with better filtering
         .not('telegram_messages.message_text', 'is', null); // Only get highlights with valid messages
+
+      // Apply topic filtering at database level if a specific topic is selected
+      if (selectedTopic !== 'all') {
+        query = query.eq('telegram_messages.topic_name', selectedTopic);
+      }
+
+      const { data: result, error } = await query;
 
       if (error) {
         console.error('Enhanced highlights query error:', error);
@@ -103,11 +110,17 @@ export const EnhancedChatHighlights: React.FC = () => {
     if (!highlights) return [];
     
     return highlights
-      .filter(highlight => 
-        searchTerm === '' || 
-        highlight.message_text.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        highlight.username?.toLowerCase().includes(searchTerm.toLowerCase())
-      )
+      .filter(highlight => {
+        // Apply search filter
+        const matchesSearch = searchTerm === '' || 
+          highlight.message_text.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          highlight.username?.toLowerCase().includes(searchTerm.toLowerCase());
+        
+        // Apply topic filter (client-side fallback in case database filter didn't work)
+        const matchesTopic = selectedTopic === 'all' || highlight.topic_name === selectedTopic;
+        
+        return matchesSearch && matchesTopic;
+      })
       .sort((a, b) => {
         switch (sortBy) {
           case 'recent':
@@ -119,7 +132,7 @@ export const EnhancedChatHighlights: React.FC = () => {
             return b.priority_score - a.priority_score;
         }
       });
-  }, [highlights, searchTerm, sortBy]);
+  }, [highlights, searchTerm, selectedTopic, sortBy]);
 
   // Memoize available topics calculation
   const availableTopics = useMemo(() => {
