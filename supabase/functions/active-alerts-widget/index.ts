@@ -44,7 +44,7 @@ serve(async (req) => {
     let isPremiumUser = false;
 
     try {
-      // Create client with user's token for RLS
+      // Create client with user's token for authentication
       const userSupabase = createClient(
         supabaseUrl, 
         Deno.env.get('SUPABASE_ANON_KEY')!,
@@ -57,37 +57,67 @@ serve(async (req) => {
         }
       );
 
-      const { data: { user } } = await userSupabase.auth.getUser();
-      userEmail = user?.email || null;
+      const { data: { user }, error: userError } = await userSupabase.auth.getUser();
+      
+      if (userError || !user) {
+        console.error('Auth error:', userError);
+        return new Response(
+          JSON.stringify({ error: 'Invalid authentication' }),
+          { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
 
-      // Check user access (admin or premium)
+      userEmail = user.email || null;
+      console.log('Authenticated user:', userEmail);
+
       if (userEmail) {
-        // Check admin status
-        const { data: adminData } = await supabase
-          .rpc('is_current_user_admin_fast')
-          .single();
-        isAdmin = adminData || false;
+        // Check if user is one of the hardcoded admins
+        const adminEmails = ['moulton.joshua@gmail.com', 'pidgeon@avium.trade'];
+        isAdmin = adminEmails.includes(userEmail.toLowerCase());
 
-        // Check premium subscription
-        const { data: userData } = await supabase
+        // Check premium subscription using service role to bypass RLS
+        const { data: userData, error: dbError } = await supabase
           .from('beehiiv_subscribers')
           .select('subscription_tier')
           .eq('email', userEmail)
-          .single();
+          .maybeSingle();
+        
+        if (dbError) {
+          console.error('Database error checking subscription:', dbError);
+        }
         
         isPremiumUser = userData?.subscription_tier === 'premium' || userData?.subscription_tier === 'paid';
+        
+        console.log('User access check:', {
+          email: userEmail,
+          isAdmin,
+          isPremiumUser,
+          tier: userData?.subscription_tier
+        });
       }
     } catch (error) {
-      console.error('Error checking user auth:', error);
+      console.error('Error in auth check:', error);
+      return new Response(
+        JSON.stringify({ error: 'Authentication failed' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
-    // Only allow access to premium users or admins
+    // Allow access to admins or premium/paid users
     if (!isAdmin && !isPremiumUser) {
+      console.log('Access denied - not admin or premium user');
       return new Response(
-        JSON.stringify({ error: 'Premium subscription required' }),
+        JSON.stringify({ 
+          error: 'Premium subscription required',
+          userEmail,
+          isAdmin,
+          isPremiumUser 
+        }),
         { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
+
+    console.log('Access granted for user:', userEmail);
 
     // Mock active alerts data for premium users and admins
     const mockAlerts: Alert[] = [
