@@ -6,6 +6,7 @@ import { ModernCard, ModernCardHeader, ModernCardTitle, ModernCardContent } from
 import { Mail, ExternalLink, Sparkles, Calendar, Clock } from 'lucide-react';
 import { useNewsletters } from '@/hooks/useNewsletters';
 import { format } from 'date-fns';
+
 interface Subscriber {
   id: string;
   email: string;
@@ -14,10 +15,12 @@ interface Subscriber {
   created_at: string;
   updated_at: string;
 }
+
 interface ModernNewsletterWidgetProps {
   subscriber: Subscriber;
   hideHeader?: boolean;
 }
+
 export function ModernNewsletterWidget({
   subscriber,
   hideHeader = false
@@ -37,6 +40,7 @@ export function ModernNewsletterWidget({
     hours: 0,
     minutes: 0
   });
+
   React.useEffect(() => {
     const calculateTimeLeft = () => {
       // Get current time in EST/EDT
@@ -56,6 +60,7 @@ export function ModernNewsletterWidget({
       if (dayOfWeek === 3 && estTime.getHours() >= 6 && estTime.getMinutes() >= 30) {
         nextWednesday.setDate(nextWednesday.getDate() + 7);
       }
+      
       const timeDiff = nextWednesday.getTime() - estTime.getTime();
       if (timeDiff > 0) {
         const days = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
@@ -68,13 +73,16 @@ export function ModernNewsletterWidget({
         });
       }
     };
+    
     calculateTimeLeft();
     const timer = setInterval(calculateTimeLeft, 60000); // Update every minute
-
     return () => clearInterval(timer);
   }, []);
-  return <ModernCard interactive className="h-full flex flex-col bg-gradient-to-br from-blue-900/20 via-indigo-900/10 to-slate-800/50 border-blue-500/20 hover:border-blue-400/30 transition-all duration-200 cursor-pointer" data-tour="newsletter-widget">
-      {!hideHeader && <ModernCardHeader className="pb-2 pt-3 flex-shrink-0 px-4">
+
+  return (
+    <ModernCard interactive className="h-full flex flex-col bg-gradient-to-br from-blue-900/20 via-indigo-900/10 to-slate-800/50 border-blue-500/20 hover:border-blue-400/30 transition-all duration-200 cursor-pointer" data-tour="newsletter-widget">
+      {!hideHeader && (
+        <ModernCardHeader className="pb-2 pt-3 flex-shrink-0 px-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-lg flex items-center justify-center shadow-sm">
@@ -99,7 +107,8 @@ export function ModernNewsletterWidget({
               </div>
             </div>
           </div>
-        </ModernCardHeader>}
+        </ModernCardHeader>
+      )}
 
       <ModernCardContent className={`flex-1 flex flex-col ${hideHeader ? 'pt-0' : 'pt-0'} px-4 pb-4`}>
         <div className="flex-1 space-y-2 mb-3">
@@ -153,7 +162,6 @@ export function ModernNewsletterWidget({
           )}
         </div>
 
-
         {/* Fixed position button - improved mobile spacing */}
         <div className="mt-auto pt-2">
           <Button 
@@ -166,5 +174,6 @@ export function ModernNewsletterWidget({
           </Button>
         </div>
       </ModernCardContent>
-    </ModernCard>;
+    </ModernCard>
+  );
 }
