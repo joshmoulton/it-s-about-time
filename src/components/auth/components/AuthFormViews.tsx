@@ -29,19 +29,25 @@ const MagicLinkView = memo<AuthFormViewsProps>(({
   onSubmit,
   onClose
 }) => (
-  <div className="relative overflow-hidden bg-white border border-gray-200 rounded-2xl p-8 shadow-xl">
+  <div className="relative w-full p-4 sm:p-6">
+    {/* Close button */}
+    {onClose && (
+      <button
+        onClick={onClose}
+        type="button"
+        className="absolute top-4 right-4 sm:top-6 sm:right-6 text-muted-foreground hover:text-foreground transition-colors z-10"
+        aria-label="Close modal"
+      >
+        <X className="w-5 h-5" />
+      </button>
+    )}
+
     <div className="space-y-6">
       <div className="flex items-center gap-3">
         <Button
           variant="outline"
           size="sm"
-          onClick={() => {
-            if (onClose) {
-              onClose(); // This will trigger handleBackToHome
-            } else {
-              onModeChange('welcome');
-            }
-          }}
+          onClick={() => onModeChange('welcome')}
           className="text-gray-600 hover:text-black hover:bg-gray-50 border-gray-300 p-2"
         >
           <ArrowLeft className="h-4 w-4" />
@@ -121,25 +127,26 @@ const SignInView = memo<AuthFormViewsProps>(({
   onSubmit,
   onClose
 }) => (
-  <div className="relative w-full">
-    {/* Clean close button */}
+  <div className="relative w-full p-4 sm:p-6">
+    {/* Close button */}
     {onClose && (
       <button
         onClick={onClose}
-        className="absolute top-4 right-4 w-8 h-8 rounded-lg bg-muted/10 hover:bg-muted/20 flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
+        type="button"
+        className="absolute top-4 right-4 sm:top-6 sm:right-6 text-muted-foreground hover:text-foreground transition-colors z-10"
         aria-label="Close modal"
       >
-        <X className="w-4 h-4" />
+        <X className="w-5 h-5" />
       </button>
     )}
 
     <div className="space-y-6">
       {/* Header */}
       <div className="text-center">
-        <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center mx-auto mb-4">
-          <Mail className="w-6 h-6 text-primary" />
+        <div className="w-12 h-12 sm:w-16 sm:h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6">
+          <Mail className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
         </div>
-        <h2 className="text-xl font-bold text-foreground mb-2">Welcome back!</h2>
+        <h2 className="text-xl sm:text-2xl font-bold text-foreground mb-2">Welcome back!</h2>
         <p className="text-sm text-muted-foreground">Enter your email below to login to your account.</p>
       </div>
 
@@ -241,10 +248,10 @@ const SignInView = memo<AuthFormViewsProps>(({
         <Button
           variant="ghost"
           onClick={() => onModeChange('welcome')}
-          className="text-sm text-muted-foreground hover:text-foreground p-0 h-auto"
+          className="text-sm text-muted-foreground hover:text-foreground p-0 h-auto flex items-center gap-1"
           type="button"
         >
-          <ArrowLeft className="h-4 w-4 mr-1" />
+          <ArrowLeft className="h-4 w-4" />
           Back to options
         </Button>
       </div>
