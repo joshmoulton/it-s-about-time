@@ -441,8 +441,8 @@ export function DashboardContent({
               </div>
             </div>
             
-            {/* Content */}
-            <div className="flex-1 overflow-hidden px-8 py-6">
+            {/* Content with proper scrolling */}
+            <div className="flex-1 overflow-y-auto px-4 sm:px-8 py-4 sm:py-6">
               <WidgetErrorBoundary widgetName="Full Degen Call Alerts View">
                 <FullDegenCallAlertsView subscriber={subscriber} />
               </WidgetErrorBoundary>

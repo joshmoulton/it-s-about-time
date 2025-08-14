@@ -80,30 +80,31 @@ export function FullDegenCallAlertsView({ subscriber }: FullDegenCallAlertsViewP
   });
 
   return (
-    <div className="space-y-6">
-      {/* Header with refresh button */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-red-500 rounded-lg flex items-center justify-center shadow-sm">
-            <Bell className="h-5 w-5 text-white" />
-          </div>
-          <h1 className="text-2xl font-bold text-white">Recent Degen Calls</h1>
-        </div>
+    <div className="space-y-4 sm:space-y-6 h-full">
+      {/* Mobile-optimized header with refresh button */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-0">
         <div className="flex items-center gap-3">
           <Badge
             variant="outline"
-            className="px-3 py-1.5 text-sm font-extrabold uppercase tracking-wider bg-orange-400/20 border-orange-300/60 text-orange-100 shadow-md backdrop-blur-sm animate-pulse"
+            className="px-2 sm:px-3 py-1 sm:py-1.5 text-xs sm:text-sm font-extrabold uppercase tracking-wider bg-orange-400/20 border-orange-300/60 text-orange-100 shadow-md backdrop-blur-sm animate-pulse w-fit"
             aria-live="polite"
           >
             TESTING ONLY — DISREGARD
           </Badge>
-          <Button size="sm" variant="ghost" onClick={refreshData} className="text-orange-300 hover:text-white hover:bg-orange-800/30">
-            <RefreshCw className="w-4 h-4 mr-1" /> Refresh
-          </Button>
         </div>
+        <Button 
+          size="sm" 
+          variant="ghost" 
+          onClick={refreshData} 
+          className="text-orange-300 hover:text-white hover:bg-orange-800/30 self-start sm:self-auto"
+        >
+          <RefreshCw className="w-4 h-4 mr-1" /> Refresh
+        </Button>
       </div>
 
-      <DegenCallsList />
+      <div className="flex-1 overflow-y-auto">
+        <DegenCallsList />
+      </div>
 
       <DegenCallSettingsModal isOpen={showSettings} onClose={() => setShowSettings(false)} />
     </div>
@@ -156,9 +157,9 @@ function DegenCallsList() {
   // const getPriceForTicker = (ticker: string) => { ... };
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 pb-4">
       {calls.map(call => (
-        <div key={call.id} className="bg-orange-900/25 border border-orange-500/30 rounded-md px-2.5 py-2 hover:border-orange-400/40 hover:bg-orange-900/35 transition-all duration-200 shadow-sm space-y-2">
+        <div key={call.id} className="bg-orange-900/25 border border-orange-500/30 rounded-lg p-3 sm:p-4 hover:border-orange-400/40 hover:bg-orange-900/35 transition-all duration-200 shadow-sm space-y-2 sm:space-y-3">
           {/* Header with ticker, direction, and timestamp */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
@@ -166,7 +167,7 @@ function DegenCallsList() {
                 <Zap className="w-2.5 h-2.5 text-white" />
               </div>
               <div className="flex items-center gap-1.5">
-                <span className="text-white text-sm font-bold">{call.coin}</span>
+                <span className="text-white text-sm sm:text-base font-bold">{call.coin}</span>
                 {call.direction && (
                   <Badge 
                     variant="outline" 
@@ -183,28 +184,29 @@ function DegenCallsList() {
             </div>
             <div className="text-right">
               <div className="flex items-center gap-1 text-xs text-orange-200/80">
-                <Clock className="w-2.5 h-2.5" />
-                <span>{formatTimeAgo(call.created_at)}</span>
+                <Clock className="w-3 h-3 sm:w-2.5 sm:h-2.5" />
+                <span className="hidden sm:inline">{formatTimeAgo(call.created_at)}</span>
+                <span className="sm:hidden">{formatTimeAgo(call.created_at).replace(' ago', '')}</span>
               </div>
             </div>
           </div>
 
           {/* Caller name */}
           {call.analyst_name && (
-            <div className="flex items-center gap-1.5 pb-1.5 border-b border-orange-500/20">
+            <div className="flex items-center gap-1.5 pb-2 border-b border-orange-500/20">
               <span className="text-xs text-orange-300">Called by:</span>
-              <span className="text-xs text-white font-medium">{call.analyst_name}</span>
+              <span className="text-xs sm:text-sm text-white font-medium">{call.analyst_name}</span>
             </div>
           )}
 
           {/* Call-time Price Section */}
-          <div className="bg-black/20 rounded-md p-1.5">
+          <div className="bg-black/20 rounded-md p-2 sm:p-2.5">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-1.5">
                 <DollarSign className="w-3 h-3 text-blue-400" />
-                <span className="text-xs text-orange-200/80">Call Price:</span>
+                <span className="text-xs sm:text-sm text-orange-200/80">Call Price:</span>
               </div>
-              <span className="text-white font-semibold text-sm">
+              <span className="text-white font-semibold text-sm sm:text-base">
                 {call.entry_price && call.entry_price !== 'Market' 
                   ? `$${Number(call.entry_price).toLocaleString()}`
                   : 'Market'
@@ -214,14 +216,14 @@ function DegenCallsList() {
           </div>
 
           {/* Trading details */}
-          <div className="space-y-1">
+          <div className="space-y-1.5 sm:space-y-2">
             {/* Entry */}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-1.5">
                 <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                <span className="text-xs text-orange-200/80">Entry:</span>
+                <span className="text-xs sm:text-sm text-orange-200/80">Entry:</span>
               </div>
-              <span className="text-white font-medium text-xs">
+              <span className="text-white font-medium text-xs sm:text-sm">
                 {call.entry_price && call.entry_price !== 'Market' ? `$${Number(call.entry_price).toLocaleString()}` : 'Market'}
               </span>
             </div>
@@ -230,9 +232,9 @@ function DegenCallsList() {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-1.5">
                 <div className="w-2 h-2 bg-red-500 rounded-full"></div>
-                <span className="text-xs text-orange-200/80">Stop Loss:</span>
+                <span className="text-xs sm:text-sm text-orange-200/80">Stop Loss:</span>
               </div>
-              <span className="text-white font-medium text-xs">
+              <span className="text-white font-medium text-xs sm:text-sm">
                 {call.stop_loss ? `$${Number(call.stop_loss).toLocaleString()}` : 'N/A'}
               </span>
             </div>
@@ -241,9 +243,9 @@ function DegenCallsList() {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-1.5">
                 <TrendingUp className="w-2.5 h-2.5 text-green-400" />
-                <span className="text-xs text-orange-200/80">Target:</span>
+                <span className="text-xs sm:text-sm text-orange-200/80">Target:</span>
               </div>
-              <span className="text-white font-medium text-xs">
+              <span className="text-white font-medium text-xs sm:text-sm">
                 {call.targets && call.targets.length > 0 ? `$${Number(call.targets[0]).toLocaleString()}` : 'N/A'}
               </span>
             </div>
@@ -252,9 +254,9 @@ function DegenCallsList() {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-1.5">
                 <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
-                <span className="text-xs text-orange-200/80">Size:</span>
+                <span className="text-xs sm:text-sm text-orange-200/80">Size:</span>
               </div>
-              <span className="text-white font-medium text-xs">
+              <span className="text-white font-medium text-xs sm:text-sm">
                 {formatSizeLevel(call.size)}
               </span>
             </div>
