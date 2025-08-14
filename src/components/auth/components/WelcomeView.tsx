@@ -1,8 +1,6 @@
-
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Mail, Zap, ArrowRight, X } from 'lucide-react';
-
+import { Mail, Zap, X } from 'lucide-react';
 
 interface WelcomeViewProps {
   onModeChange: (mode: string) => void;
@@ -18,94 +16,80 @@ export const WelcomeView: React.FC<WelcomeViewProps> = ({
   isLoading
 }) => {
   return (
-    <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-md mx-auto relative">
+    <div className="w-full relative">
       {/* Close Button */}
       {onClose && (
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 p-2 text-gray-400 hover:text-gray-600 transition-colors"
+          className="absolute top-2 right-2 p-1 text-muted-foreground hover:text-foreground transition-colors z-10"
           aria-label="Close modal"
         >
-          <X className="w-5 h-5" />
+          <X className="w-4 h-4" />
         </button>
       )}
-      {/* Email Icon */}
-      <div className="flex justify-center mb-6">
-        <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center">
-          <Mail className="w-8 h-8 text-blue-600" />
-        </div>
-      </div>
 
       {/* Header */}
-      <div className="text-center mb-8">
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">
+      <div className="text-center mb-6">
+        <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center mx-auto mb-4">
+          <Mail className="w-6 h-6 text-primary" />
+        </div>
+        <h2 className="text-xl font-bold text-foreground mb-2">
           Get access to Weekly Wizdom
         </h2>
-        <p className="text-gray-600">
+        <p className="text-sm text-muted-foreground">
           Access your Weekly Wizdom subscription and premium content
         </p>
       </div>
 
       {/* Primary CTA - Magic Link */}
-      <div className="mb-6">
+      <div className="mb-4">
         <Button
           onClick={() => onModeChange('magic')}
           disabled={isLoading}
-          size="lg"
-          className="w-full rounded-xl font-medium transition-colors px-5 sm:px-6 md:px-8 gap-2 sm:gap-3"
+          className="w-full bg-primary hover:bg-primary/90 text-primary-foreground py-3 text-sm font-semibold"
         >
-          <Mail className="w-5 h-5 shrink-0" />
-          <span className="text-sm sm:text-base">Get Access Link (Recommended)</span>
-          <ArrowRight className="w-4 h-4 shrink-0" />
+          Get Access Link (Recommended)
         </Button>
-        <p className="text-xs text-center text-gray-500 mt-2">
-          💡 Automatically verifies your Beehiiv subscription status
+        <p className="text-xs text-muted-foreground text-center mt-2 flex items-center justify-center gap-1">
+          <Zap className="w-3 h-3" />
+          Automatically verifies your Beehiiv subscription status
         </p>
       </div>
 
-      {/* Tertiary CTAs - Sign In & Create Account */}
-      <div className="flex gap-3 mb-8">
+      {/* Alternative Options */}
+      <div className="grid grid-cols-2 gap-3 mb-6">
         <Button
+          variant="outline"
           onClick={() => onModeChange('signin')}
           disabled={isLoading}
-          variant="outline"
-          className="flex-1 h-10 rounded-lg font-medium text-sm transition-colors"
+          className="py-2.5 text-sm"
         >
           Sign In
         </Button>
         <Button
+          variant="outline"
           onClick={() => onModeChange('signup')}
           disabled={isLoading}
-          variant="outline"
-          className="flex-1 h-10 rounded-lg font-medium text-sm transition-colors"
+          className="py-2.5 text-sm"
         >
           Create Account
         </Button>
       </div>
 
-      {/* Account Tier Descriptions */}
-      <div className="space-y-4 pt-4 border-t border-gray-200">
+      {/* Account Types */}
+      <div className="space-y-3 pt-3 border-t border-border">
         <div className="flex items-start gap-3">
-          <div className="mt-1">
-            <Zap className="w-4 h-4 text-orange-500" />
-          </div>
+          <Zap className="w-4 h-4 text-orange-500 mt-0.5 flex-shrink-0" />
           <div>
-            <h4 className="text-sm font-semibold text-gray-900 mb-1">Premium Account</h4>
-            <p className="text-xs text-gray-600">
-              Live Trading Signals, Exclusive Content, Full Access
-            </p>
+            <h4 className="font-medium text-sm text-foreground">Premium Account</h4>
+            <p className="text-xs text-muted-foreground">Live Trading Signals, Exclusive Content, Full Access</p>
           </div>
         </div>
-        
         <div className="flex items-start gap-3">
-          <div className="mt-1">
-            <Mail className="w-4 h-4 text-blue-500" />
-          </div>
+          <Mail className="w-4 h-4 text-blue-500 mt-0.5 flex-shrink-0" />
           <div>
-            <h4 className="text-sm font-semibold text-gray-900 mb-1">Free Account</h4>
-            <p className="text-xs text-gray-600">
-              Newsletter Preview, Weekly Education Emails, Basic Market Insights
-            </p>
+            <h4 className="font-medium text-sm text-foreground">Free Account</h4>
+            <p className="text-xs text-muted-foreground">Newsletter Updates, Community Access</p>
           </div>
         </div>
       </div>
