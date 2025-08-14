@@ -33,62 +33,50 @@ export const EnhancedChatHighlights: React.FC = () => {
   const [selectedTopic, setSelectedTopic] = useState<string>('all');
   const [sortBy, setSortBy] = useState<'recent' | 'engagement' | 'priority'>('priority');
 
-  // Fetch enhanced highlights with more data
+  // Fetch enhanced highlights with optimized query
   const { data: highlights, isLoading } = useQuery<EnhancedHighlight[]>({
     queryKey: ['enhanced-highlights', selectedTopic, sortBy],
     queryFn: async () => {
-      // First get auto_highlights with their related data
-      const { data: autoHighlights, error: autoError } = await supabase
+      // Use a single optimized query with joins to reduce database round trips
+      const { data: result, error } = await supabase
         .from('auto_highlights')
         .select(`
           id,
           priority_score,
           assigned_at,
-          telegram_message_id,
-          rule_id
+          telegram_messages:telegram_message_id (
+            id,
+            message_text,
+            username,
+            first_name,
+            timestamp,
+            topic_name,
+            likes_count
+          ),
+          chat_highlight_rules:rule_id (
+            id,
+            rule_name,
+            highlight_color,
+            priority
+          )
         `)
         .order('priority_score', { ascending: false })
-        .limit(50);
+        .limit(25) // Reduced from 50 to 25 for better performance
+        .not('telegram_messages.message_text', 'is', null); // Only get highlights with valid messages
 
-      if (autoError) {
-        console.error('Auto highlights query error:', autoError);
-        throw autoError;
+      if (error) {
+        console.error('Enhanced highlights query error:', error);
+        throw error;
       }
 
-      if (!autoHighlights?.length) {
+      if (!result?.length) {
         return [];
       }
 
-      // Get telegram message IDs and rule IDs
-      const messageIds = autoHighlights.map(h => h.telegram_message_id).filter(Boolean);
-      const ruleIds = autoHighlights.map(h => h.rule_id).filter(Boolean);
-
-      // Fetch telegram messages
-      const { data: messages, error: messagesError } = await supabase
-        .from('telegram_messages')
-        .select('id, message_text, username, first_name, timestamp, topic_name, likes_count')
-        .in('id', messageIds);
-
-      if (messagesError) {
-        console.error('Telegram messages query error:', messagesError);
-        throw messagesError;
-      }
-
-      // Fetch highlight rules
-      const { data: rules, error: rulesError } = await supabase
-        .from('chat_highlight_rules')
-        .select('id, rule_name, highlight_color, priority')
-        .in('id', ruleIds);
-
-      if (rulesError) {
-        console.error('Highlight rules query error:', rulesError);
-        throw rulesError;
-      }
-
-      // Combine the data
-      return autoHighlights.map((item: any) => {
-        const message = messages?.find(m => m.id === item.telegram_message_id);
-        const rule = rules?.find(r => r.id === item.rule_id);
+      // Transform the data into the expected format
+      return result.map((item: any) => {
+        const message = item.telegram_messages;
+        const rule = item.chat_highlight_rules;
 
         return {
           id: item.id,
@@ -105,8 +93,8 @@ export const EnhancedChatHighlights: React.FC = () => {
         };
       }).filter(item => item.message_text); // Only include items with valid messages
     },
-    staleTime: 30000, // Cache for 30 seconds 
-    refetchInterval: 60000, // Reduce to every 1 minute instead of 10 seconds
+    staleTime: 60000, // Cache for 1 minute 
+    refetchInterval: 120000, // Refetch every 2 minutes instead of 1 minute
     refetchOnWindowFocus: false, // Disable refetch on window focus for better performance
   });
 

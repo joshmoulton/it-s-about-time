@@ -106,9 +106,9 @@ export function FullDegenCallAlertsView({ subscriber }: FullDegenCallAlertsViewP
 function DegenCallsList() {
   const { data: calls = [], isLoading } = useDegenCallAlerts(10);
   
-  // Remove real-time crypto price fetching - we only show call-time prices
-  // const tickers = calls?.map(call => call.coin) || [];
-  // const { data: cryptoPrices } = useCryptoPrices(tickers);
+  // Get current crypto prices for market price display
+  const tickers = calls?.map(call => call.coin) || [];
+  const { data: cryptoPrices } = useCryptoPrices(tickers);
 
   if (isLoading) {
     return (
@@ -166,6 +166,11 @@ function DegenCallsList() {
     return `$${formatted}`;
   };
 
+  // Get current market price for ticker
+  const getPriceForTicker = (ticker: string) => {
+    return cryptoPrices?.find(p => p.ticker === ticker.toUpperCase());
+  };
+
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 pb-4">
       {calls.map(call => (
@@ -217,10 +222,10 @@ function DegenCallsList() {
                 <span className="text-xs sm:text-sm text-orange-200/80">Market Price:</span>
               </div>
               <span className="text-white font-semibold text-sm sm:text-base">
-                {call.entry_price && call.entry_price !== 'Market' 
-                  ? formatPrice(Number(call.entry_price))
-                  : 'Market'
-                }
+                {(() => {
+                  const currentPrice = getPriceForTicker(call.coin);
+                  return currentPrice ? formatPrice(currentPrice.price_usd) : 'Loading...';
+                })()}
               </span>
             </div>
           </div>
