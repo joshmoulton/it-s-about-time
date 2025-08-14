@@ -14,78 +14,6 @@ export type Database = {
   }
   public: {
     Tables: {
-      admin_2fa_secrets: {
-        Row: {
-          admin_email: string
-          backup_codes: string[] | null
-          created_at: string
-          device_fingerprints: Json | null
-          id: string
-          is_enabled: boolean
-          last_used_at: string | null
-          secret_key: string
-          updated_at: string
-        }
-        Insert: {
-          admin_email: string
-          backup_codes?: string[] | null
-          created_at?: string
-          device_fingerprints?: Json | null
-          id?: string
-          is_enabled?: boolean
-          last_used_at?: string | null
-          secret_key: string
-          updated_at?: string
-        }
-        Update: {
-          admin_email?: string
-          backup_codes?: string[] | null
-          created_at?: string
-          device_fingerprints?: Json | null
-          id?: string
-          is_enabled?: boolean
-          last_used_at?: string | null
-          secret_key?: string
-          updated_at?: string
-        }
-        Relationships: []
-      }
-      admin_2fa_sessions: {
-        Row: {
-          admin_email: string
-          created_at: string
-          device_fingerprint: string | null
-          expires_at: string
-          id: string
-          ip_address: string | null
-          session_token: string
-          user_agent: string | null
-          verified_at: string | null
-        }
-        Insert: {
-          admin_email: string
-          created_at?: string
-          device_fingerprint?: string | null
-          expires_at: string
-          id?: string
-          ip_address?: string | null
-          session_token: string
-          user_agent?: string | null
-          verified_at?: string | null
-        }
-        Update: {
-          admin_email?: string
-          created_at?: string
-          device_fingerprint?: string | null
-          expires_at?: string
-          id?: string
-          ip_address?: string | null
-          session_token?: string
-          user_agent?: string | null
-          verified_at?: string | null
-        }
-        Relationships: []
-      }
       admin_audit_log: {
         Row: {
           action: string
@@ -3716,10 +3644,6 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      admin_has_2fa_enabled: {
-        Args: { p_admin_email: string }
-        Returns: boolean
-      }
       aggregate_sentiment_trends: {
         Args: Record<PropertyKey, never>
         Returns: undefined
@@ -3741,10 +3665,6 @@ export type Database = {
       }
       can_manage_admin_role: {
         Args: { target_role: string }
-        Returns: boolean
-      }
-      check_admin_with_2fa_session: {
-        Args: { p_session_token?: string }
         Returns: boolean
       }
       check_data_access_quota: {
@@ -3774,10 +3694,6 @@ export type Database = {
         Returns: undefined
       }
       cleanup_auth_rate_limits: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
-      cleanup_expired_admin_sessions: {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
@@ -4322,10 +4238,6 @@ export type Database = {
       }
       validate_session_token: {
         Args: { token_input: string }
-        Returns: Json
-      }
-      verify_2fa_session: {
-        Args: { p_session_token: string }
         Returns: Json
       }
       verify_2fa_token: {
