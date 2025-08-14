@@ -61,27 +61,16 @@ serve(async (req) => {
       }, { status: 400 });
     }
 
-    // Check if token has already been used
-    if (tokenData.used) {
-      console.log('❌ Token has already been used');
-      return json({ 
-        success: false, 
-        error: 'Token has already been used' 
-      }, { status: 400 });
-    }
+    console.log('✅ Token is valid, proceeding with verification');
 
-    // Mark token as used
-    const { error: updateError } = await supabase
+    // Delete the token after successful validation (one-time use)
+    const { error: deleteError } = await supabase
       .from('magic_link_tokens')
-      .update({ used: true, used_at: new Date().toISOString() })
+      .delete()
       .eq('token', token);
 
-    if (updateError) {
-      console.error('❌ Error marking token as used:', updateError);
-      return json({ 
-        success: false, 
-        error: 'Failed to process token' 
-      }, { status: 500 });
+    if (deleteError) {
+      console.warn('⚠️ Could not delete token:', deleteError);
     }
 
     // Find or create user in auth.users
