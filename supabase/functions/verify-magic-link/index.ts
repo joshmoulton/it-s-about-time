@@ -125,17 +125,11 @@ serve(async (req) => {
 
     console.log(`✅ Magic link verified successfully for ${tokenData.email}, creating Supabase session...`);
     
-    // Create an actual Supabase auth session directly
-    const { data: sessionResponse, error: sessionError } = await supabase.auth.admin.createSession({
-      user_id: authUser.id,
-      session: {
-        access_token: undefined, // Let Supabase generate tokens
-        refresh_token: undefined
-      }
-    });
+    // Generate access token for the user using admin API
+    const { data: sessionData, error: sessionError } = await supabase.auth.admin.generateAccessToken(authUser.id);
 
-    if (sessionError || !sessionResponse.session) {
-      console.error('❌ Error creating Supabase session:', sessionError);
+    if (sessionError || !sessionData) {
+      console.error('❌ Error generating access token:', sessionError);
       
       // Fallback: redirect with unified auth session data
       const unifiedSessionData = {
@@ -160,10 +154,9 @@ serve(async (req) => {
       });
     }
 
-    console.log(`✅ Supabase session created successfully for ${tokenData.email}`);
+    console.log(`✅ Access token generated successfully for ${tokenData.email}`);
     
-    // Set session cookies and redirect to dashboard
-    const session = sessionResponse.session;
+    // Set session cookies and redirect
     const redirectUrl = new URL(redirect);
     
     return new Response(null, {
@@ -171,8 +164,8 @@ serve(async (req) => {
       headers: {
         'Location': redirectUrl.toString(),
         'Set-Cookie': [
-          `sb-access-token=${session.access_token}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=3600`,
-          `sb-refresh-token=${session.refresh_token}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=604800`
+          `sb-access-token=${sessionData.access_token}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=3600`,
+          `sb-refresh-token=${sessionData.refresh_token || ''}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=604800`
         ].join(', '),
         ...corsHeaders
       }
