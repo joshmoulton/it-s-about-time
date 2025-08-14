@@ -60,12 +60,11 @@ const AuthVerify = () => {
           verified: verifyData.verified
         });
 
-        // Success! Store authentication data with proper tier information
+        // Success! Store authentication data with exact tier from API
         localStorage.setItem('auth_user_email', decodeURIComponent(email));
         localStorage.setItem('auth_method', 'magic_link');
         localStorage.setItem('auth_verified_at', new Date().toISOString());
-        const normalizedTier = verifyData.tier === 'free' ? 'free' : 'premium';
-        localStorage.setItem('auth_user_tier', normalizedTier);
+        localStorage.setItem('auth_tier', verifyData.tier); // Use exact tier from API
         localStorage.setItem('auth_user_source', verifyData.source || 'beehiiv');
 
         // Flag recent login to provide a short grace period for route guards
@@ -75,7 +74,7 @@ const AuthVerify = () => {
         setAuthenticatedUser({
           id: 'magic_link_user',
           email: decodeURIComponent(email),
-          subscription_tier: normalizedTier,
+          subscription_tier: verifyData.tier, // Use exact tier from API
           user_type: 'unified_user',
           status: 'active',
           created_at: new Date().toISOString(),
