@@ -11,6 +11,8 @@ import { ThemeProvider } from "@/contexts/ThemeContext";
 import { DeveloperProvider, DeveloperToggle } from "@/components/dev/DeveloperToggle";
 import { updateAuthContextFromLocalStorage } from "@/utils/supabaseContext";
 import { AccessibilityProvider } from "@/components/AccessibilityProvider";
+import { SessionDetector } from "@/components/auth/SessionDetector";
+import "@/utils/sessionHelper"; // Load debugging helpers
 // Performance optimizations temporarily removed to fix modal issues
 // import { optimizeFontDisplay, enableLayoutShiftPrevention } from "@/utils/performanceUtils";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -69,10 +71,11 @@ const App = () => {
                 <Toaster />
                 <Sonner />
                 {/* All mobile performance optimizations disabled to fix modal issues */}
-                <DeveloperProvider>
-                <EnhancedAuthProvider>
-                <DeveloperToggle />
-                <main id="main-content">
+                 <DeveloperProvider>
+                 <EnhancedAuthProvider>
+                 <SessionDetector />
+                 <DeveloperToggle />
+                 <main id="main-content">
                   <Suspense fallback={<PageLoader />}>
                     <Routes>
                       <Route path="/" element={<Index />} />

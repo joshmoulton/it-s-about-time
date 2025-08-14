@@ -174,6 +174,13 @@ export const useEnhancedAuthInitialization = ({
         // PRIORITY 1: Check for Supabase session FIRST
         const { data: { session }, error } = await supabase.auth.getSession();
         
+        console.log('🔍 Session check result:', { 
+          hasSession: !!session, 
+          hasUser: !!session?.user, 
+          userEmail: session?.user?.email,
+          error 
+        });
+        
         if (error) {
           console.error('❌ Error getting Supabase session:', error);
         } else if (session?.user) {
@@ -201,14 +208,15 @@ export const useEnhancedAuthInitialization = ({
                 metadata: session.user.user_metadata
               };
               
-              localStorage.setItem('auth_method', authMethod);
-              setCurrentUser(userData);
-              
-              await setSupabaseAuthContext({
-                authMethod,
-                authTier: 'premium',
-                userEmail: session.user.email
-              });
+               localStorage.setItem('auth_method', authMethod);
+               localStorage.setItem('last_known_premium_email', session.user.email!);
+               setCurrentUser(userData);
+               
+               await setSupabaseAuthContext({
+                 authMethod,
+                 authTier: 'premium',
+                 userEmail: session.user.email
+               });
             } else {
               // For non-admin users, verify with Beehiiv immediately
               const { data: verifyData } = await supabase.functions.invoke('unified-auth-verify', {
@@ -228,14 +236,17 @@ export const useEnhancedAuthInitialization = ({
                 metadata: session.user.user_metadata
               };
               
-              localStorage.setItem('auth_method', authMethod);
-              setCurrentUser(userData);
-              
-              await setSupabaseAuthContext({
-                authMethod,
-                authTier: tier,
-                userEmail: session.user.email
-              });
+               localStorage.setItem('auth_method', authMethod);
+               if (tier === 'premium') {
+                 localStorage.setItem('last_known_premium_email', session.user.email!);
+               }
+               setCurrentUser(userData);
+               
+               await setSupabaseAuthContext({
+                 authMethod,
+                 authTier: tier,
+                 userEmail: session.user.email
+               });
             }
           } catch (error) {
             console.error('❌ Error determining user tier:', error);
@@ -319,6 +330,41 @@ export const useEnhancedAuthInitialization = ({
             // Clear invalid session
             localStorage.removeItem('auth_user_email');
             localStorage.removeItem('enhanced_session_token');
+          }
+        }
+        
+        // Check if we have evidence of a previous premium user who should be authenticated
+        const lastKnownEmail = localStorage.getItem('last_known_premium_email');
+        if (lastKnownEmail) {
+          console.log('🔍 Found evidence of previous premium user:', lastKnownEmail);
+          
+          // Check if this user exists in our database and should have access
+          try {
+            const { data: subscriberData } = await supabase
+              .from('beehiiv_subscribers')
+              .select('email, subscription_tier')
+              .eq('email', lastKnownEmail)
+              .eq('subscription_tier', 'premium')
+              .maybeSingle();
+              
+            if (subscriberData) {
+              console.log('🎯 Premium user found in database, setting restoration state');
+              // Set a special state indicating session restoration is needed
+              setCurrentUser({
+                id: 'session-restoration-needed',
+                email: lastKnownEmail,
+                subscription_tier: 'premium',
+                user_type: 'needs_session_restoration' as any,
+                status: 'session_restoration_needed',
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString()
+              });
+              setIsLoading(false);
+              isInitialized.current = true;
+              return;
+            }
+          } catch (error) {
+            console.warn('⚠️ Error checking for premium user:', error);
           }
         }
         

@@ -98,6 +98,11 @@ const AuthVerify = () => {
         localStorage.setItem('auth_verified_at', new Date().toISOString());
         localStorage.setItem('auth_tier', verifyData.user.subscription_tier);
         localStorage.setItem('auth_user_source', verifyData.user.source || 'beehiiv');
+        
+        // Store premium email for session restoration if needed
+        if (verifyData.user.subscription_tier === 'premium') {
+          localStorage.setItem('last_known_premium_email', decodeURIComponent(email));
+        }
 
         // Flag recent login to provide a short grace period for route guards
         sessionStorage.setItem('ww.justLoggedIn', String(Date.now()));

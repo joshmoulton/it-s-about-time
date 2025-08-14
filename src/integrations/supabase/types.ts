@@ -3869,6 +3869,10 @@ export type Database = {
         }
         Returns: Json
       }
+      debug_current_auth_session: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
       debug_current_auth_state: {
         Args: Record<PropertyKey, never>
         Returns: Json
