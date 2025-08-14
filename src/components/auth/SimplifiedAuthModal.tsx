@@ -6,6 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import { AuthModalSkeleton } from './AuthModalSkeleton';
 import { WelcomeView } from './components/WelcomeView';
 import { MagicLinkView, SignInView, SignUpView } from './components/AuthFormViews';
+import { authRequestDeduplication } from '@/utils/authRequestDeduplication';
 
 interface SimplifiedAuthModalProps {
   open: boolean;
@@ -132,31 +133,45 @@ export const SimplifiedAuthModal: React.FC<SimplifiedAuthModalProps> = memo(({ o
           return;
         }
         
-        const { data, error } = await supabase.functions.invoke('send-magic-link', {
-          body: { email: email.toLowerCase().trim() }
-        });
-        
-        if (error || !data?.success) {
-          const errorMessage = data?.error || error?.message || 'Failed to send access link';
-          console.error('❌ Magic link error:', errorMessage);
-          setError(errorMessage);
-        } else {
-          console.log('✅ Magic link sent successfully');
-          if (data.is_new_user) {
-            setError(
-              <div className="text-green-600">
-                Welcome! We've created your free Weekly Wizdom account and sent an access link to your email. 
-                Check your inbox and click the link to get started.
-              </div>
-            );
-          } else {
-            setError(
-              <div className="text-green-600">
-                Access link sent! Check your email and click the link to sign in.
-              </div>
-            );
+        // Use deduplication system to prevent duplicate requests
+        const result = await authRequestDeduplication.deduplicateRequest(
+          email.toLowerCase().trim(),
+          'magic_link',
+          async () => {
+            console.log('📧 Actually sending magic link request...');
+            const { data, error } = await supabase.functions.invoke('unified-auth-verify', {
+              body: { email: email.toLowerCase().trim() }
+            });
+
+            if (error) {
+              console.error('❌ Magic link error:', error);
+              throw new Error(error.message || 'Failed to send magic link');
+            }
+
+            return data;
           }
-          setEmail('');
+        );
+        
+        console.log('✅ Magic link sent successfully:', result);
+        
+        // Handle successful verification
+        if (result && (result.success || result.session_id)) {
+          console.log('🎯 User verified and authenticated via magic link');
+          
+          if (result.user_data) {
+            console.log('📝 Setting authenticated user with data:', result.user_data);
+            setAuthenticatedUser(result.user_data, 'unified_auth');
+          }
+          
+          onOpenChange(false);
+          navigate('/dashboard');
+        } else {
+          console.log('📧 Magic link sent, awaiting user action');
+          setError(
+            <div className="text-green-600">
+              Magic link sent! Check your email and click the link to sign in.
+            </div>
+          );
         }
       } else if (mode === 'signin') {
         if (!password.trim()) {
