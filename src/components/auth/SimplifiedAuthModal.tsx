@@ -284,26 +284,15 @@ export const SimplifiedAuthModal: React.FC<SimplifiedAuthModalProps> = memo(({ o
 
   return (
     <Dialog open={open} onOpenChange={handleModalClose}>
-      <DialogContent 
-        className="p-0 top-[50%] translate-y-[-50%] data-[state=open]:translate-y-[-50%] light"
-        style={{ 
-          position: 'fixed',
-          top: '50%',
-          left: '50%',
-          transform: 'translate(-50%, -50%)',
-          zIndex: 50
-        }}
-      >
+      <DialogContent className="p-0">
         <DialogTitle className="sr-only">Authentication</DialogTitle>
         <DialogDescription className="sr-only">
           Get access to Weekly Wizdom premium features and newsletter content.
         </DialogDescription>
         
-        <div className="bg-background text-foreground [color-scheme:light]">
-          <Suspense fallback={<AuthModalSkeleton />}>
-            {renderCurrentView()}
-          </Suspense>
-        </div>
+        <Suspense fallback={<AuthModalSkeleton />}>
+          {renderCurrentView()}
+        </Suspense>
       </DialogContent>
     </Dialog>
   );
