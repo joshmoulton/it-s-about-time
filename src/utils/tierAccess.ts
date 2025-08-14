@@ -27,18 +27,20 @@ export class TierAccessManager {
       return false;
     }
 
-    // Check if this is a magic link user with verified premium/paid access
-    const authMethod = localStorage.getItem('auth_method');
-    const authEmail = localStorage.getItem('auth_user_email');
-    const authTier = localStorage.getItem('auth_tier'); // Set by magic link verification
-    
-    // Only bypass overlay for magic link users with verified premium/paid tier
-    if (authMethod === 'magic_link' && authEmail && (authTier === 'premium' || authTier === 'paid')) {
+    // Premium users get full access like admins (no overlay)
+    if (subscriber?.subscription_tier === 'premium') {
       return false;
     }
 
-    // Show overlay if no subscriber or if subscription_tier is free/undefined
-    // This preserves the free user experience with upgrade prompts
+    // Check magic link premium access
+    const authMethod = localStorage.getItem('auth_method');
+    const authTier = localStorage.getItem('auth_tier');
+    
+    if (authMethod === 'magic_link' && (authTier === 'premium' || authTier === 'paid')) {
+      return false;
+    }
+
+    // Show overlay for free users or no subscriber
     return !subscriber || 
            !subscriber.subscription_tier || 
            subscriber.subscription_tier === 'free';

@@ -203,8 +203,15 @@ const { subscriber, isLoading } = useEnhancedAuth();
 const [showUpgradeModal, setShowUpgradeModal] = useState(false);
 const { isAdmin } = useAdminCheck();
 
-// Admins always have access (bypass overlay)
-if (isAdmin) {
+// Admins and premium users always have access (bypass overlay)
+if (isAdmin || subscriber?.subscription_tier === 'premium') {
+  return <>{children}</>;
+}
+
+// Check magic link premium access
+const authMethod = localStorage.getItem('auth_method');
+const authTier = localStorage.getItem('auth_tier');
+if (authMethod === 'magic_link' && (authTier === 'premium' || authTier === 'paid')) {
   return <>{children}</>;
 }
 
