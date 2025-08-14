@@ -14,10 +14,48 @@ export function AuthCallback() {
       try {
         console.log('🔄 Processing authentication callback...');
         
-        // Check for fallback session data from magic link
-        const sessionParam = searchParams.get('session');
+        // Check for session data from magic link verification
+        const sessionDataParam = searchParams.get('session_data');
         const tierParam = searchParams.get('tier');
         const verifiedParam = searchParams.get('verified');
+        
+        if (sessionDataParam && verifiedParam === 'true') {
+          console.log('🔄 Processing magic link session data...');
+          try {
+            const sessionData = JSON.parse(atob(sessionDataParam));
+            console.log('✅ Magic link session processed for:', sessionData.user.email);
+            
+            // Set the session in Supabase client
+            const { error: setSessionError } = await supabase.auth.setSession({
+              access_token: sessionData.access_token,
+              refresh_token: sessionData.refresh_token
+            });
+            
+            if (setSessionError) {
+              console.error('❌ Error setting session:', setSessionError);
+              setStatus('error');
+              setMessage('Failed to establish session. Please try again.');
+              return;
+            }
+            
+            console.log('✅ Session established successfully');
+            setMessage(`Welcome! Your subscription tier: ${tierParam}`);
+            setStatus('success');
+            
+            setTimeout(() => {
+              navigate('/dashboard', { replace: true });
+            }, 1500);
+            return;
+          } catch (decodeError) {
+            console.error('❌ Error decoding session data:', decodeError);
+            setStatus('error');
+            setMessage('Invalid session data. Please try again.');
+            return;
+          }
+        }
+        
+        // Check for fallback session data from old magic link format
+        const sessionParam = searchParams.get('session');
         
         if (sessionParam && verifiedParam === 'true') {
           console.log('🔄 Processing fallback unified auth session...');
