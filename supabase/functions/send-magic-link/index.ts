@@ -103,6 +103,7 @@ serve(async (req) => {
 
     // Create the clean magic link URL - goes directly to your domain
     const magicLinkUrl = `https://www.weeklywizdom.com/auth/verify?token=${token}&email=${encodeURIComponent(email)}`;
+    console.log(`🔗 Generated clean magic link URL: ${magicLinkUrl}`);
 
     // Send email using Resend with our custom template
     const resend = new Resend(Deno.env.get('RESEND_API_KEY'));
