@@ -75,11 +75,22 @@ serve(async (req) => {
       });
 
       if (createError) {
-        console.error('❌ Error creating Supabase user:', createError);
-        return new Response('Failed to create user account', { status: 500 });
+        // If user already exists, just fetch them instead of failing
+        if (createError.message?.includes('already been registered')) {
+          console.log(`🔄 User already exists, fetching existing user: ${tokenData.email}`);
+          const { data: users } = await supabase.auth.admin.listUsers();
+          authUser = users.users.find(u => u.email === tokenData.email);
+          if (!authUser) {
+            console.error('❌ Could not find existing user after creation error');
+            return new Response('Failed to authenticate user', { status: 500 });
+          }
+        } else {
+          console.error('❌ Error creating Supabase user:', createError);
+          return new Response('Failed to create user account', { status: 500 });
+        }
+      } else {
+        authUser = newUser.user;
       }
-
-      authUser = newUser.user;
     } else {
       console.log(`🔄 Updating existing Supabase user: ${tokenData.email}`);
       

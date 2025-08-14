@@ -101,8 +101,9 @@ serve(async (req) => {
       return json({ success: false, error: 'Failed to generate magic link' }, { status: 500 });
     }
 
-    // Create the magic link URL
-    const redirectUrl = `https://www.weeklywizdom.com/auth/callback?tier=${tier}`;
+    // Create the magic link URL - use the request origin for dynamic redirect
+    const origin = req.headers.get('origin') || 'https://700b3cf6-3a0d-49d5-b5a5-0091c00fbbf6.lovableproject.com';
+    const redirectUrl = `${origin}/auth/callback?tier=${tier}`;
     const magicLinkUrl = `https://wrvvlmevpvcenauglcyz.supabase.co/functions/v1/verify-magic-link?token=${token}&redirect=${encodeURIComponent(redirectUrl)}`;
 
     // Send email using Resend with our custom template
