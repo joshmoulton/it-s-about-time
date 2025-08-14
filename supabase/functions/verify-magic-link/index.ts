@@ -127,113 +127,38 @@ serve(async (req) => {
       console.warn('⚠️ Error upserting subscriber:', upsertError);
     }
 
-    console.log(`✅ Magic link verified successfully for ${tokenData.email}, generating Supabase magic link...`);
+    console.log(`✅ Magic link verified successfully for ${tokenData.email}, preparing authentication...`);
     
-    try {
-      // Generate a proper Supabase magic link for the user
-      console.log(`🔗 Attempting to generate Supabase link for: ${tokenData.email}`);
-      
-      const { data: linkData, error: linkError } = await supabase.auth.admin.generateLink({
-        type: 'magiclink',
-        email: tokenData.email,
-        options: {
-          redirectTo: redirect
-        }
-      });
-
-      if (linkError) {
-        console.error('❌ Error generating Supabase magic link:', linkError);
-        console.error('❌ Link error details:', JSON.stringify(linkError));
-        
-        // Fallback: redirect directly to callback with success
-        const fallbackUrl = new URL(redirect);
-        fallbackUrl.searchParams.set('verified', 'true');
-        fallbackUrl.searchParams.set('tier', tokenData.tier);
-        fallbackUrl.searchParams.set('email', tokenData.email);
-        
-        return new Response(null, {
-          status: 302,
-          headers: {
-            'Location': fallbackUrl.toString(),
-            ...corsHeaders
-          }
-        });
-      }
-
-      if (!linkData || !linkData.properties || !linkData.properties.action_link) {
-        console.error('❌ Invalid link data structure:', JSON.stringify(linkData));
-        
-        // Fallback: redirect directly to callback with success
-        const fallbackUrl = new URL(redirect);
-        fallbackUrl.searchParams.set('verified', 'true');
-        fallbackUrl.searchParams.set('tier', tokenData.tier);
-        fallbackUrl.searchParams.set('email', tokenData.email);
-        
-        return new Response(null, {
-          status: 302,
-          headers: {
-            'Location': fallbackUrl.toString(),
-            ...corsHeaders
-          }
-        });
-      }
-
-      console.log(`✅ Supabase magic link generated successfully for ${tokenData.email}`);
-      console.log(`🔗 Generated link: ${linkData.properties.action_link}`);
-      
-      // Extract the token from the generated link for direct session creation
-      const urlParams = new URL(linkData.properties.action_link).searchParams;
-      const supabaseToken = urlParams.get('token');
-      const tokenHash = urlParams.get('token_hash') || supabaseToken;
-      
-      if (!tokenHash) {
-        console.error('❌ No token found in generated link');
-        
-        // Fallback: redirect directly to callback with success
-        const fallbackUrl = new URL(redirect);
-        fallbackUrl.searchParams.set('verified', 'true');
-        fallbackUrl.searchParams.set('tier', tokenData.tier);
-        fallbackUrl.searchParams.set('email', tokenData.email);
-        
-        return new Response(null, {
-          status: 302,
-          headers: {
-            'Location': fallbackUrl.toString(),
-            ...corsHeaders
-          }
-        });
-      }
-      
-      // Redirect directly to Supabase's verification endpoint
-      const supabaseVerifyUrl = `${Deno.env.get('SUPABASE_URL')}/auth/v1/verify?token=${tokenHash}&type=magiclink&redirect_to=${encodeURIComponent(redirect)}`;
-      
-      console.log(`✅ Redirecting to Supabase verification: ${supabaseVerifyUrl}`);
-      
-      return new Response(null, {
-        status: 302,
-        headers: {
-          'Location': supabaseVerifyUrl,
-          ...corsHeaders
-        }
-      });
-    } catch (generateError) {
-      console.error('❌ Exception in generateLink:', generateError);
-      console.error('❌ Generate error details:', JSON.stringify(generateError));
-      
-      // Fallback: redirect directly to callback with success
-      const fallbackUrl = new URL(redirect);
-      fallbackUrl.searchParams.set('verified', 'true');
-      fallbackUrl.searchParams.set('tier', tokenData.tier);
-      fallbackUrl.searchParams.set('email', tokenData.email);
-      
-      return new Response(null, {
-        status: 302,
-        headers: {
-          'Location': fallbackUrl.toString(),
-          ...corsHeaders
+    // Update user metadata to sync subscription tier
+    if (authUser) {
+      console.log(`🔄 Updating user metadata for: ${tokenData.email}`);
+      await supabase.auth.admin.updateUserById(authUser.id, {
+        user_metadata: {
+          ...authUser.user_metadata,
+          subscription_tier: tokenData.tier,
+          last_login_via: 'magic_link',
+          verified_at: new Date().toISOString()
         }
       });
     }
+
+
+    console.log(`✅ Magic link authentication complete for ${tokenData.email}`);
+    
+    // Redirect directly to success page with verified status
+    const redirectUrl = new URL(redirect);
+    redirectUrl.searchParams.set('verified', 'true');
+    redirectUrl.searchParams.set('tier', tokenData.tier);
+    redirectUrl.searchParams.set('email', tokenData.email);
+    redirectUrl.searchParams.set('auth_method', 'magic_link');
+    
+    return new Response(null, {
+      status: 302,
+      headers: {
+        'Location': redirectUrl.toString(),
+        ...corsHeaders
+      }
+    });
   } catch (error) {
     console.error('❌ Verify magic link error:', error);
     return new Response('Internal server error', { status: 500 });

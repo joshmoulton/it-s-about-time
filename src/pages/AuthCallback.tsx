@@ -19,16 +19,43 @@ export function AuthCallback() {
         const tierParam = searchParams.get('tier');
         const verifiedParam = searchParams.get('verified');
         
-        // Check for magic link authentication from our custom flow (fallback)
-        const magicAuthParam = searchParams.get('magic_auth');
-        const emailParam = searchParams.get('email');
-        const tempPasswordParam = searchParams.get('temp_password');
+        // Check for magic link verification (new clean flow)
+        const authMethodParam = searchParams.get('auth_method');
         
-        if (magicAuthParam === 'true' && emailParam && tempPasswordParam && verifiedParam === 'true') {
-          console.log('🔄 Processing legacy magic link authentication...');
-          setMessage('Legacy magic link authentication no longer supported. Please use the latest magic link.');
-          setStatus('error');
-          return;
+        if (verifiedParam === 'true' && authMethodParam === 'magic_link') {
+          console.log('🔄 Processing magic link verification...');
+          try {
+            const emailParam = searchParams.get('email');
+            
+            if (!emailParam) {
+              throw new Error('Email not provided in magic link verification');
+            }
+            
+            // Verify tier and create/update user session
+            const { data: verifyData, error: verifyError } = await supabase.functions.invoke('beehiiv-subscriber-verify', {
+              body: { email: emailParam }
+            });
+            
+            if (verifyData?.success) {
+              console.log(`✅ User tier verified: ${verifyData.tier}`);
+              setMessage(`Welcome! Your subscription tier: ${verifyData.tier}`);
+            } else {
+              console.warn('⚠️ Could not verify tier:', verifyError);
+              setMessage(`Welcome! Your subscription tier: ${tierParam}`);
+            }
+            
+            setStatus('success');
+            
+            setTimeout(() => {
+              navigate('/dashboard', { replace: true });
+            }, 1500);
+            return;
+          } catch (error) {
+            console.error('❌ Magic link verification error:', error);
+            setStatus('error');
+            setMessage('Magic link verification failed. Please try again.');
+            return;
+          }
         }
         
         // Check for old session data format (fallback)
