@@ -31,6 +31,9 @@ import {
   Admin,
 } from "@/components/LazyComponents";
 
+// Auth page
+import Auth from "@/pages/Auth";
+
 // Static pages
 import TermsOfService from "@/pages/TermsOfService";
 import PrivacyPolicy from "@/pages/PrivacyPolicy";
@@ -71,6 +74,7 @@ const App = () => {
                     <Routes>
                       <Route path="/" element={<Index />} />
                       <Route path="/login" element={<Login />} />
+                      <Route path="/auth" element={<Auth />} />
                       <Route path="/auth/verify" element={<AuthVerify />} />
                       <Route
                         path="/dashboard/*"
