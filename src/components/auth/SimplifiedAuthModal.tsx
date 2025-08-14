@@ -139,7 +139,7 @@ export const SimplifiedAuthModal: React.FC<SimplifiedAuthModalProps> = memo(({ o
             console.log('📧 Actually sending magic link request...');
             
             try {
-              const { data, error } = await supabase.functions.invoke('unified-auth-verify', {
+              const { data, error } = await supabase.functions.invoke('send-magic-link', {
                 body: { email: email.toLowerCase().trim() }
               });
 
@@ -159,45 +159,24 @@ export const SimplifiedAuthModal: React.FC<SimplifiedAuthModalProps> = memo(({ o
         
         console.log('✅ Magic link result:', result);
         
-        // Handle successful verification or magic link sending
+        // The send-magic-link function only sends an email, it never logs users in immediately
         if (result && result.success) {
-          if (result.verified && result.session_token) {
-            console.log('🎯 User verified and authenticated via magic link');
-            
-            // Store the session for the auth system to pick up
-            localStorage.setItem('auth_user_email', email.toLowerCase().trim());
-            localStorage.setItem('enhanced_session_token', result.session_token);
-            localStorage.setItem('auth_tier', result.tier || 'free');
-            localStorage.setItem('auth_method', 'magic_link');
-            
-            // Set user context if we have user data
-            if (setAuthenticatedUser) {
-              const userData = {
-                id: crypto.randomUUID(),
-                email: email.toLowerCase().trim(),
-                subscription_tier: result.tier === 'free' ? 'free' : 'premium',
-                user_type: 'unified_user' as const,
-                status: 'active',
-                created_at: new Date().toISOString(),
-                updated_at: new Date().toISOString()
-              };
-              setAuthenticatedUser(userData, 'magic_link');
-            }
-            
-            // Success - redirect to dashboard
-            onOpenChange(false);
-            navigate('/dashboard');
-          } else {
-            // Magic link sent but not immediately verified
-            console.log('📧 Magic link sent, awaiting user action');
-            setError(
-              <div className="text-green-600 text-sm">
-                ✅ Magic link sent! Check your email and click the link to sign in.
-              </div>
-            );
-          }
+          console.log('📧 Magic link sent successfully, user must click email link to log in');
+          setError(
+            <div className="text-green-600 text-sm">
+              ✅ {result.message || 'Access link sent! Check your email and click the link to sign in.'}
+              {result.is_new_user && (
+                <div className="mt-2 text-blue-600">
+                  Welcome to Weekly Wizdom! We've created your free account.
+                </div>
+              )}
+            </div>
+          );
+          
+          // Do NOT auto-login here - user must click the email link
+          // The actual login will happen when they visit the verification URL from their email
         } else {
-          throw new Error('Failed to process magic link request');
+          throw new Error('Failed to send magic link');
         }
       } else if (mode === 'signin') {
         if (!password.trim()) {
