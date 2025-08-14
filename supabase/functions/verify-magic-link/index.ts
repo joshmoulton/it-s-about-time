@@ -123,15 +123,24 @@ serve(async (req) => {
       console.warn('⚠️ Error upserting subscriber:', upsertError);
     }
 
-    console.log(`✅ Magic link verified successfully for ${tokenData.email}, preparing session data...`);
+    console.log(`✅ Magic link verified successfully for ${tokenData.email}, creating real session...`);
     
-    // Instead of trying to create a Supabase session in the edge function,
-    // we'll pass the verified user data to the frontend via URL parameters
+    // Generate real Supabase JWT tokens for the user
+    const { data: sessionTokens, error: tokenError } = await supabase.auth.admin.generateAccessToken(authUser.id);
+    
+    if (tokenError || !sessionTokens) {
+      console.error('❌ Error generating access token:', tokenError);
+      return new Response('Failed to create session', { status: 500 });
+    }
+
+    console.log(`✅ Real JWT tokens generated for ${tokenData.email}`);
+    
+    // Prepare session data with real Supabase tokens
     const sessionData = {
-      access_token: `verified_${authUser.id}_${Date.now()}`,
-      refresh_token: `refresh_${authUser.id}_${Date.now()}`,
-      expires_in: 3600,
-      expires_at: Math.floor(Date.now() / 1000) + 3600,
+      access_token: sessionTokens.access_token,
+      refresh_token: sessionTokens.refresh_token,
+      expires_in: sessionTokens.expires_in,
+      expires_at: sessionTokens.expires_at,
       token_type: 'bearer',
       user: {
         id: authUser.id,
@@ -141,7 +150,7 @@ serve(async (req) => {
       }
     };
 
-    console.log(`✅ Session data prepared for ${tokenData.email}`);
+    console.log(`✅ Real session data prepared for ${tokenData.email}`);
     
     // Redirect with session data as URL parameters
     const redirectUrl = new URL(redirect);

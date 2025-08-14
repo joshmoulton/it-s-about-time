@@ -25,7 +25,7 @@ export function AuthCallback() {
             const sessionData = JSON.parse(atob(sessionDataParam));
             console.log('✅ Magic link session processed for:', sessionData.user.email);
             
-            // Set the session in Supabase client
+            // Set the real Supabase session with JWT tokens
             const { error: setSessionError } = await supabase.auth.setSession({
               access_token: sessionData.access_token,
               refresh_token: sessionData.refresh_token
@@ -38,8 +38,37 @@ export function AuthCallback() {
               return;
             }
             
-            console.log('✅ Session established successfully');
-            setMessage(`Welcome! Your subscription tier: ${tierParam}`);
+            console.log('✅ Real Supabase session established successfully');
+            
+            // Verify tier and update metadata (same as password auth)
+            if (sessionData.user.email) {
+              try {
+                const { data: verifyData, error: verifyError } = await supabase.functions.invoke('beehiiv-subscriber-verify', {
+                  body: { email: sessionData.user.email }
+                });
+                
+                if (verifyData?.success) {
+                  console.log(`✅ User tier verified: ${verifyData.tier}`);
+                  
+                  // Update user metadata with tier info (consistent with password auth)
+                  await supabase.auth.updateUser({
+                    data: {
+                      subscription_tier: verifyData.tier,
+                      source: 'magic_link',
+                      verified_at: new Date().toISOString()
+                    }
+                  });
+                  
+                  setMessage(`Welcome! Your subscription tier: ${verifyData.tier}`);
+                } else {
+                  setMessage(`Welcome! Your subscription tier: ${tierParam}`);
+                }
+              } catch (verifyError) {
+                console.warn('⚠️ Could not verify tier:', verifyError);
+                setMessage(`Welcome! Your subscription tier: ${tierParam}`);
+              }
+            }
+            
             setStatus('success');
             
             setTimeout(() => {
