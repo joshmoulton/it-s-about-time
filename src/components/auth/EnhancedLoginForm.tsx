@@ -135,20 +135,70 @@ export const EnhancedLoginForm: React.FC<EnhancedLoginFormProps> = ({ onSuccess 
         return;
       }
 
-      // Check if password setup is required
+      // Check if user exists in local database
       const { data: subscriber, error: subscriberError } = await supabase
         .from('beehiiv_subscribers')
-        .select('requires_password_setup, subscription_tier')
+        .select('requires_password_setup, subscription_tier, id')
         .eq('email', data.email.toLowerCase().trim())
         .single();
 
-      if (subscriberError) {
-        console.error('Error checking subscriber:', subscriberError);
+      let localSubscriber = subscriber;
+      const userTierRaw = verificationResult.tier || 'free';
+      const userTier = userTierRaw === 'free' ? 'free' : 'premium';
+
+      // If user doesn't exist in local database but exists in Beehiiv, create local record
+      if (subscriberError && subscriberError.code === 'PGRST116') {
+        console.log(`🆕 Creating local database record for Beehiiv user: ${data.email}`);
+        
+        try {
+          const { data: newSubscriber, error: createError } = await supabase
+            .from('beehiiv_subscribers')
+            .insert({
+              email: data.email.toLowerCase().trim(),
+              subscription_tier: userTier,
+              requires_password_setup: false, // Make password setup optional
+              status: 'active',
+              metadata: {
+                source: 'beehiiv_sync',
+                created_from: 'enhanced_login',
+                beehiiv_tier: verificationResult.tier
+              }
+            })
+            .select('requires_password_setup, subscription_tier, id')
+            .single();
+
+          if (createError) {
+            console.error('❌ Failed to create local subscriber record:', createError);
+            // Continue with login even if local record creation fails
+            localSubscriber = {
+              requires_password_setup: false,
+              subscription_tier: userTier,
+              id: null
+            };
+          } else {
+            console.log('✅ Local subscriber record created successfully');
+            localSubscriber = newSubscriber;
+          }
+        } catch (createError) {
+          console.error('❌ Error creating local subscriber:', createError);
+          // Continue with login using Beehiiv data
+          localSubscriber = {
+            requires_password_setup: false,
+            subscription_tier: userTier,
+            id: null
+          };
+        }
+      } else if (subscriberError) {
+        console.error('❌ Database error checking subscriber:', subscriberError);
+        // Continue with login using Beehiiv data
+        localSubscriber = {
+          requires_password_setup: false,
+          subscription_tier: userTier,
+          id: null
+        };
       }
 
-      const requiresPasswordSetup = subscriber?.requires_password_setup ?? false;
-      const userTierRaw = verificationResult.tier || subscriber?.subscription_tier || 'free';
-      const userTier = userTierRaw === 'free' ? 'free' : 'premium';
+      const requiresPasswordSetup = localSubscriber?.requires_password_setup ?? false;
 
       if (requiresPasswordSetup) {
         // Show password setup modal
