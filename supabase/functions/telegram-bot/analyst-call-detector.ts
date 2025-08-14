@@ -462,11 +462,16 @@ export class AnalystCallDetector {
         const params = additionalParams.trim().toLowerCase();
         console.log(`🔍 Parsing params: "${params}"`);
         
-        // Look for entry price - matches "entry 3.47" or "0.728" with up to 8 decimal places
-        const entryMatch = params.match(/entry\s+([0-9]+(?:\.[0-9]{1,8})?)/i);
-        if (entryMatch) {
-          entryPrice = parseFloat(parseFloat(entryMatch[1]).toFixed(8));
-          console.log(`📊 Found entry price: ${entryPrice}`);
+        // Look for entry price - matches "entry 3.47" or standalone numbers like "0.728" with up to 8 decimal places
+        const entryMatchKeyword = params.match(/entry\s+([0-9]+(?:\.[0-9]{1,8})?)/i);
+        const entryMatchStandalone = params.match(/^([0-9]+(?:\.[0-9]{1,8})?)\s/);
+        
+        if (entryMatchKeyword) {
+          entryPrice = parseFloat(parseFloat(entryMatchKeyword[1]).toFixed(8));
+          console.log(`📊 Found entry price (keyword): ${entryPrice}`);
+        } else if (entryMatchStandalone) {
+          entryPrice = parseFloat(parseFloat(entryMatchStandalone[1]).toFixed(8));
+          console.log(`📊 Found entry price (standalone): ${entryPrice}`);
         }
 
         // Look for stop loss - matches "stop 2.94" with up to 8 decimal places
