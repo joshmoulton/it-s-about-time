@@ -1,8 +1,15 @@
 project_id = "wrvvlmevpvcenauglcyz"
 
 [auth]
-# Custom auth handled by send-magic-link function
-hook_auth_emails_enabled = false
+# Enable auth webhook for custom email handling
+enable_signup = true
+enable_confirmations = false
+external_email_enabled = true
+hook_send_email_enabled = true
+hook_send_email_uri = "https://wrvvlmevpvcenauglcyz.supabase.co/functions/v1/auth-webhook"
+
+[functions.auth-webhook]
+verify_jwt = false
 
 [functions.active-alerts-widget]
 verify_jwt = false

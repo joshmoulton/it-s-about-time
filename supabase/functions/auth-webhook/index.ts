@@ -92,7 +92,7 @@ serve(async (req) => {
     const emailResult = await resend.emails.send({
       from: 'Weekly Wizdom <noreply@weeklywizdom.app>',
       to: [user.email],
-      subject: 'Your secure login link for Weekly Wizdom',
+      subject: 'Access Your Weekly Wizdom Account',
       html,
     });
 

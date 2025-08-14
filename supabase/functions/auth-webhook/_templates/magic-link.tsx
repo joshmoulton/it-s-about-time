@@ -26,38 +26,34 @@ export const MagicLinkEmail = ({
     <Preview>Your secure login link for Weekly Wizdom</Preview>
     <Body style={main}>
       <Container style={container}>
-        <Heading style={h1}>Weekly Wizdom Access</Heading>
+        <Heading style={h1}>Weekly Wizdom</Heading>
         
         <Text style={text}>
-          Hello! Click the link below to securely access your Weekly Wizdom account:
+          Click the button below to securely access your Weekly Wizdom account:
         </Text>
         
         <Link
           href={magicLink}
           target="_blank"
           style={{
-            ...link,
+            ...button,
             display: 'block',
-            marginBottom: '16px',
+            marginBottom: '24px',
             padding: '12px 24px',
-            backgroundColor: '#000',
-            color: '#fff',
+            backgroundColor: '#2563eb',
+            color: '#ffffff',
             textDecoration: 'none',
-            borderRadius: '6px',
+            borderRadius: '8px',
             textAlign: 'center' as const,
+            fontWeight: '600',
+            fontSize: '16px'
           }}
         >
-          Access Weekly Wizdom →
+          Sign In to Your Account
         </Link>
         
-        <Text style={text}>
-          <strong>Account Details:</strong><br />
-          Email: {email}<br />
-          Subscription Tier: <span style={{ textTransform: 'capitalize' }}>{userTier}</span>
-        </Text>
-        
-        <Text style={{ ...text, color: '#666', fontSize: '14px' }}>
-          This link will expire in 24 hours for your security. If you didn't request this login link, you can safely ignore this email.
+        <Text style={{ ...text, fontSize: '14px', color: '#6b7280' }}>
+          This link expires in 15 minutes for security. If you didn't expect this invitation, you can safely ignore this email.
         </Text>
         
         <Text style={footer}>
@@ -97,17 +93,29 @@ const h1 = {
   padding: '0',
 };
 
+const button = {
+  backgroundColor: '#2563eb',
+  borderRadius: '8px',
+  color: '#ffffff',
+  fontSize: '16px',
+  fontWeight: '600',
+  textDecoration: 'none',
+  textAlign: 'center' as const,
+  display: 'block',
+  padding: '12px 24px',
+};
+
 const link = {
-  color: '#2754C5',
+  color: '#2563eb',
   fontSize: '14px',
   textDecoration: 'underline',
 };
 
 const text = {
-  color: '#333',
+  color: '#374151',
   fontSize: '16px',
   margin: '24px 0',
-  lineHeight: '26px',
+  lineHeight: '24px',
 };
 
 const footer = {

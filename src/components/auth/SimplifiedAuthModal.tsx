@@ -136,12 +136,12 @@ export const SimplifiedAuthModal: React.FC<SimplifiedAuthModalProps> = memo(({ o
           return;
         }
         
-        // Use Supabase's native magic link but with custom tier verification
+        // Use Supabase's native magic link 
         const result = await authRequestDeduplication.deduplicateRequest(
           email.toLowerCase().trim(),
           'magic_link',
           async () => {
-            console.log('📧 Sending Supabase magic link with tier verification...');
+            console.log('📧 Sending Supabase magic link...');
             
             // First verify tier with Beehiiv
             const { data: verifyData, error: verifyError } = await supabase.functions.invoke('beehiiv-subscriber-verify', {
@@ -157,11 +157,12 @@ export const SimplifiedAuthModal: React.FC<SimplifiedAuthModalProps> = memo(({ o
               throw new Error('Email not found in our subscription list');
             }
 
-            // Send Supabase magic link with custom redirect
+            // Send Supabase magic link - our auth webhook will intercept and send via Resend
             const { data, error } = await supabase.auth.signInWithOtp({
               email: email.toLowerCase().trim(),
               options: {
-                emailRedirectTo: `${window.location.origin}/auth/callback?tier=${verifyData.tier}`
+                emailRedirectTo: `${window.location.origin}/auth/callback?tier=${verifyData.tier}`,
+                shouldCreateUser: true
               }
             });
 
@@ -170,21 +171,16 @@ export const SimplifiedAuthModal: React.FC<SimplifiedAuthModalProps> = memo(({ o
               throw new Error(error.message || 'Failed to send magic link');
             }
 
-            console.log('✅ Supabase magic link sent successfully');
+            console.log('✅ Magic link sent via auth webhook');
             return { success: true, tier: verifyData.tier || 'free' };
           }
         );
         
-        console.log('✅ Magic link result:', result);
-        
         if (result && result.success) {
-          console.log('📧 Magic link sent successfully via Resend, user must click email link to log in');
+          console.log('📧 Magic link sent successfully via Resend');
           setError(
             <div className="text-green-600 text-sm">
               ✅ Magic link sent! Check your email and click the link to sign in.
-              <div className="mt-2 text-blue-600">
-                Tier: {result.tier}
-              </div>
             </div>
           );
           
