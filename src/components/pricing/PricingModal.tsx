@@ -94,10 +94,10 @@ export const PricingModal: React.FC<PricingModalProps> = ({ open, onOpenChange }
             <div className="p-4 sm:p-6 flex-shrink-0 relative">
               <button
                 onClick={() => onOpenChange(false)}
-                className="absolute right-3 top-3 sm:right-4 sm:top-4 z-10 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 bg-background/80 hover:bg-background p-1"
+                className="absolute right-3 top-3 sm:right-4 sm:top-4 z-10 text-muted-foreground hover:text-foreground transition-colors"
                 aria-label="Close modal"
               >
-                <X className="h-4 w-4" />
+                <X className="h-5 w-5" />
               </button>
               <DialogHeader className="text-center space-y-2 sm:space-y-3 pr-10 sm:pr-12">
                 <DialogTitle className="text-xl sm:text-2xl font-bold flex items-center justify-center gap-2">
