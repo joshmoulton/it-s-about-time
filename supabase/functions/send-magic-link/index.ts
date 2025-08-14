@@ -2,9 +2,6 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { createClient } from 'https://cdn.skypack.dev/@supabase/supabase-js@2'
 import { Resend } from 'npm:resend@4.0.0'
-import React from 'npm:react@18.3.1'
-import { renderAsync } from 'npm:@react-email/components@0.0.22'
-import { MagicLinkEmail } from './magic-link-template.tsx'
 import { corsHeaders } from '../_shared/cors.ts'
 
 const supabaseUrl = Deno.env.get('SUPABASE_URL')!
@@ -119,20 +116,60 @@ serve(async (req) => {
     // Create custom magic link URL that points to your app
     const redirectUrl = `https://www.weeklywizdom.com/auth/verify?token=${customToken}&email=${encodeURIComponent(email)}`;
 
-    // Render email template with welcome message for new users
-    const emailHtml = await renderAsync(
-      React.createElement(MagicLinkEmail, {
-        supabase_url: '', // Not needed for custom flow
-        token: customToken,
-        token_hash: customToken,
-        redirect_to: 'https://www.weeklywizdom.com/dashboard',
-        email_action_type: 'magiclink',
-        user_email: email,
-        magic_link_url: redirectUrl,
-        is_new_user: isNewUser,
-        user_tier: userTier
-      })
-    )
+    // Create simple HTML email template
+    const emailHtml = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="utf-8">
+          <title>${isNewUser ? 'Welcome to Weekly Wizdom!' : 'Access your Weekly Wizdom account'}</title>
+        </head>
+        <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+          <div style="text-align: center; margin-bottom: 30px;">
+            <h1 style="color: #1a73e8; margin: 0;">Weekly Wizdom</h1>
+          </div>
+          
+          ${isNewUser ? `
+            <h2 style="color: #333; text-align: center;">Welcome to Weekly Wizdom! 🎉</h2>
+            <p>Thank you for joining our community! We've created your free subscription and you're all set to start receiving valuable crypto insights.</p>
+            <p>Click the button below to access your dashboard and explore all the features available to you:</p>
+          ` : `
+            <h2 style="color: #333; text-align: center;">Access Your Account</h2>
+            <p>Click the button below to securely access your Weekly Wizdom account:</p>
+          `}
+          
+          <div style="text-align: center; margin: 32px 0;">
+            <a href="${redirectUrl}" style="background-color: #1a73e8; color: white; text-decoration: none; padding: 16px 32px; border-radius: 6px; display: inline-block; font-weight: bold;">
+              ${isNewUser ? 'Get Started Now' : 'Sign In to Your Account'}
+            </a>
+          </div>
+          
+          <p>Or copy and paste this link into your browser:</p>
+          <p style="word-break: break-all; background-color: #f8f9fa; padding: 12px; border-radius: 4px; border: 1px solid #e9ecef; font-size: 14px;">${redirectUrl}</p>
+          
+          ${isNewUser ? `
+            <div style="background-color: #f8f9fa; border: 1px solid #e9ecef; border-radius: 8px; margin: 24px 0; padding: 20px;">
+              <p style="margin: 8px 0; font-weight: bold;">What's Next?</p>
+              <p style="margin: 8px 0; font-size: 14px;">
+                • Access your personalized dashboard<br/>
+                • Read our latest newsletter insights<br/>
+                • Explore premium features<br/>
+                • Join our community discussions
+              </p>
+            </div>
+          ` : ''}
+          
+          <p style="font-size: 14px; color: #666; text-align: center; margin-top: 32px;">
+            This link will expire in 30 minutes for security. If you didn't request this email, you can safely ignore it.
+          </p>
+          
+          <div style="border-top: 1px solid #f0f0f0; padding-top: 20px; text-align: center; font-size: 12px; color: #898989; margin-top: 32px;">
+            <a href="https://www.weeklywizdom.app" style="color: #1a73e8; text-decoration: none;">Weekly Wizdom</a><br/>
+            Your trusted source for crypto insights and trading signals.
+          </div>
+        </body>
+      </html>
+    `
 
     // Send email via Resend
     const emailResult = await resend.emails.send({
