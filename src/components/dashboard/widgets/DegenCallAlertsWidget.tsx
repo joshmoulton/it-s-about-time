@@ -28,7 +28,7 @@ export function DegenCallAlertsWidget({
   const {
     data: degenCalls,
     isLoading
-  } = useDegenCallAlerts(1); // Last 1 call for consistent height with other widgets
+  } = useDegenCallAlerts(1, subscriber); // Last 1 call for consistent height with other widgets
 
   // Get current crypto prices for market price display
   const tickers = degenCalls?.map(call => call.coin) || [];

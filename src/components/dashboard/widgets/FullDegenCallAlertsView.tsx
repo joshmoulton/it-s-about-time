@@ -95,7 +95,7 @@ export function FullDegenCallAlertsView({ subscriber }: FullDegenCallAlertsViewP
       </div>
 
       <div className="flex-1 overflow-y-auto">
-        <DegenCallsList />
+        <DegenCallsList subscriber={subscriber} />
       </div>
 
       <DegenCallSettingsModal isOpen={showSettings} onClose={() => setShowSettings(false)} />
@@ -103,8 +103,8 @@ export function FullDegenCallAlertsView({ subscriber }: FullDegenCallAlertsViewP
   );
 }
 
-function DegenCallsList() {
-  const { data: calls = [], isLoading } = useDegenCallAlerts(10);
+function DegenCallsList({ subscriber }: { subscriber: Subscriber }) {
+  const { data: calls = [], isLoading } = useDegenCallAlerts(10, subscriber);
   
   // Get current crypto prices for market price display
   const tickers = calls?.map(call => call.coin) || [];

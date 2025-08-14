@@ -33,13 +33,32 @@ export interface TopicMapping {
   last_active: string;
 }
 
-export function useUnifiedTelegramChat(limit: number = 50) {
+interface Subscriber {
+  id: string;
+  email: string;
+  status: string;
+  subscription_tier: 'free' | 'paid' | 'premium';
+  created_at: string;
+  updated_at: string;
+}
+
+export function useUnifiedTelegramChat(limit: number = 50, subscriber?: Subscriber) {
   const [selectedTopic, setSelectedTopic] = useState<string | null>(null);
+  
+  // Only fetch messages if user has premium access
+  const shouldFetchData = subscriber?.subscription_tier === 'premium' || subscriber?.subscription_tier === 'paid';
   
   // Fetch messages with topic filtering at database level
   const { data: messages = [], isLoading: messagesLoading, refetch: refetchMessages } = useQuery({
-    queryKey: ['unified-telegram-messages', limit, selectedTopic],
+    queryKey: ['unified-telegram-messages', limit, selectedTopic, subscriber?.email],
     queryFn: async () => {
+      console.log('🔍 Fetching telegram messages for user:', subscriber?.email, 'tier:', subscriber?.subscription_tier);
+      
+      if (!shouldFetchData) {
+        console.log('❌ User does not have access to telegram messages');
+        return [];
+      }
+
       let query = supabase
         .from('telegram_messages')
         .select('*')
@@ -53,34 +72,47 @@ export function useUnifiedTelegramChat(limit: number = 50) {
       const { data, error } = await query.limit(limit);
 
       if (error) {
-        console.error('Error fetching messages:', error);
+        console.error('❌ Error fetching telegram messages:', error);
+        console.error('❌ Error details:', {
+          message: error.message,
+          hint: error.hint,
+          details: error.details,
+          code: error.code
+        });
         throw error;
       }
 
-      console.log(`🔍 Fetched ${data?.length || 0} messages for topic "${selectedTopic || 'all'}"`);
+      console.log(`✅ Fetched ${data?.length || 0} telegram messages for topic "${selectedTopic || 'all'}"`);
       return (data || []) as any;
     },
-    refetchInterval: 30000,
+    enabled: shouldFetchData, // Only run query if user has access
+    refetchInterval: shouldFetchData ? 30000 : false,
     staleTime: 10000,
-    refetchOnWindowFocus: true,
+    refetchOnWindowFocus: shouldFetchData,
   });
 
   // Fetch topic mappings
   const { data: topicMappings = [], isLoading: topicsLoading } = useQuery({
-    queryKey: ['unified-topic-mappings'],
+    queryKey: ['unified-topic-mappings', subscriber?.email],
     queryFn: async () => {
+      if (!shouldFetchData) {
+        return [];
+      }
+
       const { data, error } = await supabase
         .from('telegram_topic_mappings')
         .select('id, telegram_topic_id, custom_name')
         .order('custom_name');
 
       if (error) {
+        console.error('❌ Error fetching topic mappings:', error);
         throw error;
       }
 
       return (data || []) as any; // Type assertion for schema mismatch
     },
-    refetchInterval: 60000, // Poll every 60 seconds for topic mappings
+    enabled: shouldFetchData,
+    refetchInterval: shouldFetchData ? 60000 : false, // Poll every 60 seconds for topic mappings
     staleTime: 30000, // Topic mappings are fresh for 30 seconds
     refetchOnWindowFocus: false,
   });
@@ -90,8 +122,12 @@ export function useUnifiedTelegramChat(limit: number = 50) {
 
   // Get available topic names from all messages (fetch separately for topic list)
   const { data: allMessagesForTopics = [] } = useQuery({
-    queryKey: ['all-telegram-messages-topics'],
+    queryKey: ['all-telegram-messages-topics', subscriber?.email],
     queryFn: async () => {
+      if (!shouldFetchData) {
+        return [];
+      }
+
       const { data, error } = await supabase
         .from('telegram_messages')
         .select('topic_name')
@@ -99,9 +135,13 @@ export function useUnifiedTelegramChat(limit: number = 50) {
         .order('timestamp', { ascending: false })
         .limit(1000); // Get more messages just for topic discovery
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Error fetching topics:', error);
+        throw error;
+      }
       return data || [];
     },
+    enabled: shouldFetchData,
     staleTime: 60000, // Cache topic list for 1 minute
   });
 

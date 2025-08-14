@@ -33,7 +33,7 @@ export function UnifiedChatWidget({
     forceRefresh,
     hasRealData,
     availableTopics
-  } = useUnifiedTelegramChat(limit);
+  } = useUnifiedTelegramChat(limit, subscriber);
 
   const handleRefresh = async () => {
     setIsRefreshing(true);

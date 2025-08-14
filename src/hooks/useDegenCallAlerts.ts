@@ -18,8 +18,20 @@ export interface DegenCall {
   analyst_name?: string;
 }
 
-export function useDegenCallAlerts(limit = 10) {
+interface Subscriber {
+  id: string;
+  email: string;
+  status: string;
+  subscription_tier: 'free' | 'paid' | 'premium';
+  created_at: string;
+  updated_at: string;
+}
+
+export function useDegenCallAlerts(limit = 10, subscriber?: Subscriber) {
   const queryClient = useQueryClient();
+  
+  // Only fetch data if user has premium access
+  const shouldFetchData = subscriber?.subscription_tier === 'premium' || subscriber?.subscription_tier === 'paid';
 
   // Set up real-time subscription for instant updates
   useEffect(() => {
@@ -64,9 +76,15 @@ export function useDegenCallAlerts(limit = 10) {
   }, [queryClient]);
 
   return useQuery<DegenCall[]>({
-    queryKey: ['degenCallAlerts', limit],
+    queryKey: ['degenCallAlerts', limit, subscriber?.email],
     queryFn: async () => {
-      console.log('Fetching degen calls from database...');
+      console.log('🔍 Fetching degen calls for user:', subscriber?.email, 'tier:', subscriber?.subscription_tier);
+      
+      if (!shouldFetchData) {
+        console.log('❌ User does not have access to degen calls');
+        return [];
+      }
+
       // Fetch latest active signals - include entry_conditions for size info
       const { data, error } = await supabase
         .from('analyst_signals')
@@ -76,7 +94,13 @@ export function useDegenCallAlerts(limit = 10) {
         .limit(limit);
 
       if (error) {
-        console.error('useDegenCallAlerts error:', error);
+        console.error('❌ useDegenCallAlerts error:', error);
+        console.error('❌ Error details:', {
+          message: error.message,
+          hint: error.hint,
+          details: error.details,
+          code: error.code
+        });
         return [];
       }
 
@@ -104,10 +128,11 @@ export function useDegenCallAlerts(limit = 10) {
         };
       });
 
-      console.log('useDegenCallAlerts fetched', { count: mapped.length, limit, data: mapped });
+      console.log('✅ useDegenCallAlerts fetched', { count: mapped.length, limit, data: mapped });
       return mapped;
     },
+    enabled: shouldFetchData, // Only run query if user has access
     staleTime: 5_000, // Reduced stale time for faster updates
-    refetchInterval: 15_000, // More frequent polling as backup
+    refetchInterval: shouldFetchData ? 15_000 : false, // More frequent polling as backup
   });
 }
