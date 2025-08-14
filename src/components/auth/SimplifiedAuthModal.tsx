@@ -33,10 +33,24 @@ export const SimplifiedAuthModal: React.FC<SimplifiedAuthModalProps> = memo(({ o
   // Auto-close and redirect when auth completes (e.g., after magic link)
   useEffect(() => {
     if (isAuthenticated && open) {
+      // Close modal immediately and prevent reopening
       onOpenChange(false);
+      // Mark that auth is complete to prevent modal from reopening
+      sessionStorage.setItem('ww.auth_complete', Date.now().toString());
       navigate('/dashboard');
     }
   }, [isAuthenticated, open, onOpenChange, navigate]);
+
+  // Prevent modal from opening if auth was just completed
+  useEffect(() => {
+    const authCompleteTime = sessionStorage.getItem('ww.auth_complete');
+    if (authCompleteTime && Date.now() - parseInt(authCompleteTime) < 5000) {
+      // If auth was completed in the last 5 seconds, don't show modal
+      if (open) {
+        onOpenChange(false);
+      }
+    }
+  }, [open, onOpenChange]);
 
   const resetForm = useCallback(() => {
     setEmail('');
@@ -72,6 +86,9 @@ export const SimplifiedAuthModal: React.FC<SimplifiedAuthModalProps> = memo(({ o
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Clear any previous auth completion markers
+    sessionStorage.removeItem('ww.auth_complete');
     
     // Prevent double submissions with debouncing
     const now = Date.now();
@@ -153,6 +170,8 @@ export const SimplifiedAuthModal: React.FC<SimplifiedAuthModalProps> = memo(({ o
             console.warn('⚠️ Could not verify user tier:', verifyError);
           }
           
+          // Mark auth complete to prevent modal reopening
+          sessionStorage.setItem('ww.auth_complete', Date.now().toString());
           onOpenChange(false);
           navigate('/dashboard');
         }

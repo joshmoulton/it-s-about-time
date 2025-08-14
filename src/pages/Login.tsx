@@ -17,6 +17,8 @@ const Login = () => {
     if (isAuthenticated || withinGrace) {
       // Clear the flag once we honor it
       if (withinGrace) sessionStorage.removeItem('ww.justLoggedIn');
+      // Also clean up auth completion marker
+      sessionStorage.removeItem('ww.auth_complete');
       navigate('/dashboard', { replace: true });
     }
   }, [isAuthenticated, navigate]);
