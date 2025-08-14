@@ -40,46 +40,71 @@ export function UserProfileSection() {
     if (!currentUser) return;
 
     try {
-      // Prefer subscriber linkage via beehiiv_subscribers.id
-      let query = supabase.from('user_profiles').select('*').limit(1);
+      // Check if we have a Supabase auth session
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (user) {
+        // User has real Supabase auth - use direct auth.uid() for RLS
+        const { data, error } = await supabase
+          .from('user_profiles')
+          .select('*')
+          .eq('user_id', user.id)
+          .maybeSingle();
 
-      // Try to resolve subscriber_id from Beehiiv by email
-      const { data: subRow } = await authenticatedQuery(async () => 
-        supabase
-          .from('beehiiv_subscribers')
-          .select('id')
-          .eq('email', currentUser.email as string)
-          .maybeSingle()
-      );
-      const subscriberId = subRow?.id as string | undefined;
+        if (error) {
+          console.error('Error loading profile with auth.uid():', error);
+          return;
+        }
 
-      const isValidUUID = (id: string) =>
-        /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id);
-
-      if (subscriberId && isValidUUID(subscriberId)) {
-        query = query.eq('subscriber_id', subscriberId);
+        if (data) {
+          setFormData(prev => ({
+            ...prev,
+            displayName: data.display_name || currentUser.email?.split('@')[0] || '',
+            avatarUrl: data.avatar_url || ''
+          }));
+        }
       } else {
-        // Fallback to OR-based lookup when subscriber_id not available
-        const useUserId = typeof currentUser.id === 'string' && isValidUUID(currentUser.id);
-        const orFilter = useUserId
-          ? `user_id.eq.${currentUser.id},whop_email.eq.${currentUser.email},user_email.eq.${currentUser.email}`
-          : `whop_email.eq.${currentUser.email},user_email.eq.${currentUser.email}`;
-        query = query.or(orFilter);
-      }
+        // Fallback for legacy users without Supabase auth
+        let query = supabase.from('user_profiles').select('*').limit(1);
 
-      const { data, error } = await authenticatedQuery(async () => query.maybeSingle());
+        // Try to resolve subscriber_id from Beehiiv by email
+        const { data: subRow } = await authenticatedQuery(async () => 
+          supabase
+            .from('beehiiv_subscribers')
+            .select('id')
+            .eq('email', currentUser.email as string)
+            .maybeSingle()
+        );
+        const subscriberId = subRow?.id as string | undefined;
 
-      if (error) {
-        console.error('Error loading profile:', error);
-        return;
-      }
+        const isValidUUID = (id: string) =>
+          /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id);
 
-      if (data) {
-        setFormData(prev => ({
-          ...prev,
-          displayName: data.display_name || currentUser.email?.split('@')[0] || '',
-          avatarUrl: data.avatar_url || ''
-        }));
+        if (subscriberId && isValidUUID(subscriberId)) {
+          query = query.eq('subscriber_id', subscriberId);
+        } else {
+          // Fallback to OR-based lookup when subscriber_id not available
+          const useUserId = typeof currentUser.id === 'string' && isValidUUID(currentUser.id);
+          const orFilter = useUserId
+            ? `user_id.eq.${currentUser.id},whop_email.eq.${currentUser.email},user_email.eq.${currentUser.email}`
+            : `whop_email.eq.${currentUser.email},user_email.eq.${currentUser.email}`;
+          query = query.or(orFilter);
+        }
+
+        const { data, error } = await authenticatedQuery(async () => query.maybeSingle());
+
+        if (error) {
+          console.error('Error loading profile:', error);
+          return;
+        }
+
+        if (data) {
+          setFormData(prev => ({
+            ...prev,
+            displayName: data.display_name || currentUser.email?.split('@')[0] || '',
+            avatarUrl: data.avatar_url || ''
+          }));
+        }
       }
     } catch (error) {
       console.error('Error loading profile:', error);

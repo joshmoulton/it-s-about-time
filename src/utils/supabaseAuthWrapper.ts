@@ -1,56 +1,26 @@
 import { supabase } from '@/integrations/supabase/client';
 
-// This function ensures proper authentication context for Supabase operations
-// when using Whop authentication
+// Simplified auth context wrapper - most users now have real Supabase sessions
 export const withAuthContext = async (operation: () => Promise<any>) => {
+  // Check if we have a current Supabase session
+  const { data: { session } } = await supabase.auth.getSession();
+  
+  if (session?.user) {
+    // User has real Supabase session, proceed normally
+    return await operation();
+  }
+  
+  // Fallback for legacy Whop users or edge cases
   const authMethod = localStorage.getItem('auth_method');
   const currentUserData = getCurrentUserData();
   
   if (authMethod === 'whop' && currentUserData) {
-    // For Whop users, we need to set the auth context manually
-    // since they don't have a traditional Supabase session
-    
-    try {
-      // Try to get or create a Supabase session for this Whop user
-      const sessionToken = localStorage.getItem('enhanced_session_token');
-      
-      if (sessionToken) {
-        console.log('🔑 Setting auth context for Whop user:', currentUserData.email);
-        
-        // Call the bridge function to get proper Supabase tokens
-        const { data: bridgeData, error: bridgeError } = await supabase.functions.invoke('bridge-auth-session', {
-          body: {
-            session_token: sessionToken,
-            email: currentUserData.email
-          }
-        });
-        
-        if (!bridgeError && bridgeData?.access_token) {
-          // Set the session
-          const { error: sessionError } = await supabase.auth.setSession({
-            access_token: bridgeData.access_token,
-            refresh_token: bridgeData.refresh_token
-          });
-          
-          if (!sessionError) {
-            console.log('✅ Auth context established for Whop user');
-            return await operation();
-          }
-        }
-      }
-      
-      // Fallback: Create a temporary admin session for this operation
-      console.log('⚡ Using admin context for Whop user operation');
-      return await performWithAdminContext(operation, currentUserData);
-      
-    } catch (error) {
-      console.error('❌ Failed to establish auth context:', error);
-      throw new Error('Authentication required. Please refresh the page and try again.');
-    }
-  } else {
-    // For Supabase admin users, just run the operation normally
-    return await operation();
+    console.log('⚡ Using admin context for legacy Whop user operation');
+    return await performWithAdminContext(operation, currentUserData);
   }
+  
+  // No authentication context available
+  throw new Error('Authentication required. Please sign in again.');
 };
 
 const getCurrentUserData = () => {

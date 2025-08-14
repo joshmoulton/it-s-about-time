@@ -12,6 +12,7 @@ import { useRenderTracker } from '@/components/PerformanceOptimizer';
 import { SEOManager } from '@/components/SEOManager';
 import { useMobilePerformance } from '@/hooks/useMobilePerformance';
 import VirtualizedWrapper from '@/components/VirtualizedWrapper';
+import { supabase } from '@/integrations/supabase/client';
 
 // Lazy load the heavy dashboard content
 const DashboardContent = lazy(() => 
@@ -34,19 +35,20 @@ const Dashboard = () => {
   const sectionFromUrl = searchParams.get('section');
   const connectionStatus = useConnectionStatus();
 
-  // Handle magic link session data from URL parameters
+  // Handle both Supabase auth state and magic link fallback sessions
   useEffect(() => {
     const sessionParam = searchParams.get('session');
     const verified = searchParams.get('verified');
     
+    // Process fallback unified auth session (when Supabase session creation fails)
     if (sessionParam && verified === 'true' && !currentUser) {
       try {
         const sessionData = JSON.parse(atob(sessionParam));
-        console.log('🔗 Processing magic link session:', sessionData);
+        console.log('🔗 Processing fallback magic link session:', sessionData);
         
-        // Create unified auth session
+        // Create unified auth session as fallback
         setAuthenticatedUser({
-          id: crypto.randomUUID(),
+          id: sessionData.supabase_user_id || crypto.randomUUID(),
           email: sessionData.email,
           subscription_tier: sessionData.tier,
           source: sessionData.source,
@@ -67,6 +69,31 @@ const Dashboard = () => {
         console.error('Failed to process magic link session:', error);
       }
     }
+    
+    // Also check for and process Supabase auth state changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === 'SIGNED_IN' && session?.user && !currentUser) {
+        console.log('✅ Supabase auth session established via magic link');
+        
+        // Create unified auth session from Supabase session
+        const tier = session.user.user_metadata?.subscription_tier || 'free';
+        setAuthenticatedUser({
+          id: session.user.id,
+          email: session.user.email!,
+          subscription_tier: tier,
+          source: 'supabase_magic_link',
+          permissions: {
+            canAccessPremiumContent: tier === 'premium',
+            canAccessPaidContent: tier === 'premium' || tier === 'paid',
+            canAccessFreeContent: true
+          }
+        }, 'supabase');
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, [searchParams, currentUser, setAuthenticatedUser]);
   
   // Check if we're on the /dashboard/content route
