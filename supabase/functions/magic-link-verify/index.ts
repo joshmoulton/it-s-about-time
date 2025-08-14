@@ -26,7 +26,7 @@ serve(async (req) => {
       return json({ success: false, error: 'Token and email are required' }, { status: 400 });
     }
 
-    console.log(`🔍 Validating magic link token for: ${email}`);
+    console.log(`🔍 Magic link verify called with token: ${token?.substring(0, 8)}... and email: ${email}`);
 
     // Initialize Supabase client
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
