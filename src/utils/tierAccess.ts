@@ -27,6 +27,18 @@ export class TierAccessManager {
       return false;
     }
 
+    // Check if this is a magic link user still being verified
+    const authMethod = localStorage.getItem('auth_method');
+    const authEmail = localStorage.getItem('auth_user_email');
+    const authVerified = localStorage.getItem('auth_verified_at');
+    
+    // If magic link user is authenticated but subscriber might still be loading/verifying
+    if (authMethod === 'magic_link' && authEmail && authVerified) {
+      // Don't show overlay for authenticated magic link users
+      // Let the backend RLS policies handle the actual access control
+      return false;
+    }
+
     // Show overlay if no subscriber or if subscription_tier is free/undefined
     return !subscriber || 
            !subscriber.subscription_tier || 
