@@ -149,9 +149,8 @@ export const logSecurityEvent = async (
 // Validate session token using existing 2FA session validation
 export const validateSessionToken = async (token: string): Promise<SessionValidationResult> => {
   try {
-    const { data: result, error } = await supabase.rpc('verify_2fa_session', {
-      p_session_token: token
-    });
+    // 2FA verification removed - simplified validation
+    const { data: session, error } = await supabase.auth.getSession();
     
     if (error) {
       return {
@@ -160,12 +159,17 @@ export const validateSessionToken = async (token: string): Promise<SessionValida
       };
     }
     
-    const sessionData = result as any;
+    if (session?.session?.user) {
+      return {
+        valid: true,
+        adminEmail: session.session.user.email,
+        expiresAt: new Date(session.session.expires_at || 0).toISOString()
+      };
+    }
+    
     return {
-      valid: sessionData.valid || false,
-      adminEmail: sessionData.admin_email,
-      expiresAt: sessionData.expires_at,
-      error: sessionData.valid ? undefined : 'Invalid session'
+      valid: false,
+      error: 'No valid session found'
     };
   } catch (error) {
     console.error('Session validation error:', error);

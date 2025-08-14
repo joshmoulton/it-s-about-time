@@ -35,7 +35,7 @@ import { TelegramMonitoring } from './sections/TelegramMonitoring';
 import { OpenAISettings } from './sections/OpenAISettings';
 import { SentimentAnalytics } from './sections/SentimentAnalytics';
 import { XSentimentManagement } from './sections/XSentimentManagement';
-import { TwoFactorSetup } from './TwoFactorSetup';
+// TwoFactorSetup removed
 import { DataSecurityDashboard } from './security';
 import { BrandingManagement } from './sections/BrandingManagement';
 import { AnalystOverview } from './sections/AnalystOverview';
@@ -226,7 +226,7 @@ export function AdminContent({ adminUser, subscriber }: AdminContentProps) {
           {/* System Administration */}
            <Route path="/security" element={<SecurityManagement />} />
            <Route path="/data-security" element={<DataSecurityDashboard />} />
-           <Route path="/2fa-setup" element={<TwoFactorSetup adminEmail={subscriber?.email || ''} />} />
+           {/* 2FA setup removed */}
           
           <Route path="/feedback" element={<FeedbackManagement />} />
           <Route path="/role-permissions" element={<RolePermissionsManagement />} />

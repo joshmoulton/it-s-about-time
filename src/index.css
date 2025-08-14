@@ -24,7 +24,7 @@
   body {
     margin: 0;
     line-height: 1.5;
-    min-height: 100vh;
+    min-height: 100dvh; /* Use dvh for mobile toolbar compensation */
     background: hsl(var(--background));
     color: hsl(var(--foreground));
     font-feature-settings: "kern" 1, "liga" 1;
@@ -91,12 +91,12 @@
   /* Ensure consistent background on all devices */
   html, body {
     background-color: hsl(var(--background));
-    min-height: 100vh;
+    min-height: 100dvh; /* Use dvh for mobile */
     overflow-x: hidden;
   }
   
   #root {
-    min-height: 100vh;
+    min-height: 100dvh; /* Use dvh for mobile */
     background-color: hsl(var(--background));
   }
   :root {
@@ -251,7 +251,7 @@
   .ios body {
     /* Use CSS custom properties for viewport height without locking scroll */
     min-height: 100vh;
-    min-height: calc(var(--vh, 1vh) * 100);
+    min-height: calc(var(--vh, 1dvh) * 100);
     -webkit-overflow-scrolling: touch;
     -webkit-text-size-adjust: 100%;
   }
@@ -467,7 +467,7 @@
   /* Minimal body styles only */
   body {
     background-color: hsl(var(--background));
-    min-height: 100vh;
+    min-height: 100dvh; /* Use dvh for mobile */
     overflow-x: hidden;
   }
   

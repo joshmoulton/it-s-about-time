@@ -37,7 +37,7 @@
       /* Critical above-the-fold styles */
       html { font-family: system-ui, -apple-system, sans-serif; }
       body { margin: 0; background: #f5f7fa; color: #081426; line-height: 1.5; }
-      #root { min-height: 100vh; background: #f5f7fa; }
+      #root { min-height: 100dvh; background: #f5f7fa; }
       
       /* Loading states */
       .hero-loading { 
@@ -70,10 +70,10 @@
       }
       .btn-primary:hover { background: #2844ff; }
       
-      /* Hero section critical styles */
+      /* Hero section critical styles - Use dvh for mobile */
       .hero-gradient {
         background: linear-gradient(135deg, #3355ff 0%, #4c6fff 100%);
-        min-height: 100vh;
+        min-height: 100dvh;
         display: flex;
         align-items: center;
       }
@@ -83,7 +83,8 @@
       .sr-only:focus { position: static; width: auto; height: auto; padding: 0.5rem 1rem; margin: 0; overflow: visible; clip: auto; white-space: normal; }
     </style>
     
-    <!-- Critical Font Loading - Optimized for Mobile -->
+    <!-- Critical Font Loading - Optimized WOFF2 Preload -->
+    <link rel="preload" href="https://fonts.gstatic.com/s/inter/v18/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuLyeMZs.woff2" as="font" type="font/woff2" crossorigin>
     <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&display=swap&subset=latin" as="style" onload="this.onload=null;this.rel='stylesheet'" />
     <noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&display=swap&subset=latin" rel="stylesheet" /></noscript>
 
@@ -129,10 +130,21 @@
     <!-- App entry -->
     <script type="module" src="/src/main.tsx"></script>
 
-    <!-- Minimal performance script (fonts only) -->
-    <script>
+    <!-- Optimized performance script -->
+    <script defer>
       (function(){
-        try { if ('fonts' in document) { document.fonts.load('400 1em Inter'); } } catch(e){}
+        try { 
+          if ('fonts' in document) { 
+            document.fonts.load('400 1em Inter');
+            document.fonts.load('500 1em Inter');
+          }
+          // Add loaded class when fonts are ready
+          if (document.fonts && document.fonts.ready) {
+            document.fonts.ready.then(() => {
+              document.documentElement.classList.add('fonts-loaded');
+            });
+          }
+        } catch(e){}
       })();
     </script>
   </body>

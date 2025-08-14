@@ -99,7 +99,7 @@ const Index = () => {
 
     
     <div className="min-h-screen bg-background relative overflow-x-hidden" style={{
-      minHeight: '100vh',
+      minHeight: '100dvh', /* Use dvh for mobile toolbar compensation */
       WebkitOverflowScrolling: 'touch'
     }}>
       <PricingModal 
@@ -131,9 +131,11 @@ const Index = () => {
       </div>
       
       {/* 4. KOL Testimonial */}
-      <Suspense fallback={<div className="h-32 bg-muted/20" />}>
-        <KOLTestimonialSection />
-      </Suspense>
+      <div style={{ contentVisibility: 'auto', containIntrinsicSize: '0 400px' }}>
+        <Suspense fallback={<div className="h-32 bg-muted/20" />}>
+          <KOLTestimonialSection />
+        </Suspense>
+      </div>
 
       {/* 4.5. Get Started CTA */}
       <section className="py-4 bg-gradient-to-br from-background to-muted/30 relative z-10">
@@ -147,12 +149,14 @@ const Index = () => {
       </section>
 
       {/* 5. Video Testimonials */}
-      <Suspense fallback={<div className="h-40 bg-muted/20" />}>
-        <TestimonialsSection />
-      </Suspense>
+      <div style={{ contentVisibility: 'auto', containIntrinsicSize: '0 500px' }}>
+        <Suspense fallback={<div className="h-40 bg-muted/20" />}>
+          <TestimonialsSection />
+        </Suspense>
+      </div>
 
       {/* 6. About Section - What is Weekly Wizdom */}
-      <div id="about">
+      <div id="about" style={{ contentVisibility: 'auto', containIntrinsicSize: '0 600px' }}>
         <Suspense fallback={<div className="h-48 bg-muted/20" />}>
           <AboutSection />
         </Suspense>
@@ -184,7 +188,7 @@ const Index = () => {
       </Suspense>
 
       {/* 11. FAQ Section */}
-      <div id="faq">
+      <div id="faq" style={{ contentVisibility: 'auto', containIntrinsicSize: '0 600px' }}>
         <Suspense fallback={<div className="h-40 bg-muted/20" />}>
           <FAQSection />
         </Suspense>

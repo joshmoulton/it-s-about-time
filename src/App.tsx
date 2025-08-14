@@ -1,5 +1,6 @@
 
 import { Suspense, useEffect } from "react";
+import { initializePerformanceOptimizations } from "@/utils/performanceOptimizations";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -44,7 +45,14 @@ const PageLoader = () => (
 const queryClient = new QueryClient();
 
 const App = () => {
-  // Performance optimizations disabled to fix modal issues
+  // Initialize safe performance optimizations
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      initializePerformanceOptimizations();
+    }, 100);
+    
+    return () => clearTimeout(timeoutId);
+  }, []);
 
   return (
     <QueryClientProvider client={queryClient}>

@@ -8,16 +8,14 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Shield, Loader2 } from 'lucide-react';
-import { TwoFactorVerification } from '@/components/admin/TwoFactorVerification';
-import { TwoFactorAuthManager } from '@/utils/twoFactorAuth';
+// TwoFactorVerification and TwoFactorAuth removed
 
 const AdminLogin = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
-  const [showTwoFactor, setShowTwoFactor] = useState(false);
-  const [userEmail, setUserEmail] = useState('');
+  // 2FA variables removed
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -49,18 +47,9 @@ const AdminLogin = () => {
 
       if (data.user) {
         console.log('✅ Admin login successful:', data.user.email);
-        setUserEmail(data.user.email);
-        
-        // Check if user has 2FA enabled
-        const has2FA = await TwoFactorAuthManager.checkAdminHas2FAEnabled(data.user.email);
-        
-        if (has2FA) {
-          setShowTwoFactor(true);
-        } else {
-          // 2FA is mandatory - redirect to setup
-          setError('Two-factor authentication is required for admin access. Please contact your administrator to set up 2FA.');
-          await supabase.auth.signOut();
-        }
+        // Direct admin access without 2FA
+        console.log('✅ Admin login successful, redirecting to admin panel');
+        navigate('/admin');
       }
     } catch (error) {
       console.error('❌ Admin login error:', error);
@@ -70,34 +59,9 @@ const AdminLogin = () => {
     }
   };
 
-  const handle2FASuccess = (sessionToken: string) => {
-    console.log('✅ 2FA verification successful');
-    
-    // Store the 2FA session token in localStorage for admin access validation
-    localStorage.setItem('admin_2fa_session', sessionToken);
-    
-    navigate('/admin');
-  };
+  // 2FA handlers removed
 
-  const handle2FACancel = () => {
-    setShowTwoFactor(false);
-    // Clear 2FA session and sign out the user since they cancelled 2FA
-    localStorage.removeItem('admin_2fa_session');
-    supabase.auth.signOut();
-  };
-
-  if (showTwoFactor) {
-    return (
-      <div className="min-h-screen bg-slate-900 flex items-center justify-center p-4">
-        <TwoFactorVerification
-          adminEmail={userEmail}
-          onVerificationSuccess={handle2FASuccess}
-          onCancel={handle2FACancel}
-          operation="admin panel access"
-        />
-      </div>
-    );
-  }
+  // 2FA removed - direct login
 
   return (
     <div className="min-h-screen bg-slate-900 flex items-center justify-center p-4">
