@@ -125,11 +125,28 @@ serve(async (req) => {
 
     console.log(`✅ Magic link verified successfully for ${tokenData.email}, creating Supabase session...`);
     
-    // Generate access token for the user using admin API
-    const { data: sessionData, error: sessionError } = await supabase.auth.admin.generateAccessToken(authUser.id);
+    // Use the signInWithPassword method to create a proper session
+    // Since we control the user creation, we know the temporary password
+    const tempPassword = `temp_${Date.now()}_${Math.random().toString(36).substring(7)}`;
+    
+    // Update the user's password to our known temporary password
+    const { error: updateError } = await supabase.auth.admin.updateUserById(authUser.id, {
+      password: tempPassword
+    });
 
-    if (sessionError || !sessionData) {
-      console.error('❌ Error generating access token:', sessionError);
+    if (updateError) {
+      console.error('❌ Error updating user password:', updateError);
+      return new Response('Failed to prepare user session', { status: 500 });
+    }
+
+    // Create a session using signInWithPassword
+    const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+      email: tokenData.email,
+      password: tempPassword
+    });
+
+    if (signInError || !signInData.session) {
+      console.error('❌ Error creating session:', signInError);
       
       // Fallback: redirect with unified auth session data
       const unifiedSessionData = {
@@ -154,7 +171,7 @@ serve(async (req) => {
       });
     }
 
-    console.log(`✅ Access token generated successfully for ${tokenData.email}`);
+    console.log(`✅ Session created successfully for ${tokenData.email}`);
     
     // Set session cookies and redirect
     const redirectUrl = new URL(redirect);
@@ -164,8 +181,8 @@ serve(async (req) => {
       headers: {
         'Location': redirectUrl.toString(),
         'Set-Cookie': [
-          `sb-access-token=${sessionData.access_token}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=3600`,
-          `sb-refresh-token=${sessionData.refresh_token || ''}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=604800`
+          `sb-access-token=${signInData.session.access_token}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=3600`,
+          `sb-refresh-token=${signInData.session.refresh_token}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=604800`
         ].join(', '),
         ...corsHeaders
       }
