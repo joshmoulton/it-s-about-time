@@ -89,45 +89,47 @@ export const PricingModal: React.FC<PricingModalProps> = ({ open, onOpenChange }
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="w-full max-w-[400px] sm:max-w-[480px] lg:max-w-[520px] max-h-[85vh] sm:max-h-[90vh] flex flex-col p-0">
-          <div className="p-4 sm:p-6 flex-shrink-0">
-            <DialogHeader className="text-center space-y-2 sm:space-y-3">
-              <DialogTitle className="text-xl sm:text-2xl font-bold flex items-center justify-center gap-2">
-                <Sparkles className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
-                Upgrade to Premium
-              </DialogTitle>
-              <DialogDescription className="text-sm sm:text-base">
-                Choose your premium subscription plan and unlock all features
-              </DialogDescription>
-              <div className="pt-2">
-                <PaymentToggle 
-                  paymentMethod={paymentMethod} 
-                  onPaymentMethodChange={setPaymentMethod} 
-                />
+        <DialogContent className="w-[95vw] max-w-[420px] max-h-[90vh] p-0 overflow-hidden">
+          <div className="flex flex-col h-full max-h-[90vh]">
+            <div className="p-4 sm:p-6 flex-shrink-0">
+              <DialogHeader className="text-center space-y-2 sm:space-y-3">
+                <DialogTitle className="text-xl sm:text-2xl font-bold flex items-center justify-center gap-2 pr-8">
+                  <Sparkles className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
+                  Upgrade to Premium
+                </DialogTitle>
+                <DialogDescription className="text-sm sm:text-base">
+                  Choose your premium subscription plan and unlock all features
+                </DialogDescription>
+                <div className="pt-2">
+                  <PaymentToggle 
+                    paymentMethod={paymentMethod} 
+                    onPaymentMethodChange={setPaymentMethod} 
+                  />
+                </div>
+              </DialogHeader>
+            </div>
+
+            <div className="flex-1 overflow-y-auto px-4 sm:px-6 min-h-0">
+              <div className="space-y-3 sm:space-y-4 py-2">
+                {currentPlans.map((plan, index) => (
+                  <PricingCard
+                    key={index}
+                    plan={plan}
+                    onCheckout={() => handleCheckout(plan.productId, plan.title)}
+                  />
+                ))}
               </div>
-            </DialogHeader>
-          </div>
 
-          <div className="flex-1 overflow-y-auto px-4 sm:px-6">
-            <div className="space-y-3 sm:space-y-4 py-2">
-              {currentPlans.map((plan, index) => (
-                <PricingCard
-                  key={index}
-                  plan={plan}
-                  onCheckout={() => handleCheckout(plan.productId, plan.title)}
-                />
-              ))}
+              <div className="mt-4 sm:mt-6 pb-4">
+                <PremiumFeatures />
+              </div>
             </div>
 
-            <div className="mt-4 sm:mt-6">
-              <PremiumFeatures />
+            <div className="flex-shrink-0 p-4 sm:p-6 pt-2 sm:pt-3 bg-muted/30 border-t">
+              <p className="text-xs sm:text-sm text-muted-foreground text-center leading-relaxed">
+                {paymentMethod === 'card' ? 'Secure credit card processing' : 'Pay with USDC cryptocurrency'} • Start today • Cancel anytime
+              </p>
             </div>
-          </div>
-
-          <div className="flex-shrink-0 p-4 sm:p-6 pt-2 sm:pt-3 bg-muted/30 border-t">
-            <p className="text-xs sm:text-sm text-muted-foreground text-center leading-relaxed">
-              {paymentMethod === 'card' ? 'Secure credit card processing' : 'Pay with USDC cryptocurrency'} • Start today • Cancel anytime
-            </p>
           </div>
         </DialogContent>
       </Dialog>
