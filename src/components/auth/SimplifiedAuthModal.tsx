@@ -128,7 +128,7 @@ export const SimplifiedAuthModal: React.FC<SimplifiedAuthModalProps> = memo(({ o
     
     try {
       if (mode === 'magic') {
-        console.log('🔄 Sending Supabase OTP for:', email.toLowerCase().trim());
+        console.log('🔄 Sending custom magic link for:', email.toLowerCase().trim());
         
         // Additional safety check before invoking function
         if (isSubmittingRef.current !== true) {
@@ -136,58 +136,41 @@ export const SimplifiedAuthModal: React.FC<SimplifiedAuthModalProps> = memo(({ o
           return;
         }
         
-        // Use deduplication system to prevent duplicate requests
+        // Use our custom send-magic-link function instead of Supabase OTP
         const result = await authRequestDeduplication.deduplicateRequest(
           email.toLowerCase().trim(),
           'magic_link',
           async () => {
-            console.log('📧 Actually sending Supabase OTP...');
+            console.log('📧 Sending custom magic link via Resend...');
             
             try {
-              // First verify the user's subscription tier with Beehiiv
-              const { data: verifyData, error: verifyError } = await supabase.functions.invoke('beehiiv-subscriber-verify', {
+              // Call our custom send-magic-link function
+              const { data: magicLinkData, error: magicLinkError } = await supabase.functions.invoke('send-magic-link', {
                 body: { email: email.toLowerCase().trim() }
               });
 
-              let tier = 'free';
-              if (verifyData?.success && verifyData?.tier) {
-                tier = verifyData.tier;
+              if (magicLinkError) {
+                console.error('❌ Custom magic link error:', magicLinkError);
+                throw new Error(magicLinkError.message || 'Failed to send magic link');
               }
 
-              console.log('✅ User tier verified:', tier);
-
-              // Send OTP via Supabase Auth with tier info
-              const redirectUrl = `${window.location.origin}/auth/callback?tier=${tier}`;
-              
-              const { error: otpError } = await supabase.auth.signInWithOtp({
-                email: email.toLowerCase().trim(),
-                options: {
-                  emailRedirectTo: redirectUrl,
-                  shouldCreateUser: true,
-                  data: {
-                    tier: tier,
-                    source: 'beehiiv'
-                  }
-                }
-              });
-
-              if (otpError) {
-                console.error('❌ Supabase OTP error:', otpError);
-                throw new Error(otpError.message || 'Failed to send magic link');
+              if (magicLinkData?.success) {
+                console.log('✅ Custom magic link sent successfully:', magicLinkData);
+                return { success: true, tier: magicLinkData.tier || 'free' };
+              } else {
+                throw new Error(magicLinkData?.error || 'Failed to send magic link');
               }
-
-              return { success: true, tier: tier };
             } catch (functionError: any) {
-              console.error('❌ OTP sending failed:', functionError);
+              console.error('❌ Magic link sending failed:', functionError);
               throw new Error(functionError.message || 'Network error occurred');
             }
           }
         );
         
-        console.log('✅ OTP result:', result);
+        console.log('✅ Magic link result:', result);
         
         if (result && result.success) {
-          console.log('📧 Magic link sent successfully, user must click email link to log in');
+          console.log('📧 Magic link sent successfully via Resend, user must click email link to log in');
           setError(
             <div className="text-green-600 text-sm">
               ✅ Magic link sent! Check your email and click the link to sign in.

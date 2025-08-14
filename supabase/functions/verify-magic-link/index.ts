@@ -35,13 +35,16 @@ serve(async (req) => {
     const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, serviceKey);
 
-    // Validate the token in magic_links table
+    // Hash the incoming token to match what's stored in the database
+    const tokenHash = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(token))
+      .then(buffer => Array.from(new Uint8Array(buffer)).map(b => b.toString(16).padStart(2, '0')).join(''));
+
+    // Validate the hashed token in magic_links table
     const { data: magicLink, error: magicLinkError } = await supabase
       .from('magic_links')
       .select('*')
-      .eq('token', token)
+      .eq('token', tokenHash) // Compare with hashed token
       .eq('email', email.toLowerCase().trim())
-      .eq('used', false)
       .gt('expires_at', new Date().toISOString())
       .single();
 
@@ -189,14 +192,14 @@ serve(async (req) => {
       throw sessionCreateError;
     }
 
-    // Mark the magic link as used
+    // Mark the magic link as used (using the hashed token)
     await supabase
       .from('magic_links')
       .update({ 
         used: true,
         used_at: new Date().toISOString()
       })
-      .eq('token', token);
+      .eq('token', tokenHash); // Use hashed token here too
 
     // Log successful authentication
     await supabase

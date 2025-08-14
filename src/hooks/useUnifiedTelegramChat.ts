@@ -86,10 +86,10 @@ export function useUnifiedTelegramChat(limit: number = 50, subscriber?: Subscrib
       return (data || []) as any;
     },
     enabled: shouldFetchData, // Only run query if user has access
-    refetchInterval: false, // Disable polling to reduce API calls
-    staleTime: 60000, // Cache for 1 minute
-    refetchOnWindowFocus: false,
-    refetchOnMount: false, // Use cache if available
+    refetchInterval: 15000, // Poll every 15 seconds for new messages
+    staleTime: 10000, // Consider data stale after 10 seconds
+    refetchOnWindowFocus: true, // Refresh when user returns to tab
+    refetchOnMount: true, // Always fetch fresh data on mount
   });
 
   // Fetch topic mappings

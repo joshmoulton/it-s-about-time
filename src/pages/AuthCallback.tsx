@@ -14,7 +14,37 @@ export function AuthCallback() {
       try {
         console.log('🔄 Processing auth callback...');
         
-        // Get the current session
+        // Check if this is a custom magic link verification
+        const token = searchParams.get('token');
+        const email = searchParams.get('email');
+        
+        if (token && email) {
+          console.log('🔗 Processing custom magic link verification...');
+          setMessage('Verifying your magic link...');
+          
+          // Verify the magic link token
+          const { data: verifyData, error: verifyError } = await supabase.functions.invoke('verify-magic-link', {
+            body: { 
+              token: token,
+              email: decodeURIComponent(email) 
+            }
+          });
+
+          if (verifyError || !verifyData?.success) {
+            console.error('❌ Magic link verification failed:', verifyError);
+            setStatus('error');
+            setMessage('Invalid or expired magic link. Please try again.');
+            return;
+          }
+
+          console.log('✅ Magic link verified successfully:', verifyData);
+          setMessage('Magic link verified! Completing authentication...');
+          
+          // The verify-magic-link function should have created a session
+          // Let's proceed to check the session
+        }
+        
+        // Get the current session (either from magic link or regular auth)
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
         
         if (sessionError) {
