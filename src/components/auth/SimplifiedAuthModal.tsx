@@ -111,34 +111,9 @@ export const SimplifiedAuthModal: React.FC<SimplifiedAuthModalProps> = memo(({ o
     
     try {
       if (mode === 'magic') {
-        console.log('🔄 Sending magic link for:', email.toLowerCase().trim());
-        
-        const { data, error } = await supabase.functions.invoke('send-magic-link', {
-          body: { email: email.toLowerCase().trim() }
-        });
-        
-        if (error || !data?.success) {
-          const errorMessage = data?.error || error?.message || 'Failed to send access link';
-          console.error('❌ Magic link error:', errorMessage);
-          setError(errorMessage);
-        } else {
-          console.log('✅ Magic link sent successfully');
-          if (data.is_new_user) {
-            setError(
-              <div className="text-green-600">
-                Welcome! We've created your free Weekly Wizdom account and sent an access link to your email. 
-                Check your inbox and click the link to get started.
-              </div>
-            );
-          } else {
-            setError(
-              <div className="text-green-600">
-                Access link sent! Check your email and click the link to sign in.
-              </div>
-            );
-          }
-          setEmail('');
-        }
+        // Redirect to main auth form to prevent duplicate magic link sending
+        window.location.href = '/auth';
+        return;
       } else if (mode === 'signin') {
         if (!password.trim()) {
           setError('Please enter your password');

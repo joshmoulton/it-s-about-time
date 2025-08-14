@@ -57,36 +57,17 @@ const Dashboard = () => {
   const memoizedCurrentUser = useMemo(() => currentUser, [currentUser?.id, currentUser?.email, currentUser?.metadata]);
   
   // Convert currentUser to subscriber format for components that expect it
-  // For magic link users, check localStorage for tier information and ensure premium users get proper access
+  // Use the tier directly from the authenticated user's data - no localStorage needed
   const subscriberForComponents = memoizedCurrentUser ? {
     id: memoizedCurrentUser.id,
     email: memoizedCurrentUser.email,
     status: memoizedCurrentUser.status || 'active',
     subscription_tier: (() => {
-      // For enhanced auth (magic link) users, prioritize the currentUser tier
-      if (memoizedCurrentUser.subscription_tier) {
-        // Normalize tier to match expected format
-        const tier = memoizedCurrentUser.subscription_tier;
-        if (tier === 'premium' || tier === 'paid') {
-          return 'premium';
-        }
-        return tier as 'free' | 'paid' | 'premium';
-      }
-      
-      // For magic link users, check localStorage as fallback
-      const authMethod = localStorage.getItem('auth_method');
-      const authTier = localStorage.getItem('auth_tier');
-      const authEmail = localStorage.getItem('auth_user_email');
-      
-      if (authMethod === 'magic_link' && authEmail === memoizedCurrentUser.email && authTier) {
-        // Normalize tier from localStorage
-        if (authTier === 'premium' || authTier === 'paid') {
-          return 'premium';
-        }
-        return authTier as 'free' | 'paid' | 'premium';
-      }
-      
-      return 'free';
+      // Get tier directly from authenticated user
+      const tier = memoizedCurrentUser.subscription_tier;
+      // Normalize to expected format (premium for paid users)
+      if (tier === 'paid') return 'premium';
+      return tier as 'free' | 'paid' | 'premium';
     })(),
     created_at: memoizedCurrentUser.created_at || new Date().toISOString(),
     updated_at: memoizedCurrentUser.updated_at || new Date().toISOString(),
