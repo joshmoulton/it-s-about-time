@@ -47,11 +47,11 @@ export const WelcomeView: React.FC<WelcomeViewProps> = ({
         <Button
           onClick={() => onModeChange('magic')}
           disabled={isLoading}
-          className="w-full bg-primary hover:bg-primary/90 text-primary-foreground py-2.5 sm:py-3 text-sm sm:text-base font-medium h-10 sm:h-12 flex items-center justify-center gap-2"
+          className="w-full bg-primary hover:bg-primary/90 text-primary-foreground py-2.5 sm:py-3 text-sm sm:text-base font-medium h-10 sm:h-12 flex items-center justify-center gap-2 text-center"
         >
           <Mail className="w-4 h-4" />
-          Get Access Link (Recommended)
-          <span className="ml-auto">→</span>
+          <span className="flex-1 text-center">Get Access Link (Recommended)</span>
+          <span>→</span>
         </Button>
         <p className="text-xs text-muted-foreground text-center mt-2 sm:mt-3 flex items-center justify-center gap-1 px-4">
           <Zap className="w-3 h-3" />
