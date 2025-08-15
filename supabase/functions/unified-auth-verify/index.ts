@@ -21,15 +21,7 @@ interface VerificationResult {
     beehiiv_tier?: string;
     verification_timestamp: string;
   };
-  session_token?: string;
   error?: string;
-}
-
-// Helper function to determine highest tier
-function getHighestTier(tiers: Array<'free' | 'paid' | 'premium'>): 'free' | 'paid' | 'premium' {
-  if (tiers.includes('premium')) return 'premium';
-  if (tiers.includes('paid')) return 'paid';
-  return 'free';
 }
 
 // Verify with Beehiiv using direct subscription tier API
@@ -47,7 +39,7 @@ async function verifyBeehiiv(email: string): Promise<{ verified: boolean; tier: 
     return {
       verified: data.verified,
       tier: data.tier,
-      segments: [] // No longer using segments, rely on direct subscription_tier
+      segments: []
     };
   } catch (error) {
     console.error('Beehiiv verification error:', error);
@@ -55,94 +47,7 @@ async function verifyBeehiiv(email: string): Promise<{ verified: boolean; tier: 
   }
 }
 
-
-
-// Generate session token
-function generateSessionToken(): string {
-  return crypto.randomUUID() + '-' + Date.now().toString(36);
-}
-
-// Create or get auth user and create secure session using unified identity system
-async function createSecureSession(email: string, tier: string, source: string, sessionToken: string): Promise<boolean> {
-  try {
-    console.log(`🔄 Creating/getting auth user for ${email}`);
-    
-    let userId: string | null = null;
-    
-    // Try to create user, but if user already exists, get their ID
-    const { data: newUser, error: authError } = await supabase.auth.admin.createUser({
-      email: email,
-      email_confirm: true,
-      user_metadata: {
-        subscription_tier: tier,
-        auth_source: source,
-        created_via: 'unified_auth'
-      }
-    });
-    
-    if (authError) {
-      // If user already exists, that's fine - we'll generate a session for them
-      if (authError.message?.includes('already been registered') || authError.status === 422) {
-        console.log(`✅ User ${email} already exists, proceeding with session creation`);
-        
-        // Get the existing user ID by generating a temporary sign-in session
-        const { data: signInData, error: signInError } = await supabase.auth.admin.generateLink({
-          type: 'magiclink',
-          email: email,
-          options: {
-            redirectTo: `https://www.weeklywizdom.com/dashboard`
-          }
-        });
-        
-        if (signInError || !signInData.user) {
-          console.error('❌ Failed to get existing user ID:', signInError);
-          return false;
-        }
-        
-        userId = signInData.user.id;
-        console.log(`✅ Found existing auth user for ${email}: ${userId}`);
-      } else {
-        console.error('❌ Failed to create auth user:', authError);
-        return false;
-      }
-    } else {
-      userId = newUser.user?.id || null;
-      console.log(`✅ Created new auth user for ${email}: ${userId}`);
-    }
-    
-    if (!userId) {
-      console.error('❌ Failed to get user ID');
-      return false;
-    }
-
-    // Session expires in 24 hours
-    const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
-
-    // Use the new unified session creation function that handles conflicts properly
-    const { data: sessionResult, error: sessionError } = await supabase.rpc('create_unified_session', {
-      p_email: email,
-      p_session_token: sessionToken,
-      p_tier: tier,
-      p_source: source,
-      p_expires_at: expiresAt.toISOString()
-    });
-
-    if (sessionError) {
-      console.error('❌ Error creating user session:', sessionError);
-      console.log(`❌ Failed to create secure session for ${email}`);
-      return false;
-    }
-
-    console.log(`✅ Session created successfully:`, sessionResult);
-    console.log(`🔐 Created secure session for ${email} with token ${sessionToken.substring(0, 8)}...`);
-    return true;
-  } catch (error) {
-    console.error('❌ Session creation error:', error);
-    return false;
-  }
-}
-
-// Main verification function
+// Main verification function - NO SESSION CREATION
 async function unifiedVerification(email: string): Promise<VerificationResult> {
   try {
     console.log(`🔍 Starting unified verification for: ${email}`);
@@ -151,16 +56,11 @@ async function unifiedVerification(email: string): Promise<VerificationResult> {
     const beehiivResult = await verifyBeehiiv(email);
     console.log(`🔍 Beehiiv verification result: ${JSON.stringify(beehiivResult)}`);
 
-    // Beehiiv is the sole source of truth
     const beehiivActive = beehiivResult.verified;
-
-    // Determine final tier solely from Beehiiv
     const finalTier = beehiivActive ? beehiivResult.tier : 'free';
-
     const source: 'beehiiv' | 'none' = beehiivActive ? 'beehiiv' : 'none';
     const verified = beehiivActive;
 
-    
     if (verified && beehiivActive) {
       try {
         // Store/update Beehiiv user in local table for faster future lookups
@@ -185,7 +85,6 @@ async function unifiedVerification(email: string): Promise<VerificationResult> {
         }
       } catch (error) {
         console.error('Error storing Beehiiv verification result:', error);
-        // Don't fail verification if storage fails
       }
     }
 
@@ -194,21 +93,6 @@ async function unifiedVerification(email: string): Promise<VerificationResult> {
       beehiiv_tier: beehiivResult.tier,
       verification_timestamp: new Date().toISOString()
     };
-
-    // Generate session token if verified and create secure session
-    let sessionToken: string | undefined;
-    if (verified) {
-      sessionToken = generateSessionToken();
-      
-      // Create the secure session using email (will create auth user if needed)
-      const sessionCreated = await createSecureSession(email, finalTier, source, sessionToken);
-      if (sessionCreated) {
-        console.log(`🔐 Created secure session for ${email} with token ${sessionToken.substring(0, 8)}...`);
-      } else {
-        console.error(`❌ Failed to create secure session for ${email}`);
-        sessionToken = undefined; // Don't return token if session creation failed
-      }
-    }
 
     // Log unified verification (no personal data stored)
     await supabase.from('authentication_audit_log').insert({
@@ -219,8 +103,7 @@ async function unifiedVerification(email: string): Promise<VerificationResult> {
         ...metadata,
         verified,
         final_tier: finalTier,
-        source,
-        session_token: sessionToken ? 'generated' : 'none'
+        source
       }
     });
 
@@ -231,8 +114,7 @@ async function unifiedVerification(email: string): Promise<VerificationResult> {
       verified,
       tier: finalTier,
       source,
-      metadata,
-      session_token: sessionToken
+      metadata
     };
 
   } catch (error) {

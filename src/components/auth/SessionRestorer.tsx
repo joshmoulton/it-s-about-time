@@ -18,28 +18,12 @@ export const SessionRestorer: React.FC<SessionRestorerProps> = ({ userEmail, onS
     setError(null);
     
     try {
-      console.log('🔄 Attempting to restore premium session for:', userEmail);
+      console.log('🔄 Session restoration deprecated, redirecting to magic link system');
       
-      // Call our premium session restoration function
-      const { data, error: restoreError } = await supabase.functions.invoke('restore-premium-session', {
-        body: { email: userEmail }
-      });
-      
-      if (restoreError || !data?.success) {
-        throw new Error(data?.error || restoreError?.message || 'Session restoration failed');
-      }
-      
-      console.log('✅ Premium session data received:', data);
-      
-      // Set the session using the tokens we received
-      const { error: setSessionError } = await supabase.auth.setSession({
-        access_token: data.access_token,
-        refresh_token: data.refresh_token
-      });
-      
-      if (setSessionError) {
-        throw setSessionError;
-      }
+      // Redirect users to request a new magic link instead
+      setError('Session restoration is no longer available. Please request a new magic link from the homepage.');
+      setIsRestoring(false);
+      return;
       
       console.log('🎯 Premium session restored successfully!');
       

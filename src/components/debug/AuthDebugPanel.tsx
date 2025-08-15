@@ -27,31 +27,9 @@ export const AuthDebugPanel: React.FC = () => {
       if (cachedEmail && sessionToken && !session?.user) {
         console.log('🌉 Attempting to bridge cached session to Supabase...');
         
-        const { data: bridgeData, error: bridgeError } = await supabase.functions.invoke('bridge-auth-session', {
-          body: {
-            session_token: sessionToken,
-            email: cachedEmail
-          }
-        });
-        
-        if (!bridgeError && bridgeData?.access_token) {
-          const { error: sessionError } = await supabase.auth.setSession({
-            access_token: bridgeData.access_token,
-            refresh_token: bridgeData.refresh_token
-          });
-          
-          if (!sessionError) {
-            toast.success('Authentication refreshed successfully!');
-            // Reload the page to ensure all components get the new session
-            window.location.reload();
-          } else {
-            console.error('Failed to set session:', sessionError);
-            toast.error('Failed to refresh session');
-          }
-        } else {
-          console.error('Bridge failed:', bridgeError);
-          toast.error('Session bridge failed - please log in again');
-        }
+        // Bridge function is deprecated - direct users to request new magic link
+        console.log('⚠️ Bridge function deprecated - user should request new magic link');
+        toast.info('Session bridging is no longer available. Please request a new magic link from the homepage.');
       } else if (refreshCurrentUser) {
         await refreshCurrentUser();
         toast.success('User data refreshed!');

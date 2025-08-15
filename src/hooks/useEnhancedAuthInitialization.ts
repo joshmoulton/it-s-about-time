@@ -275,7 +275,7 @@ export const useEnhancedAuthInitialization = ({
         if (cachedEmail && sessionToken) {
           console.log('✅ Found magic link session for:', cachedEmail);
           
-          // Try to create Supabase session for magic link users
+          // Try to verify user with Beehiiv
           try {
             const { data: verifyData } = await supabase.functions.invoke('unified-auth-verify', {
               body: { email: cachedEmail.toLowerCase().trim() }
@@ -284,32 +284,15 @@ export const useEnhancedAuthInitialization = ({
             if (verifyData?.success) {
               const tier = verifyData.tier === 'free' ? 'free' : 'premium';
               
-              // Try to establish Supabase session for proper RLS access
-              if (verifyData.session_token) {
-                try {
-                  const { data: bridgeData } = await supabase.functions.invoke('bridge-auth-session', {
-                    body: { session_token: verifyData.session_token, email: cachedEmail }
-                  });
-                  
-                  if (bridgeData?.access_token) {
-                    await supabase.auth.setSession({
-                      access_token: bridgeData.access_token,
-                      refresh_token: bridgeData.refresh_token
-                    });
-                    console.log('✅ Supabase session established for magic link user');
-                    return; // Let auth state handler take over
-                  }
-                } catch (bridgeError) {
-                  console.warn('⚠️ Session bridging failed, using fallback auth:', bridgeError);
-                }
-              }
-              
-              // Fallback: Set user without Supabase session
+              // Set user data without trying to bridge to Supabase auth (deprecated)
               const userData = {
-                id: crypto.randomUUID(),
+                id: crypto.randomUUID(), // Generate temporary ID for magic link users
                 email: cachedEmail,
                 subscription_tier: tier as 'free' | 'premium',
-                user_type: 'unified_user' as const
+                user_type: 'unified_user' as const,
+                status: 'active',
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString()
               };
               
               localStorage.setItem('auth_method', 'magic_link');
