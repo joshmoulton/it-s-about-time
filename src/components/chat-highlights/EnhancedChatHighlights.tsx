@@ -53,7 +53,7 @@ export const EnhancedChatHighlights: React.FC = () => {
             topic_name,
             likes_count
           ),
-          chat_highlight_rules:rule_id (
+          chat_highlight_rules!auto_highlights_rule_id_fkey (
             id,
             rule_name,
             highlight_color,
