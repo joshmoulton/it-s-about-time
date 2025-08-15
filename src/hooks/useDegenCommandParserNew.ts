@@ -5,13 +5,13 @@ import { useToast } from '@/hooks/use-toast';
 
 // Data structures
 interface DegenCommandData {
-  symbol: string; // Changed from ticker to symbol
+  symbol: string;
   direction: 'long' | 'short';
   entry_price?: number;
   stop_loss_price?: number;
   targets: number[];
-  size_level?: string;
-  entry_type?: 'market' | 'limit' | 'conditional';
+  size_level?: 'tiny' | 'low' | 'med' | 'high' | 'huge';
+  entry_type?: 'market' | 'limit' | 'conditional' | 'trigger';
   reasoning?: string;
 }
 
@@ -48,23 +48,19 @@ export function useDegenCommandParser() {
     }
   };
 
-  // Size level mapping
-  const SIZE_ALIASES = {
-    "tiny": "tiny",
-    "small": "small", 
-    "low": "small",
-    "med": "medium",
-    "medium": "medium", 
-    "avg": "medium",
-    "high": "large",
-    "huge": "large",
-    "xl": "large"
+  // Normalize to our canonical set: tiny | low | med | high | huge
+  const SIZE_ALIASES: Record<string, 'tiny' | 'low' | 'med' | 'high' | 'huge'> = {
+    tiny: 'tiny',
+    small: 'low', low: 'low',
+    med: 'med', medium: 'med', avg: 'med',
+    high: 'high',
+    huge: 'huge', xl: 'huge', xlarge: 'huge'
   };
 
-  const normalizeSize = (val: string | null): string => {
-    if (!val) return 'medium';
+  const normalizeSize = (val: string | null): 'tiny' | 'low' | 'med' | 'high' | 'huge' => {
+    if (!val) return 'med';
     const normalized = val.toLowerCase();
-    return SIZE_ALIASES[normalized as keyof typeof SIZE_ALIASES] || 'medium';
+    return SIZE_ALIASES[normalized] ?? 'med';
   };
 
   // Parse different command formats
@@ -82,13 +78,10 @@ export function useDegenCommandParser() {
 
       // Enhanced regex patterns to match Python bot capabilities
       const patterns = [
-        // Pattern 1: !degen supporting long/short TICKER [market/limit/conditional] [entry X] [stop X] [targets X, Y, Z] [size tiny/low/med/high/huge] [reason ...]
-        /^supporting\s+(long|short)\s+([A-Za-z0-9\-\.\/]+)(?:\s+(market|limit|conditional))?(?:\s+entry\s+([\d\.]+))?(?:\s+stop\s+([\d\.]+))?(?:\s+targets?\s+([\d\.,\s]+))?(?:\s+size\s+(tiny|small|low|med|medium|avg|high|huge|xl))?(?:\s+(?:reason|because)\s+(.+))?/i,
-        
-        // Pattern 2: !degen long/short TICKER [market/limit/conditional] [entry X] [stop X] [targets X, Y, Z] [size X] [reason ...]
+        // Pattern 1: !degen long/short TICKER [market/limit/conditional] [entry X] [stop X] [targets X, Y, Z] [size X] [reason ...]
         /^(long|short)\s+([A-Za-z0-9\-\.\/]+)(?:\s+(market|limit|conditional))?(?:\s+entry\s+([\d\.]+))?(?:\s+stop\s+([\d\.]+))?(?:\s+targets?\s+([\d\.,\s]+))?(?:\s+size\s+(tiny|small|low|med|medium|avg|high|huge|xl))?(?:\s+(?:reason|because)\s+(.+))?/i,
         
-        // Pattern 3: !degen TICKER long/short [market/limit/conditional] [entry X] [stop X] [targets X, Y, Z] [size X] [reason ...]
+        // Pattern 2: !degen TICKER long/short [market/limit/conditional] [entry X] [stop X] [targets X, Y, Z] [size X] [reason ...]
         /^([A-Za-z0-9\-\.\/]+)\s+(long|short)(?:\s+(market|limit|conditional))?(?:\s+entry\s+([\d\.]+))?(?:\s+stop\s+([\d\.]+))?(?:\s+targets?\s+([\d\.,\s]+))?(?:\s+size\s+(tiny|small|low|med|medium|avg|high|huge|xl))?(?:\s+(?:reason|because)\s+(.+))?/i,
       ];
 
@@ -119,17 +112,8 @@ export function useDegenCommandParser() {
       let sizeStr: string | undefined;
       let reasoning: string | undefined;
 
-      // Extract data based on pattern
-      if (patternIndex === 0) { // supporting long/short TICKER
-        direction = match[1].toLowerCase() as 'long' | 'short';
-        symbol = match[2].toUpperCase();
-        entryType = match[3]?.toLowerCase() as 'market' | 'limit' | 'conditional' | undefined;
-        entryPriceStr = match[4];
-        stopLossStr = match[5];
-        targetsStr = match[6];
-        sizeStr = match[7];
-        reasoning = match[8]?.trim();
-      } else if (patternIndex === 1) { // long/short TICKER  
+      // Extract data based on pattern  
+      if (patternIndex === 0) { // long/short TICKER
         direction = match[1].toLowerCase() as 'long' | 'short';
         symbol = match[2].toUpperCase();
         entryType = match[3]?.toLowerCase() as 'market' | 'limit' | 'conditional' | undefined;
@@ -213,7 +197,7 @@ export function useDegenCommandParser() {
 
       // Map to correct database field names for live_trading_signals table
       const signalData = {
-        // Use ticker instead of symbol to match database schema
+        id: crypto.randomUUID(),            // ✅ required by types
         ticker: commandData.symbol,
         direction: commandData.direction,
         entry_type: commandData.entry_type || 'market',
@@ -221,7 +205,7 @@ export function useDegenCommandParser() {
         current_price: commandData.entry_price || 0,
         stop_loss_price: commandData.stop_loss_price || 0,
         targets: commandData.targets || [],
-        size_level: commandData.size_level || 'medium',
+        size_level: commandData.size_level || 'med',
         risk_score: 5, // Medium risk for official signals
         reasoning: commandData.reasoning || `${commandData.direction.toUpperCase()} ${commandData.symbol} - Official signal generated from command`,
         status: 'active' as const,
@@ -360,7 +344,7 @@ export function useDegenCommandParser() {
 
       // Map to correct database field names for live_trading_signals table
       const signalData = {
-        // Use ticker instead of symbol to match database schema
+        id: crypto.randomUUID(),            // ✅ required by types
         ticker: commandData.symbol,
         direction: commandData.direction,
         entry_type: commandData.entry_type || 'market',
@@ -368,7 +352,7 @@ export function useDegenCommandParser() {
         current_price: commandData.entry_price || 0,
         stop_loss_price: commandData.stop_loss_price || 0,
         targets: commandData.targets || [],
-        size_level: commandData.size_level || 'medium',
+        size_level: commandData.size_level || 'med',
         risk_score: 10, // High risk for degen calls
         reasoning: commandData.reasoning || `${commandData.direction.toUpperCase()} ${commandData.symbol} - Degen call generated from command`,
         status: 'active' as const,
