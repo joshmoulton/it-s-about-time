@@ -38,23 +38,7 @@ serve(async (req) => {
     const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, serviceKey);
 
-    // SERVER-SIDE RATE LIMITING: Check for recent tokens
-    const thirtySecondsAgo = new Date(Date.now() - 30 * 1000).toISOString();
-    const { data: recentTokens } = await supabase
-      .from('magic_link_tokens')
-      .select('email, created_at')
-      .eq('email', normalizedEmail)
-      .gt('created_at', thirtySecondsAgo)
-      .gt('expires_at', new Date().toISOString());
-
-    if (recentTokens && recentTokens.length > 0) {
-      console.log(`🚫 Rate limit: Recent token exists for ${normalizedEmail} (${recentTokens.length} found)`);
-      return json({ 
-        success: true, 
-        message: 'Magic link already sent. Please check your email or wait 30 seconds before requesting again.',
-        rateLimited: true
-      });
-    }
+    // Rate limiting is handled by frontend deduplication logic
 
     // Get Beehiiv tier info
     const beehiivApiKey = Deno.env.get('BEEHIIV_API_KEY');
