@@ -13,7 +13,7 @@ serve(async (req) => {
   }
 
   try {
-    const { email, utm_source = 'Weekly Wizdom App', utm_medium = 'signup', utm_campaign = 'free_signup', referring_site } = await req.json()
+    const { email, tier = 'free', utm_source = 'Weekly Wizdom App', utm_medium = 'signup', utm_campaign = 'free_signup', referring_site } = await req.json()
 
     if (!email) {
       return new Response(
@@ -31,7 +31,7 @@ serve(async (req) => {
     console.log(`🆕 Creating Beehiiv subscription for: ${email}`)
 
     // Create Beehiiv subscription using the provided curl command structure
-    const beehiivResponse = await fetch('https://api.beehiiv.com/v2/publications/pub_4c830f49-6c5e-4e8b-b1b5-1e2be2c55d49/subscriptions', {
+    const beehiivResponse = await fetch('https://api.beehiiv.com/v2/publications/pub_e08d5f43-7f7c-4c24-b546-f301ccd42a77/subscriptions', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${Deno.env.get('BEEHIIV_API_KEY')}`,
@@ -39,6 +39,7 @@ serve(async (req) => {
       },
       body: JSON.stringify({
         email: email.toLowerCase().trim(),
+        tier,
         reactivate_existing: false,
         send_welcome_email: true,
         utm_source,
