@@ -1,6 +1,5 @@
 
 import React, { createContext, useContext, ReactNode, useMemo, useRef, useEffect } from 'react';
-import { useDeveloperOverride } from '@/components/dev/DeveloperToggle';
 import { AuthContextType } from '@/types/auth';
 import { useEnhancedAuthState } from '@/hooks/useEnhancedAuthState';
 import { useEnhancedAuthInitialization } from '@/hooks/useEnhancedAuthInitialization';
@@ -44,13 +43,15 @@ interface EnhancedAuthProviderProps {
 }
 
 export const EnhancedAuthProvider: React.FC<EnhancedAuthProviderProps> = ({ children }) => {
-  // Try to get developer override, but handle if context doesn't exist
+  // Get developer override from localStorage instead of context to avoid circular dependency
   let overrideTier = null;
   try {
-    const { overrideTier: devOverride } = useDeveloperOverride();
-    overrideTier = devOverride;
+    const stored = localStorage.getItem('dev_tier_override');
+    if (stored && (stored === 'free' || stored === 'premium')) {
+      overrideTier = stored;
+    }
   } catch (error) {
-    // Developer context not available, use null
+    // Storage not available, use null
     overrideTier = null;
   }
   const {

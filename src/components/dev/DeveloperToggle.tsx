@@ -13,7 +13,29 @@ export const DeveloperContext = React.createContext<{
 });
 
 export const DeveloperProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [overrideTier, setOverrideTier] = useState<'free' | 'premium' | null>(null);
+  const [overrideTier, setOverrideTierState] = useState<'free' | 'premium' | null>(() => {
+    // Initialize from localStorage
+    try {
+      const stored = localStorage.getItem('dev_tier_override');
+      return stored && (stored === 'free' || stored === 'premium') ? stored : null;
+    } catch {
+      return null;
+    }
+  });
+
+  const setOverrideTier = (tier: 'free' | 'premium' | null) => {
+    setOverrideTierState(tier);
+    // Sync to localStorage
+    try {
+      if (tier) {
+        localStorage.setItem('dev_tier_override', tier);
+      } else {
+        localStorage.removeItem('dev_tier_override');
+      }
+    } catch (error) {
+      console.warn('Failed to sync dev override to localStorage:', error);
+    }
+  };
 
   return (
     <DeveloperContext.Provider value={{ overrideTier, setOverrideTier }}>
