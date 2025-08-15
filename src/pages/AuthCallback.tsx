@@ -14,195 +14,113 @@ export function AuthCallback() {
       try {
         console.log('🔄 Processing authentication callback...');
         
-        // Handle Supabase native magic link flow
-        const tokenHash = searchParams.get('token_hash');
-        const type = searchParams.get('type');
-        const code = searchParams.get('code');
+        const u = new URL(window.location.href);
+        const code = u.searchParams.get('code');
+        const token_hash = u.searchParams.get('token_hash');
+        const type = u.searchParams.get('type');
 
-        if (tokenHash && type === 'email') {
-          console.log('🔄 Processing Supabase magic link verification...');
-          setMessage('Verifying your login...');
-          
-          try {
-            const { data, error } = await supabase.auth.verifyOtp({
-              type: 'email',
-              token_hash: tokenHash
-            });
-
-            if (error) {
-              console.error('❌ Magic link verification failed:', error);
-              setStatus('error');
-              setMessage(error.message || 'Magic link verification failed');
-              return;
-            }
-
-            if (data.user) {
-              console.log('✅ Magic link verified successfully:', data);
-              setMessage('Verifying subscription access...');
-              
-              // CRITICAL: Verify beehiiv subscription BEFORE allowing dashboard access
-              if (!data.user.email) {
-                setStatus('error');
-                setMessage('No email found in authentication data');
-                return;
-              }
-
-              try {
-                console.log('🔍 Verifying beehiiv subscription for:', data.user.email);
-                
-                const { data: verifyData, error: verifyError } = await supabase.functions.invoke('beehiiv-subscriber-verify', {
-                  body: { email: data.user.email }
-                });
-                
-                if (verifyError) {
-                  console.error('❌ Beehiiv verification failed:', verifyError);
-                  setStatus('error');
-                  setMessage('Failed to verify subscription access. Please try again.');
-                  return;
-                }
-
-                if (!verifyData || !verifyData.tier) {
-                  console.error('❌ No tier data received from beehiiv');
-                  setStatus('error');
-                  setMessage('Unable to verify subscription tier. Please contact support.');
-                  return;
-                }
-
-                const tier = verifyData.tier;
-                console.log(`✅ Beehiiv verification successful - Tier: ${tier}`);
-                
-                // Update user metadata with verified tier - CRITICAL for dashboard access
-                const { error: updateError } = await supabase.auth.updateUser({
-                  data: {
-                    subscription_tier: tier,
-                    beehiiv_verified: true,
-                    verified_at: new Date().toISOString(),
-                    beehiiv_status: verifyData.status || 'active'
-                  }
-                });
-
-                if (updateError) {
-                  console.warn('⚠️ Failed to update user metadata:', updateError);
-                  setStatus('error');
-                  setMessage('Authentication successful but failed to update profile. Please refresh.');
-                  return;
-                }
-
-                console.log('✅ User metadata updated with verified tier:', tier);
-                setMessage(`Welcome! Access verified - Tier: ${tier}`);
-                setStatus('success');
-                
-                // Navigate to dashboard only after successful verification
-                setTimeout(() => {
-                  navigate('/dashboard', { replace: true });
-                }, 1500);
-
-              } catch (verifyError) {
-                console.error('❌ Beehiiv verification error:', verifyError);
-                setStatus('error');
-                setMessage('Failed to verify subscription access. Please try again.');
-              }
-
-              return;
-            }
-          } catch (error) {
-            console.error('❌ Magic link verification error:', error);
-            setStatus('error');
-            setMessage('Magic link verification failed');
-            return;
-          }
-        }
-
-        // Handle PKCE flow
+        // Handle PKCE flow (code exchange)
         if (code) {
           console.log('🔄 Processing PKCE code exchange...');
+          setMessage('Verifying your login...');
           
-          try {
-            const { data, error } = await supabase.auth.exchangeCodeForSession(code);
-
-            if (error) {
-              console.error('❌ Code exchange failed:', error);
-              setStatus('error');
-              setMessage(error.message || 'Authentication failed');
-              return;
-            }
-
-            if (data.user) {
-              console.log('✅ PKCE authentication successful:', data);
-              
-              setMessage('Welcome! Authentication successful.');
-              setStatus('success');
-              
-              setTimeout(() => {
-                navigate('/dashboard', { replace: true });
-              }, 1500);
-
-              return;
-            }
-          } catch (error) {
-            console.error('❌ PKCE authentication error:', error);
+          const { error } = await supabase.auth.exchangeCodeForSession(code);
+          if (error) {
+            console.error('❌ Code exchange failed:', error);
             setStatus('error');
-            setMessage('Authentication failed');
+            setMessage(error.message || 'Authentication failed');
             return;
           }
         }
-        
-        // Handle standard Supabase magic link callback
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-        
-        if (sessionError) {
-          console.error('❌ Session error:', sessionError);
-          setStatus('error');
-          setMessage('Authentication failed. Please try again.');
-          return;
-        }
 
-        if (!session) {
-          console.log('❌ No Supabase session found');
-          setStatus('error');
-          setMessage('No active session found. Please try logging in again.');
-          return;
-        }
-
-        console.log('✅ Supabase session found for user:', session.user.email);
-        setMessage('Verifying your subscription tier...');
-
-        // Verify tier with Beehiiv and update user metadata
-        if (session.user.email) {
-          try {
-            const { data: verifyData, error: verifyError } = await supabase.functions.invoke('beehiiv-subscriber-verify', {
-              body: { email: session.user.email }
-            });
-            
-            if (verifyData?.success) {
-              console.log(`✅ User tier verified: ${verifyData.tier}`);
-              
-              // Update user metadata with tier info
-              await supabase.auth.updateUser({
-                data: {
-                  subscription_tier: verifyData.tier,
-                  source: 'beehiiv',
-                  verified_at: new Date().toISOString()
-                }
-              });
-              
-              setMessage(`Welcome! Your subscription tier: ${verifyData.tier}`);
-            } else {
-              console.warn('⚠️ Could not verify tier:', verifyError);
-              setMessage('Welcome! Subscription tier verification pending...');
-            }
-          } catch (verifyError) {
-            console.warn('⚠️ Could not verify tier:', verifyError);
-            setMessage('Welcome! Subscription tier verification pending...');
+        // Handle magic link verification (token_hash)
+        if (token_hash && type === 'email') {
+          console.log('🔄 Processing magic link token verification...');
+          setMessage('Verifying your login...');
+          
+          const { error } = await supabase.auth.verifyOtp({ 
+            type: 'email', 
+            token_hash 
+          });
+          if (error) {
+            console.error('❌ Magic link verification failed:', error);
+            setStatus('error');
+            setMessage(error.message || 'Magic link verification failed');
+            return;
           }
         }
 
-        setStatus('success');
-        
-        // Small delay for user feedback
-        setTimeout(() => {
-          navigate('/dashboard', { replace: true });
-        }, 1500);
+        // Get the session after verification
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) {
+          console.error('❌ No session after verification');
+          setStatus('error');
+          setMessage('No session found after verification');
+          return;
+        }
+
+        console.log('✅ Authentication successful for:', session.user.email);
+        setMessage('Verifying subscription access...');
+
+        // CRITICAL: Verify beehiiv subscription before dashboard access
+        if (!session.user.email) {
+          setStatus('error');
+          setMessage('No email found in session');
+          return;
+        }
+
+        try {
+          console.log('🔍 Verifying beehiiv subscription for:', session.user.email);
+          
+          const { data: verifyData, error: verifyError } = await supabase.functions.invoke('beehiiv-subscriber-verify', {
+            body: { email: session.user.email }
+          });
+          
+          if (verifyError) {
+            console.error('❌ Beehiiv verification failed:', verifyError);
+            setStatus('error');
+            setMessage('Failed to verify subscription access. Please try again.');
+            return;
+          }
+
+          if (!verifyData || !verifyData.tier) {
+            console.error('❌ No tier data received from beehiiv');
+            setStatus('error');
+            setMessage('Unable to verify subscription tier. Please contact support.');
+            return;
+          }
+
+          const tier = verifyData.tier;
+          console.log(`✅ Beehiiv verification successful - Tier: ${tier}`);
+          
+          // Update user metadata with verified tier
+          const { error: updateError } = await supabase.auth.updateUser({
+            data: {
+              subscription_tier: tier,
+              beehiiv_verified: true,
+              verified_at: new Date().toISOString(),
+              beehiiv_status: verifyData.status || 'active'
+            }
+          });
+
+          if (updateError) {
+            console.warn('⚠️ Failed to update user metadata:', updateError);
+          }
+
+          console.log('✅ User metadata updated with verified tier:', tier);
+          setMessage(`Welcome! Access verified - Tier: ${tier}`);
+          setStatus('success');
+          
+          // Navigate to dashboard after successful verification
+          setTimeout(() => {
+            navigate('/dashboard', { replace: true });
+          }, 1500);
+
+        } catch (verifyError) {
+          console.error('❌ Beehiiv verification error:', verifyError);
+          setStatus('error');
+          setMessage('Failed to verify subscription access. Please try again.');
+        }
 
       } catch (error) {
         console.error('❌ Auth callback error:', error);

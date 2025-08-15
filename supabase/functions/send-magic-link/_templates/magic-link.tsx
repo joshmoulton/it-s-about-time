@@ -23,37 +23,32 @@ export const MagicLinkEmail = ({
 }: MagicLinkEmailProps) => (
   <Html>
     <Head />
-    <Preview>Your secure login link for Weekly Wizdom</Preview>
+    <Preview>Sign in to Weekly Wizdom</Preview>
     <Body style={main}>
       <Container style={container}>
-        <Heading style={h1}>Weekly Wizdom</Heading>
+        <Heading style={h1}>Sign in to Weekly Wizdom</Heading>
         
         <Text style={text}>
-          Click the button below to securely access your Weekly Wizdom account:
+          Click the button below to securely access your account:
         </Text>
         
         <Link
           href={magicLink}
-          target="_blank"
-          style={{
-            ...button,
-            display: 'block',
-            marginBottom: '24px',
-            padding: '12px 24px',
-            backgroundColor: '#2563eb',
-            color: '#ffffff',
-            textDecoration: 'none',
-            borderRadius: '8px',
-            textAlign: 'center' as const,
-            fontWeight: '600',
-            fontSize: '16px'
-          }}
+          style={button}
         >
-          Sign In to Your Account
+          Sign In
         </Link>
         
         <Text style={{ ...text, fontSize: '14px', color: '#6b7280' }}>
-          This link expires in 15 minutes for security. If you didn't expect this invitation, you can safely ignore this email.
+          If the button doesn't work, copy and paste this URL:
+        </Text>
+        
+        <Text style={{ wordBreak: 'break-all' as const, fontSize: '12px', color: '#888' }}>
+          {magicLink}
+        </Text>
+        
+        <Text style={{ ...text, fontSize: '12px', color: '#999' }}>
+          If you didn't try to login, you can safely ignore this email.
         </Text>
         
         <Text style={footer}>
@@ -64,8 +59,6 @@ export const MagicLinkEmail = ({
           >
             Weekly Wizdom
           </Link>
-          <br />
-          Your weekly dose of crypto market wisdom
         </Text>
       </Container>
     </Body>
