@@ -3,16 +3,16 @@ import { Activity, TrendingUp, AlertTriangle } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { SharedAlertCard } from '@/components/shared/alerts/SharedAlertCard';
-import { useRealTradingAlerts } from '@/hooks/useRealTradingAlerts';
-import { adaptLiveTradingAlert, sortAlerts, filterAlertsByStatus } from '@/lib/adapters/alertAdapters';
+import { useLiveAlerts } from '@/hooks/useLiveAlerts';
+import { adaptLiveAlert, sortAlerts, filterAlertsByStatus } from '@/lib/adapters/alertAdapters';
 
 export function LiveAlertsWidget() {
-  const { data: alerts, isLoading, error } = useRealTradingAlerts();
+  const { data: alerts, isLoading, error } = useLiveAlerts();
 
-  // Convert to BaseAlert format
+  // Convert LiveAlerts to BaseAlerts for compatibility
   const adaptedAlerts = React.useMemo(() => {
     if (!alerts) return [];
-    return alerts.map(adaptLiveTradingAlert);
+    return alerts.map(adaptLiveAlert);
   }, [alerts]);
 
   // Separate active and awaiting alerts

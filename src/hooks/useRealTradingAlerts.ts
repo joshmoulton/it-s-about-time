@@ -1,5 +1,6 @@
 
 import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 
 interface TradingAlert {
   id: string;
@@ -11,42 +12,47 @@ interface TradingAlert {
   profit_percentage: number;
   stop_loss_price?: number;
   take_profit_price?: number;
+  size_level?: string;
+  entry_type?: string;
+  reasoning?: string;
+  targets?: number[];
+  direction?: string;
 }
 
-// Fetch real trading alerts from the analyst_signals table
+// Fetch real trading alerts from the live_trading_signals table
 const fetchTradingAlerts = async (): Promise<TradingAlert[]> => {
   try {
-    const response = await fetch('https://wrvvlmevpvcenauglcyz.supabase.co/rest/v1/analyst_signals?status=eq.active&select=*', {
-      headers: {
-        'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndydnZsbWV2cHZjZW5hdWdsY3l6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk4NTM5NTAsImV4cCI6MjA2NTQyOTk1MH0.iR1E5RqVrH7OsDdIqDvMWsc5d2jK9Qg9Ck-2lpi3E2g',
-        'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndydnZsbWV2cHZjZW5hdWdsY3l6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk4NTM5NTAsImV4cCI6MjA2NTQyOTk1MH0.iR1E5RqVrH7OsDdIqDvMWsc5d2jK9Qg9Ck-2lpi3E2g',
-        'Content-Type': 'application/json',
-        'Cache-Control': 'no-cache'
-      }
-    });
-    
-    if (!response.ok) {
-      throw new Error(`Failed to fetch trading alerts: ${response.status}`);
+    const { data: signals, error } = await supabase
+      .from('live_trading_signals')
+      .select('*')
+      .eq('status', 'active')
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      throw new Error(`Failed to fetch live trading signals: ${error.message}`);
     }
     
-    const signals = await response.json();
-    
-    // Convert analyst_signals to TradingAlert format
-    return signals.map((signal: any) => ({
+    // Convert live_trading_signals to TradingAlert format
+    return (signals || []).map((signal: any) => ({
       id: signal.id,
       symbol: signal.ticker,
-      trader: signal.analyst_name,
-      entry_price: signal.entry_price || 0,
-      current_price: signal.entry_price || 0, // Will be updated by signal engine
-      profit_loss: 0, // Will be calculated
-      profit_percentage: 0, // Will be calculated  
+      trader: 'Live Signal', // Default trader name
+      entry_price: signal.entry_price || signal.current_price || 0,
+      current_price: signal.current_price || signal.entry_price || 0,
+      profit_loss: 0, // Will be calculated by price engine
+      profit_percentage: 0, // Will be calculated by price engine
       stop_loss_price: signal.stop_loss_price,
       take_profit_price: signal.targets && Array.isArray(signal.targets) && signal.targets.length > 0 
-        ? parseFloat(signal.targets[0]) 
+        ? signal.targets[0] 
         : undefined,
-    })) || [];
+      size_level: signal.size_level,
+      entry_type: signal.entry_type,
+      reasoning: signal.reasoning,
+      targets: signal.targets || [],
+      direction: signal.direction,
+    }));
   } catch (error) {
-    console.error('Error fetching analyst signals:', error);
+    console.error('Error fetching live trading signals:', error);
     return [];
   }
 };
