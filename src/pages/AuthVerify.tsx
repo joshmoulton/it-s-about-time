@@ -95,8 +95,8 @@ const AuthVerify = () => {
           source: verifyData.user.source
         });
 
-        // Set the Supabase session using the tokens from verification
-        if (verifyData.session?.access_token) {
+        // Set the Supabase session using the tokens from verification (if available)
+        if (verifyData.session?.access_token && verifyData.session?.refresh_token) {
           const { error: sessionError } = await supabase.auth.setSession({
             access_token: verifyData.session.access_token,
             refresh_token: verifyData.session.refresh_token
@@ -108,6 +108,8 @@ const AuthVerify = () => {
           } else {
             console.log('✅ Supabase session established successfully');
           }
+        } else {
+          console.log('⚠️ No Supabase session tokens available - using enhanced auth only');
         }
 
         // Store authentication data with exact tier from verification

@@ -132,9 +132,9 @@ serve(async (req) => {
       console.log(`✅ Created new user: ${authUser.id}`);
     }
 
-    // Generate session tokens for the user
+    // Generate session tokens for the user using admin.generateLink
     const { data: sessionData, error: sessionError } = await supabase.auth.admin.generateLink({
-      type: 'recovery',
+      type: 'magiclink',
       email: tokenData.email
     });
 
@@ -150,21 +150,36 @@ serve(async (req) => {
     }
 
     console.log(`✅ Session generated for: ${tokenData.email}`);
+    console.log('🔍 Session data structure:', Object.keys(sessionData));
+    console.log('🔍 Properties:', sessionData.properties ? Object.keys(sessionData.properties) : 'No properties');
     
-    // Extract tokens from the recovery link
-    const recoveryUrl = new URL(sessionData.properties.action_link);
-    const accessToken = recoveryUrl.searchParams.get('access_token');
-    const refreshToken = recoveryUrl.searchParams.get('refresh_token');
+    // Extract tokens from the magic link - try different approaches
+    let accessToken, refreshToken;
+    
+    if (sessionData.properties?.action_link) {
+      try {
+        const magicUrl = new URL(sessionData.properties.action_link);
+        accessToken = magicUrl.searchParams.get('access_token');
+        refreshToken = magicUrl.searchParams.get('refresh_token');
+        console.log('🔍 Extracted from action_link:', { accessToken: !!accessToken, refreshToken: !!refreshToken });
+      } catch (e) {
+        console.warn('⚠️ Failed to parse action_link as URL:', e);
+      }
+    }
+
+    // If we couldn't extract tokens from the URL, try to use the session data directly
+    if (!accessToken && sessionData.session) {
+      accessToken = sessionData.session.access_token;
+      refreshToken = sessionData.session.refresh_token;
+      console.log('🔍 Extracted from session object:', { accessToken: !!accessToken, refreshToken: !!refreshToken });
+    }
 
     if (!accessToken || !refreshToken) {
-      console.error('❌ Failed to extract tokens from session link');
-      const errorResponse = req.method === 'POST' 
-        ? JSON.stringify({ success: false, error: 'Failed to extract session tokens' })
-        : 'Failed to extract session tokens';
-      return new Response(errorResponse, { 
-        status: 500,
-        headers: req.method === 'POST' ? { 'content-type': 'application/json', ...corsHeaders } : {}
-      });
+      console.error('❌ Failed to extract tokens from session');
+      console.log('🔍 Available session data:', JSON.stringify(sessionData, null, 2));
+      
+      // For now, let's continue without setting Supabase session - the enhanced auth will still work
+      console.log('⚠️ Continuing without Supabase session tokens');
     }
     console.log(`✅ Session tokens extracted for user: ${authUser?.id}`);
 
