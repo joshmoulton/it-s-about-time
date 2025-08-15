@@ -43,10 +43,10 @@ const HeroNavigation = ({
   
   return (
     <nav className="fixed top-0 left-0 right-0 z-[100] px-3 sm:px-6 lg:px-12 py-2 sm:py-4 lg:py-6 backdrop-blur-md bg-background/90 shadow-sm border-b border-border/10" style={{ position: 'fixed', top: 0 }}>
-      <div className="flex items-center justify-between w-full">
-        {/* Logo - Left */}
+      <div className="grid grid-cols-3 items-center w-full">
+        {/* Logo - Left Column */}
         <div 
-          className="flex items-center drop-shadow-sm cursor-pointer"
+          className="flex items-center drop-shadow-sm cursor-pointer justify-self-start"
           onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
         >
           <LazyImage
@@ -59,8 +59,8 @@ const HeroNavigation = ({
           />
         </div>
 
-        {/* Desktop Navigation - Center */}
-        <div className="hidden lg:flex items-center space-x-6 xl:space-x-8 absolute left-1/2 transform -translate-x-1/2">
+        {/* Desktop Navigation - Center Column */}
+        <div className="hidden lg:flex items-center space-x-6 xl:space-x-8 justify-self-center">
           <a 
             href="#services" 
             className="text-foreground hover:text-primary transition-all duration-300 font-montserrat hover:translate-y-[-1px] drop-shadow-sm hover:drop-shadow-md"
@@ -113,8 +113,8 @@ const HeroNavigation = ({
           </a>
         </div>
 
-        {/* Right side - Mobile menu + Sign In + Get Started */}
-        <div className="flex items-center gap-1 xs:gap-2 sm:gap-3">
+        {/* Right Column - Mobile menu + Sign In + Get Started */}
+        <div className="flex items-center gap-1 xs:gap-2 sm:gap-3 justify-self-end">
           {/* Mobile menu button */}
           <button 
             className="lg:hidden p-2 text-foreground hover:text-primary transition-all duration-300 hover:scale-110 hover:translate-y-[-1px] drop-shadow-sm hover:drop-shadow-md min-h-[44px] min-w-[44px] flex items-center justify-center"

@@ -83,25 +83,59 @@
     
     <!-- Self-Hosted Fonts from Supabase Storage -->
     <link rel="preload" href="https://wrvvlmevpvcenauglcyz.supabase.co/storage/v1/object/public/Fonts/merriweather-v32-latin-regular.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="https://wrvvlmevpvcenauglcyz.supabase.co/storage/v1/object/public/Fonts/merriweather-v32-latin-700.woff2" as="font" type="font/woff2" crossorigin>
     <link rel="preload" href="https://wrvvlmevpvcenauglcyz.supabase.co/storage/v1/object/public/Fonts/montserrat-v30-latin-regular.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="https://wrvvlmevpvcenauglcyz.supabase.co/storage/v1/object/public/Fonts/montserrat-v30-latin-700.woff2" as="font" type="font/woff2" crossorigin>
     
     <style>
+      /* Merriweather Font Family */
       @font-face {
         font-family: 'Merriweather';
         font-style: normal;
         font-weight: 400;
         font-display: swap;
-        font-synthesis: weight style;
         src: url('https://wrvvlmevpvcenauglcyz.supabase.co/storage/v1/object/public/Fonts/merriweather-v32-latin-regular.woff2') format('woff2');
       }
       
+      @font-face {
+        font-family: 'Merriweather';
+        font-style: normal;
+        font-weight: 700;
+        font-display: swap;
+        src: url('https://wrvvlmevpvcenauglcyz.supabase.co/storage/v1/object/public/Fonts/merriweather-v32-latin-700.woff2') format('woff2');
+      }
+      
+      /* Montserrat Font Family */
       @font-face {
         font-family: 'Montserrat';
         font-style: normal;
         font-weight: 400;
         font-display: swap;
-        font-synthesis: weight style;
         src: url('https://wrvvlmevpvcenauglcyz.supabase.co/storage/v1/object/public/Fonts/montserrat-v30-latin-regular.woff2') format('woff2');
+      }
+      
+      @font-face {
+        font-family: 'Montserrat';
+        font-style: normal;
+        font-weight: 500;
+        font-display: swap;
+        src: url('https://wrvvlmevpvcenauglcyz.supabase.co/storage/v1/object/public/Fonts/montserrat-v30-latin-500.woff2') format('woff2');
+      }
+      
+      @font-face {
+        font-family: 'Montserrat';
+        font-style: normal;
+        font-weight: 600;
+        font-display: swap;
+        src: url('https://wrvvlmevpvcenauglcyz.supabase.co/storage/v1/object/public/Fonts/montserrat-v30-latin-600.woff2') format('woff2');
+      }
+      
+      @font-face {
+        font-family: 'Montserrat';
+        font-style: normal;
+        font-weight: 700;
+        font-display: swap;
+        src: url('https://wrvvlmevpvcenauglcyz.supabase.co/storage/v1/object/public/Fonts/montserrat-v30-latin-700.woff2') format('woff2');
       }
     </style>
 
@@ -153,7 +187,11 @@
         try { 
           if ('fonts' in document) { 
             document.fonts.load('400 1em Merriweather');
+            document.fonts.load('700 1em Merriweather');
             document.fonts.load('400 1em Montserrat');
+            document.fonts.load('500 1em Montserrat');
+            document.fonts.load('600 1em Montserrat');
+            document.fonts.load('700 1em Montserrat');
           }
           // Add loaded class when fonts are ready
           if (document.fonts && document.fonts.ready) {
