@@ -18,26 +18,40 @@ export const SessionRestorer: React.FC<SessionRestorerProps> = ({ userEmail, onS
     setError(null);
     
     try {
-      console.log('🔄 Attempting to restore session for:', userEmail);
+      console.log('🔄 Attempting to restore premium session for:', userEmail);
       
-      // Try to sign in the existing user with a temporary password reset flow
-      const { data, error: signInError } = await supabase.auth.signInWithOtp({
-        email: userEmail,
-        options: {
-          emailRedirectTo: window.location.origin + '/auth/callback'
-        }
+      // Call our premium session restoration function
+      const { data, error: restoreError } = await supabase.functions.invoke('restore-premium-session', {
+        body: { email: userEmail }
       });
       
-      if (signInError) {
-        throw signInError;
+      if (restoreError || !data?.success) {
+        throw new Error(data?.error || restoreError?.message || 'Session restoration failed');
       }
       
-      console.log('✅ OTP sent successfully, check your email');
-      setError('Please check your email for a sign-in link.');
+      console.log('✅ Premium session data received:', data);
+      
+      // Set the session using the tokens we received
+      const { error: setSessionError } = await supabase.auth.setSession({
+        access_token: data.access_token,
+        refresh_token: data.refresh_token
+      });
+      
+      if (setSessionError) {
+        throw setSessionError;
+      }
+      
+      console.log('🎯 Premium session restored successfully!');
+      
+      // Clear the restoration state
+      localStorage.removeItem('last_known_premium_email');
+      
+      // Trigger the callback to update the app state
+      onSessionRestored();
       
     } catch (error: any) {
-      console.error('❌ Session restoration failed:', error);
-      setError(error.message || 'Failed to restore session');
+      console.error('❌ Premium session restoration failed:', error);
+      setError(error.message || 'Failed to restore premium session');
     } finally {
       setIsRestoring(false);
     }

@@ -3844,6 +3844,10 @@ export type Database = {
         }
         Returns: string
       }
+      create_premium_user_session: {
+        Args: { p_email: string }
+        Returns: Json
+      }
       create_supabase_session_for_beehiiv_user: {
         Args: {
           p_email: string
