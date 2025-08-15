@@ -42,7 +42,7 @@ const HeroNavigation = ({
   }, []);
   
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 px-3 sm:px-6 lg:px-12 py-2 sm:py-4 lg:py-6 backdrop-blur-md bg-background/90 shadow-sm border-b border-border/10" style={{ position: 'fixed', top: 0 }}>
+    <nav className="fixed top-0 left-0 right-0 z-50 px-3 sm:px-6 lg:px-12 py-1 sm:py-2 lg:py-3 backdrop-blur-md bg-background/90 shadow-sm border-b border-border/10" style={{ position: 'fixed', top: 0 }}>
       <div className="flex items-center justify-between w-full relative">
         {/* Logo - Left */}
         <div 
@@ -52,7 +52,7 @@ const HeroNavigation = ({
           <LazyImage
             src="https://wrvvlmevpvcenauglcyz.supabase.co/storage/v1/object/public/assets/Property%201=Black%20(3).png"
             alt="Weekly Wizdom Logo" 
-            className="h-6 xs:h-7 sm:h-6 lg:h-8 w-auto drop-shadow-md"
+            className="h-5 xs:h-6 sm:h-6 lg:h-7 w-auto drop-shadow-md"
             loading="eager"
             fetchPriority="high"
             fallback="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48dGV4dCB4PSI1MCUiIHk9IjUwJSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1zaXplPSIxOCIgZm9udC13ZWlnaHQ9ImJvbGQiIGZpbGw9IiMzMzU1RkYiPldXPC90ZXh0Pjwvc3ZnPg=="
@@ -117,7 +117,7 @@ const HeroNavigation = ({
         <div className="flex items-center gap-1 xs:gap-2 sm:gap-3">
           {/* Mobile menu button */}
           <button 
-            className="lg:hidden p-2 text-foreground hover:text-primary transition-all duration-300 hover:scale-110 hover:translate-y-[-1px] drop-shadow-sm hover:drop-shadow-md min-h-[44px] min-w-[44px] flex items-center justify-center"
+            className="lg:hidden p-2 text-foreground hover:text-primary transition-all duration-300 hover:scale-110 hover:translate-y-[-1px] drop-shadow-sm hover:drop-shadow-md min-h-[40px] min-w-[40px] flex items-center justify-center"
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             aria-label="Toggle menu"
           >
@@ -129,7 +129,7 @@ const HeroNavigation = ({
             <Button 
               variant="outline" 
               size="sm" 
-              className="font-medium font-montserrat border-[#3355FF] text-[#3355FF] hover:bg-[#3355FF] hover:text-white text-xs sm:text-sm px-3 sm:px-4 h-9 rounded-full transition-all duration-300 hover:scale-105 hover:translate-y-[-2px] shadow-[0_2px_4px_rgba(51,85,255,0.2)] hover:shadow-[0_4px_8px_rgba(51,85,255,0.3)] drop-shadow-md"
+              className="font-medium font-montserrat border-[#3355FF] text-[#3355FF] hover:bg-[#3355FF] hover:text-white text-xs sm:text-sm px-3 sm:px-4 h-8 rounded-full transition-all duration-300 hover:scale-105 hover:translate-y-[-2px] shadow-[0_2px_4px_rgba(51,85,255,0.2)] hover:shadow-[0_4px_8px_rgba(51,85,255,0.3)] drop-shadow-md"
               onClick={() => navigate('/dashboard')}
             >
               Dashboard
@@ -138,7 +138,7 @@ const HeroNavigation = ({
             <Button 
               variant="outline" 
               size="sm" 
-              className="font-medium font-montserrat border-[#3355FF] text-[#3355FF] hover:bg-[#3355FF] hover:text-white text-xs sm:text-sm px-3 sm:px-4 h-9 rounded-full transition-all duration-300 hover:scale-105 hover:translate-y-[-2px] shadow-[0_2px_4px_rgba(51,85,255,0.2)] hover:shadow-[0_4px_8px_rgba(51,85,255,0.3)] drop-shadow-md" 
+              className="font-medium font-montserrat border-[#3355FF] text-[#3355FF] hover:bg-[#3355FF] hover:text-white text-xs sm:text-sm px-3 sm:px-4 h-8 rounded-full transition-all duration-300 hover:scale-105 hover:translate-y-[-2px] shadow-[0_2px_4px_rgba(51,85,255,0.2)] hover:shadow-[0_4px_8px_rgba(51,85,255,0.3)] drop-shadow-md" 
               onClick={onAuthClick}
               disabled={isLoading}
             >
@@ -150,7 +150,7 @@ const HeroNavigation = ({
           {!isAuthenticated && (
             <Button 
               size="sm" 
-              className="font-medium font-montserrat bg-brand-primary hover:bg-background hover:text-brand-primary text-white border-2 border-brand-primary text-xs sm:text-sm px-3 sm:px-4 h-9 rounded-full relative overflow-hidden transition-all duration-300 hover:scale-105 hover:translate-y-[-2px] before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-white/20 before:to-transparent before:translate-x-[-100%] before:animate-shimmer-subtle hover:before:opacity-0" 
+              className="font-medium font-montserrat bg-brand-primary hover:bg-background hover:text-brand-primary text-white border-2 border-brand-primary text-xs sm:text-sm px-3 sm:px-4 h-8 rounded-full relative overflow-hidden transition-all duration-300 hover:scale-105 hover:translate-y-[-2px] before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-white/20 before:to-transparent before:translate-x-[-100%] before:animate-shimmer-subtle hover:before:opacity-0" 
               onClick={() => navigateToSection('pricing')}
             >
               Get Started
