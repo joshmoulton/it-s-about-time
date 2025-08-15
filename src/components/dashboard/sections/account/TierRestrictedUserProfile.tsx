@@ -11,9 +11,11 @@ import { supabase } from '@/integrations/supabase/client';
 import { authenticatedQuery } from '@/utils/supabaseAuthWrapper';
 import { TierUpgradePrompt } from '@/components/dashboard/widgets/TierUpgradePrompt';
 import { UpgradeModal } from '@/components/freemium/UpgradeModal';
+import { useAdminStatusFromContext } from '@/hooks/useAdminStatusContext';
 
 export function TierRestrictedUserProfile() {
   const { currentUser } = useEnhancedAuth();
+  const { isAdmin } = useAdminStatusFromContext();
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isEditing, setIsEditing] = useState(false);
@@ -26,8 +28,10 @@ export function TierRestrictedUserProfile() {
     avatarUrl: ''
   });
 
-  // Check if user has premium access
-  const isPremiumUser = currentUser?.subscription_tier === 'premium' || currentUser?.subscription_tier === 'paid';
+  // Check if user has premium access (includes admin users)
+  const isPremiumUser = currentUser?.subscription_tier === 'premium' || 
+                       currentUser?.subscription_tier === 'paid' || 
+                       isAdmin;
 
   // Load existing profile data
   useEffect(() => {
