@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import { getLogoUrl } from '@/utils/uploadLogo';
 
 interface LoadingScreenProps {
   onLoadingComplete: () => void;
@@ -10,21 +9,10 @@ const LoadingScreen = ({ onLoadingComplete }: LoadingScreenProps) => {
   const [isFadingOut, setIsFadingOut] = useState(false);
   const [showMainLogo, setShowMainLogo] = useState(false);
   const [showTextLogo, setShowTextLogo] = useState(false);
-  const [logoUrl, setLogoUrl] = useState<string | null>(null);
 
-  // Get logo URL from Supabase
-  useEffect(() => {
-    const fetchLogo = async () => {
-      try {
-        const url = await getLogoUrl();
-        setLogoUrl(url);
-      } catch (error) {
-        console.error('Failed to load logo:', error);
-        // Continue without logo
-      }
-    };
-    fetchLogo();
-  }, []);
+  // Direct logo URLs from Lovable uploads
+  const mainLogoUrl = '/lovable-uploads/92103cfe-defa-4004-b1bb-7d6498f567ed.png';
+  const textLogoUrl = '/lovable-uploads/760c309c-e0cf-4e84-96b7-5cedf426aa74.png';
 
   useEffect(() => {
     // Fade in main logo first
@@ -61,37 +49,38 @@ const LoadingScreen = ({ onLoadingComplete }: LoadingScreenProps) => {
       }`}
     >
       <div className="flex flex-col items-center justify-center space-y-6">
-        {/* Main Logo */}
-        {logoUrl && (
-          <img 
-            src={logoUrl}
-            alt="Weekly Wizdom Logo" 
-            className={`w-32 h-32 object-contain transition-all duration-700 ease-out will-change-transform ${
-              showMainLogo && !isFadingOut ? 'opacity-100 scale-100' : 'opacity-0 scale-95'
-            }`}
-          />
-        )}
-        
-        {/* Fallback logo if Supabase logo fails */}
-        {!logoUrl && (
-          <div className={`w-32 h-32 bg-white/20 rounded-2xl flex items-center justify-center transition-all duration-700 ease-out will-change-transform ${
+        {/* Main Logo (Icon/Symbol) */}
+        <img 
+          src={mainLogoUrl}
+          alt="Weekly Wizdom Logo" 
+          className={`w-32 h-32 object-contain transition-all duration-700 ease-out will-change-transform ${
             showMainLogo && !isFadingOut ? 'opacity-100 scale-100' : 'opacity-0 scale-95'
-          }`}>
-            <span className="text-white text-3xl font-bold">WW</span>
-          </div>
-        )}
+          }`}
+          onError={(e) => {
+            // Fallback if main logo fails to load
+            e.currentTarget.style.display = 'none';
+          }}
+        />
         
-        {/* Text Logo */}
-        <div className={`transition-all duration-700 ease-out delay-150 will-change-transform ${
-          showTextLogo && !isFadingOut ? 'opacity-100 scale-100' : 'opacity-0 scale-95'
-        }`}>
-          <h1 className="text-white text-4xl font-bold tracking-tight">
-            Weekly Wizdom
-          </h1>
-          <p className="text-white/80 text-center text-lg mt-2">
-            Financial Intelligence Delivered
-          </p>
-        </div>
+        {/* Text Logo (Brand Name) */}
+        <img 
+          src={textLogoUrl}
+          alt="Weekly Wizdom Brand" 
+          className={`h-16 object-contain transition-all duration-700 ease-out delay-150 will-change-transform ${
+            showTextLogo && !isFadingOut ? 'opacity-100 scale-100' : 'opacity-0 scale-95'
+          }`}
+          onError={(e) => {
+            // Fallback to text if text logo fails to load
+            e.currentTarget.outerHTML = `
+              <div class="transition-all duration-700 ease-out delay-150 will-change-transform ${
+                showTextLogo && !isFadingOut ? 'opacity-100 scale-100' : 'opacity-0 scale-95'
+              }">
+                <h1 class="text-white text-4xl font-bold tracking-tight">Weekly Wizdom</h1>
+                <p class="text-white/80 text-center text-lg mt-2">Financial Intelligence Delivered</p>
+              </div>
+            `;
+          }}
+        />
       </div>
     </div>
   );

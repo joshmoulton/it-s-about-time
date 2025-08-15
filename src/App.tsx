@@ -55,10 +55,11 @@ const App = () => {
   const [showLoading, setShowLoading] = useState(true);
 
   useEffect(() => {
+    // Temporarily always show loading for testing - comment out session check
     // Skip loading if user has seen it this session
-    if (sessionStorage.getItem('hasSeenLoading')) {
-      setShowLoading(false);
-    }
+    // if (sessionStorage.getItem('hasSeenLoading')) {
+    //   setShowLoading(false);
+    // }
   }, []);
 
   // Initialize safe performance optimizations
