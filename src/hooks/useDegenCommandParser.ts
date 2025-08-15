@@ -66,8 +66,68 @@ export const useDegenCommandParser = () => {
       await closePosition(ticker);
       return null; // Return null to indicate this was a close command, not a new degen call
     }
+
+    // Check for official command
+    const officialFormat = /!official\s+(long|short)\s+([A-Za-z0-9]+)(?:\s+(market|[0-9.]+))?(?:\s+(.+))?/i;
+    const officialMatch = cleanMessage.match(officialFormat);
     
-    // Match patterns: 
+    if (officialMatch) {
+      const [, direction, ticker, entry, additionalParams] = officialMatch;
+      console.log('Official command detected:', { direction, ticker, entry, additionalParams });
+      
+      const commandData: DegenCommandData = {
+        ticker: ticker.toUpperCase(),
+        direction: direction.toLowerCase() as 'long' | 'short',
+      };
+
+      // Handle entry price
+      if (entry && entry !== 'market') {
+        commandData.entryPrice = parseFloat(entry);
+      }
+
+      // Parse additional parameters if provided
+      if (additionalParams) {
+        const params = additionalParams.toLowerCase();
+        
+        // Look for stop loss
+        const stopMatch = params.match(/stop[:\s]+([0-9.]+)/);
+        if (stopMatch) {
+          commandData.stopLoss = parseFloat(stopMatch[1]);
+        }
+
+        // Look for targets
+        const targetMatch = params.match(/target[s]?[:\s]+([0-9.,\s]+)/);
+        if (targetMatch) {
+          const targets = targetMatch[1]
+            .split(/[,\s]+/)
+            .map(t => parseFloat(t.trim()))
+            .filter(t => !isNaN(t));
+          if (targets.length > 0) {
+            commandData.targets = targets;
+          }
+        }
+      }
+
+      // Fetch call price
+      const callPrice = await fetchCurrentPrice(ticker);
+      if (callPrice) {
+        commandData.callPrice = callPrice;
+        
+        // If no entry price provided or market, use call price as entry
+        if (!commandData.entryPrice || entry === 'market') {
+          commandData.entryPrice = callPrice;
+          toast.success(`${ticker} official signal created at market price: $${callPrice.toFixed(6)}`);
+        } else {
+          toast.success(`${ticker} official signal created with entry: $${commandData.entryPrice.toFixed(6)}`);
+        }
+      }
+
+      // Create official signal
+      await createOfficialSignal(commandData);
+      return null; // Return null to indicate this was processed as an official command
+    }
+    
+    // Match patterns for degen commands: 
     // !degen supporting long|short TICKER (optional entry/stop/target)
     // !degen long|short TICKER [entry] (optional stop/target)
     const supportingFormat = /!degen\s+supporting\s+(long|short)\s+([A-Za-z0-9]+)(?:\s+(.+))?/i;
@@ -161,6 +221,61 @@ export const useDegenCommandParser = () => {
     }
 
     return commandData;
+  };
+
+  const createOfficialSignal = async (commandData: DegenCommandData, analystName: string = 'Official Analyst') => {
+    setIsProcessing(true);
+    try {
+      const targets = commandData.targets || [];
+      const entryDisplay = commandData.entryPrice?.toString() || 'Market';
+      const stopDisplay = commandData.stopLoss?.toString() || 'N/A';
+      const targetsDisplay = targets.length > 0 ? targets.join(', ') : 'N/A';
+
+      const callPriceDisplay = commandData.callPrice ? `$${commandData.callPrice.toFixed(6)}` : 'N/A';
+      
+      const formattedOutput = `OFFICIAL SIGNAL: CRYPTO ${commandData.ticker} SPOT ${commandData.direction.toUpperCase()}
+
+Call Price: ${callPriceDisplay}
+Entry: ${entryDisplay}
+Stop Loss: ${stopDisplay}
+Targets: ${targetsDisplay}
+
+Risk: 3.0%
+
+Official signal for ${commandData.ticker} ${commandData.direction}`;
+
+      // Insert the official signal
+      const { data: signalData, error } = await supabase
+        .from('analyst_signals')
+        .insert({
+          analyst_name: analystName,
+          market: 'crypto' as any,
+          trade_type: 'spot' as any,
+          trade_direction: commandData.direction as any,
+          ticker: commandData.ticker,
+          risk_percentage: 3.0,
+          entry_type: commandData.entryPrice ? 'market' as any : 'market' as any,
+          entry_price: commandData.entryPrice,
+          risk_management: 'stop_loss' as any,
+          stop_loss_price: commandData.stopLoss,
+          targets: targets.map(t => t.toString()),
+          full_description: `Official signal for ${commandData.ticker} ${commandData.direction}`,
+          formatted_output: formattedOutput,
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      toast.success(`Official ${commandData.ticker} ${commandData.direction} signal created!`);
+      return signalData;
+    } catch (error) {
+      console.error('Error creating official signal:', error);
+      toast.error('Failed to create official signal');
+      throw error;
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   const closePosition = async (ticker: string) => {
@@ -329,6 +444,7 @@ Degen call for ${commandData.ticker} ${commandData.direction}`;
   return {
     parseDegenCommand,
     createSignalFromCommand,
+    createOfficialSignal,
     fetchCurrentPrice,
     closePosition,
     isProcessing,
