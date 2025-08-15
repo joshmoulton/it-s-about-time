@@ -42,7 +42,7 @@ const HeroNavigation = ({
   }, []);
   
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 px-3 sm:px-6 lg:px-12 py-2 sm:py-4 lg:py-6 backdrop-blur-md bg-background/90 shadow-sm border-b border-border/10">
+    <nav className="fixed top-0 left-0 right-0 z-[100] px-3 sm:px-6 lg:px-12 py-2 sm:py-4 lg:py-6 backdrop-blur-md bg-background/90 shadow-sm border-b border-border/10" style={{ position: 'fixed', top: 0 }}>
       <div className="flex items-center justify-between w-full">
         {/* Logo - Left */}
         <div 
@@ -224,7 +224,7 @@ const HeroNavigation = ({
       )}
       
       {/* Mobile scroll progress bar */}
-      <div className="block sm:hidden fixed top-[58px] left-0 right-0 z-40 h-1 bg-background/20 backdrop-blur-sm">
+      <div className="block sm:hidden fixed top-[58px] left-0 right-0 z-[90] h-1 bg-background/20 backdrop-blur-sm" style={{ position: 'fixed', top: '58px' }}>
         <div 
           className="h-full bg-brand-primary"
           style={{ 
