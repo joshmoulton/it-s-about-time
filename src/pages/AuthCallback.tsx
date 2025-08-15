@@ -14,85 +14,105 @@ export function AuthCallback() {
       try {
         console.log('🔄 Processing authentication callback...');
         
-        // Check for session data from magic link verification
-        const sessionDataParam = searchParams.get('session_data');
-        const tierParam = searchParams.get('tier');
-        const verifiedParam = searchParams.get('verified');
-        
-        // Check for magic link verification (new clean flow)
-        const authMethodParam = searchParams.get('auth_method');
-        
-        if (verifiedParam === 'true' && authMethodParam === 'magic_link') {
-          console.log('🔄 Processing magic link verification...');
+        // Handle Supabase native magic link flow
+        const tokenHash = searchParams.get('token_hash');
+        const type = searchParams.get('type');
+        const code = searchParams.get('code');
+
+        if (tokenHash && type === 'email') {
+          console.log('🔄 Processing Supabase magic link verification...');
+          
           try {
-            const emailParam = searchParams.get('email');
-            
-            if (!emailParam) {
-              throw new Error('Email not provided in magic link verification');
-            }
-            
-            // Verify tier and create/update user session
-            const { data: verifyData, error: verifyError } = await supabase.functions.invoke('beehiiv-subscriber-verify', {
-              body: { email: emailParam }
+            const { data, error } = await supabase.auth.verifyOtp({
+              type: 'email',
+              token_hash: tokenHash
             });
-            
-            if (verifyData?.success) {
-              console.log(`✅ User tier verified: ${verifyData.tier}`);
-              setMessage(`Welcome! Your subscription tier: ${verifyData.tier}`);
-            } else {
-              console.warn('⚠️ Could not verify tier:', verifyError);
-              setMessage(`Welcome! Your subscription tier: ${tierParam}`);
+
+            if (error) {
+              console.error('❌ Magic link verification failed:', error);
+              setStatus('error');
+              setMessage(error.message || 'Magic link verification failed');
+              return;
             }
-            
-            setStatus('success');
-            
-            setTimeout(() => {
-              navigate('/dashboard', { replace: true });
-            }, 1500);
-            return;
+
+            if (data.user) {
+              console.log('✅ Magic link verified successfully:', data);
+              
+              // Get tier from user metadata or verify with Beehiiv
+              let tier = data.user.user_metadata?.subscription_tier || 'free';
+              
+              if (data.user.email) {
+                try {
+                  const { data: verifyData } = await supabase.functions.invoke('beehiiv-subscriber-verify', {
+                    body: { email: data.user.email }
+                  });
+                  
+                  if (verifyData?.success) {
+                    tier = verifyData.tier;
+                    console.log(`✅ User tier verified: ${tier}`);
+                    
+                    // Update user metadata with tier info
+                    await supabase.auth.updateUser({
+                      data: {
+                        subscription_tier: tier,
+                        source: 'magic_link',
+                        verified_at: new Date().toISOString()
+                      }
+                    });
+                  }
+                } catch (verifyError) {
+                  console.warn('⚠️ Could not verify tier:', verifyError);
+                }
+              }
+              
+              setMessage(`Welcome! Your subscription tier: ${tier}`);
+              setStatus('success');
+              
+              setTimeout(() => {
+                navigate('/dashboard', { replace: true });
+              }, 1500);
+
+              return;
+            }
           } catch (error) {
             console.error('❌ Magic link verification error:', error);
             setStatus('error');
-            setMessage('Magic link verification failed. Please try again.');
+            setMessage('Magic link verification failed');
             return;
           }
         }
-        
-        // Check for old session data format (fallback)
-        if (sessionDataParam && verifiedParam === 'true') {
-          console.log('🔄 Processing legacy session data...');
+
+        // Handle PKCE flow
+        if (code) {
+          console.log('🔄 Processing PKCE code exchange...');
+          
           try {
-            const sessionData = JSON.parse(atob(sessionDataParam));
-            console.log('✅ Legacy session processed for:', sessionData.user.email);
-            setMessage(`Welcome! Your subscription tier: ${tierParam}`);
-            setStatus('success');
-            
-            setTimeout(() => {
-              navigate('/dashboard', { replace: true });
-            }, 1500);
+            const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+
+            if (error) {
+              console.error('❌ Code exchange failed:', error);
+              setStatus('error');
+              setMessage(error.message || 'Authentication failed');
+              return;
+            }
+
+            if (data.user) {
+              console.log('✅ PKCE authentication successful:', data);
+              
+              setMessage('Welcome! Authentication successful.');
+              setStatus('success');
+              
+              setTimeout(() => {
+                navigate('/dashboard', { replace: true });
+              }, 1500);
+
+              return;
+            }
+          } catch (error) {
+            console.error('❌ PKCE authentication error:', error);
+            setStatus('error');
+            setMessage('Authentication failed');
             return;
-          } catch (decodeError) {
-            console.error('❌ Error decoding session data:', decodeError);
-          }
-        }
-        
-        // Check for fallback session data from old magic link format
-        const sessionParam = searchParams.get('session');
-        
-        if (sessionParam && verifiedParam === 'true') {
-          console.log('🔄 Processing fallback unified auth session...');
-          try {
-            const sessionData = JSON.parse(atob(sessionParam));
-            console.log('✅ Fallback session processed for:', sessionData.email);
-            setMessage(`Welcome! Your subscription tier: ${sessionData.tier}`);
-            setStatus('success');
-            
-            setTimeout(() => {
-              navigate('/dashboard', { replace: true });
-            }, 1500);
-            return;
-          } catch (decodeError) {
-            console.error('❌ Error decoding session data:', decodeError);
           }
         }
         

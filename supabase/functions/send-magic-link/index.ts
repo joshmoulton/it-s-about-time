@@ -101,35 +101,26 @@ serve(async (req) => {
       }, { status: 400 });
     }
 
-    // Generate magic link token
-    const token = crypto.randomUUID();
-    const expires_at = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
+    // Generate Supabase magic link using admin.generateLink
+    const { data: linkData, error: linkError } = await supabase.auth.admin.generateLink({
+      type: 'magiclink',
+      email: normalizedEmail,
+      options: {
+        redirectTo: 'https://www.weeklywizdom.com/auth/callback',
+        data: {
+          subscription_tier: tier,
+          source: 'magic_link'
+        }
+      }
+    });
 
-    // Clean up any expired tokens for this email first
-    await supabase
-      .from('magic_link_tokens')
-      .delete()
-      .eq('email', normalizedEmail)
-      .lt('expires_at', new Date().toISOString());
-
-    // Store magic link token in database
-    const { error: dbError } = await supabase
-      .from('magic_link_tokens')
-      .insert({
-        email: normalizedEmail,
-        token: token,
-        expires_at: expires_at.toISOString(),
-        tier: tier
-      });
-
-    if (dbError) {
-      console.error('❌ Error storing magic link token:', dbError);
+    if (linkError || !linkData?.properties?.action_link) {
+      console.error('❌ Error generating magic link:', linkError);
       return json({ success: false, error: 'Failed to generate magic link' }, { status: 500 });
     }
 
-    // Create the clean magic link URL - goes directly to your domain
-    const magicLinkUrl = `https://www.weeklywizdom.com/auth/verify?token=${token}&email=${encodeURIComponent(normalizedEmail)}`;
-    console.log(`🔗 Generated clean magic link URL: ${magicLinkUrl}`);
+    const magicLinkUrl = linkData.properties.action_link;
+    console.log(`🔗 Generated Supabase magic link URL: ${magicLinkUrl}`);
 
     // Send email using Resend with our custom template
     const resend = new Resend(Deno.env.get('RESEND_API_KEY'));
@@ -162,7 +153,8 @@ serve(async (req) => {
     return json({ 
       success: true, 
       tier: tier,
-      message: 'Magic link sent successfully' 
+      message: 'Magic link sent successfully',
+      action_link: magicLinkUrl
     });
 
   } catch (error) {
