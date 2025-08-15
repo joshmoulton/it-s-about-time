@@ -20,6 +20,12 @@ const AuthVerify = () => {
       const token = searchParams.get('token');
       const email = searchParams.get('email');
 
+      console.log('🔍 URL Parameters:', { 
+        token: token ? `${token.substring(0, 8)}...${token.substring(token.length - 4)}` : 'missing',
+        email: email ? decodeURIComponent(email) : 'missing',
+        fullUrl: window.location.href
+      });
+
       if (!token || !email) {
         setStatus('error');
         setMessage('Invalid or missing verification parameters.');
