@@ -51,6 +51,9 @@ const AuthVerify = () => {
           body: { 
             token: token,
             email: decodeURIComponent(email) 
+          },
+          headers: {
+            'Content-Type': 'application/json'
           }
         });
         
