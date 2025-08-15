@@ -65,18 +65,49 @@ const PricingTier: React.FC<PricingTierProps> = ({
     setLoading(true);
 
     try {
-      // REMOVED MAGIC LINK - Now use main auth modal instead
-      console.log('🚫 PricingSection: Free tier signup should use main auth modal');
+      console.log('🆕 Creating free Beehiiv subscription for:', email);
+      
+      const { data, error } = await supabase.functions.invoke('beehiiv-create-subscription', {
+        body: { 
+          email: email.trim().toLowerCase(),
+          tier: 'free',
+          utm_source: 'Weekly Wizdom App',
+          utm_medium: 'pricing_section',
+          utm_campaign: 'free_signup'
+        }
+      });
+
+      if (error) {
+        console.error('Beehiiv subscription error:', error);
+        throw error;
+      }
+
+      console.log('✅ Free subscription created successfully:', data);
+      
+      setIsSuccess(true);
+      setSuccessMessage({
+        title: 'Welcome to Weekly Wizdom!',
+        description: 'Your free account has been created. Check your email for your first newsletter preview!'
+      });
+      setShowSuccessModal(true);
+      
       toast({
-        title: "Please use Sign In",
-        description: "Click the 'Sign In' button at the top to get started with your free account.",
+        title: "Success!",
+        description: "Your free subscription has been created. Welcome to Weekly Wizdom!",
         variant: "default"
       });
+
+      // Clear form after success
+      setTimeout(() => {
+        setEmail('');
+        setIsSuccess(false);
+      }, 3000);
+
     } catch (error) {
       console.error('Free signup error:', error);
       toast({
         title: "Error",
-        description: "Something went wrong. Please try again.",
+        description: "Something went wrong creating your free account. Please try again.",
         variant: "destructive"
       });
     } finally {
