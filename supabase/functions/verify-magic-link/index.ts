@@ -93,17 +93,22 @@ serve(async (req) => {
 
     // Get or create user in Supabase auth with proper error handling
     console.log(`🔄 Looking up existing user for: ${tokenData.email}`);
-    let authUser;
+    let authUser = null;
     
-    // First try to find user by email using more efficient query
+    // First try to find user by listing all users and filtering by email
+    // Note: getUserByEmail doesn't exist in current Supabase JS library
     try {
-      const { data: userData, error: lookupError } = await supabase.auth.admin.getUserByEmail(tokenData.email);
+      const { data: usersData, error: listError } = await supabase.auth.admin.listUsers();
       
-      if (!lookupError && userData?.user) {
-        authUser = userData.user;
-        console.log(`✅ Found existing user for: ${tokenData.email}`);
+      if (!listError && usersData?.users) {
+        authUser = usersData.users.find(user => user.email === tokenData.email);
+        if (authUser) {
+          console.log(`✅ Found existing user: ${authUser.id}`);
+        } else {
+          console.log(`❌ No existing user found for: ${tokenData.email}`);
+        }
       } else {
-        console.log(`❌ No existing user found for: ${tokenData.email}`);
+        console.log(`⚠️ Error listing users: ${listError?.message}`);
       }
     } catch (error) {
       console.log(`⚠️ Error looking up user: ${error.message}`);
@@ -112,39 +117,46 @@ serve(async (req) => {
     if (!authUser) {
       console.log(`🔐 Creating Supabase auth user for: ${tokenData.email}`);
       
-      // Create user with secure temporary password
-      const tempPassword = `tmp_${Date.now()}_${crypto.randomUUID().substring(0, 8)}`;
-      
+      // Create user with email confirmation already set
       const { data: newUser, error: createError } = await supabase.auth.admin.createUser({
         email: tokenData.email,
-        password: tempPassword,
         email_confirm: true,
         user_metadata: {
           subscription_tier: tokenData.tier,
           source: 'magic_link',
-          verified_at: new Date().toISOString(),
-          needs_password_setup: true
+          verified_at: new Date().toISOString()
         }
       });
 
       if (createError) {
         console.log(`⚠️ Create user error: ${createError.message}`);
-        // If user already exists, try to fetch them again
+        // If user already exists, try to find them again
         if (createError.message?.includes('already been registered') || createError.message?.includes('email_exists')) {
           console.log(`🔄 User already exists, re-fetching: ${tokenData.email}`);
           try {
-            const { data: existingUserData } = await supabase.auth.admin.getUserByEmail(tokenData.email);
-            if (existingUserData?.user) {
-              authUser = existingUserData.user;
-              console.log(`✅ Successfully found existing user on retry`);
+            const { data: retryUsersData, error: retryListError } = await supabase.auth.admin.listUsers();
+            if (!retryListError && retryUsersData?.users) {
+              authUser = retryUsersData.users.find(user => user.email === tokenData.email);
+              if (authUser) {
+                console.log(`✅ Successfully found existing user on retry: ${authUser.id}`);
+              } else {
+                throw new Error('User exists but could not be found');
+              }
+            } else {
+              throw new Error(`Failed to list users: ${retryListError?.message}`);
             }
           } catch (retryError) {
             console.error('❌ Failed to fetch existing user on retry:', retryError);
+            const errorResponse = req.method === 'POST' 
+              ? JSON.stringify({ success: false, error: 'Authentication system error' })
+              : 'Authentication system error';
+            return new Response(errorResponse, { 
+              status: 500,
+              headers: req.method === 'POST' ? { 'content-type': 'application/json', ...corsHeaders } : {}
+            });
           }
-        }
-        
-        if (!authUser) {
-          console.error('❌ Failed to create or fetch user:', createError);
+        } else {
+          console.error('❌ Failed to create user:', createError);
           const errorResponse = req.method === 'POST' 
             ? JSON.stringify({ success: false, error: 'Failed to authenticate user' })
             : 'Failed to authenticate user';
@@ -159,21 +171,32 @@ serve(async (req) => {
       }
     }
 
+    // Ensure we have a valid user at this point
+    if (!authUser) {
+      console.error('❌ No valid user found after authentication process');
+      const errorResponse = req.method === 'POST' 
+        ? JSON.stringify({ success: false, error: 'Authentication failed' })
+        : 'Authentication failed';
+      return new Response(errorResponse, { 
+        status: 500,
+        headers: req.method === 'POST' ? { 'content-type': 'application/json', ...corsHeaders } : {}
+      });
+    }
+
     // Update user metadata with latest tier info
-    if (authUser) {
-      console.log(`🔄 Updating user metadata for: ${tokenData.email}`);
-      try {
-        await supabase.auth.admin.updateUserById(authUser.id, {
-          user_metadata: {
-            ...authUser.user_metadata,
-            subscription_tier: tokenData.tier,
-            last_login_via: 'magic_link',
-            verified_at: new Date().toISOString()
-          }
-        });
-      } catch (updateError) {
-        console.warn('⚠️ Error updating user metadata:', updateError);
-      }
+    console.log(`🔄 Updating user metadata for: ${tokenData.email}`);
+    try {
+      await supabase.auth.admin.updateUserById(authUser.id, {
+        user_metadata: {
+          ...authUser.user_metadata,
+          subscription_tier: tokenData.tier,
+          last_login_via: 'magic_link',
+          verified_at: new Date().toISOString()
+        }
+      });
+      console.log(`✅ User metadata updated successfully`);
+    } catch (updateError) {
+      console.warn('⚠️ Error updating user metadata:', updateError);
     }
 
     // Upsert subscriber in our database
@@ -192,21 +215,8 @@ serve(async (req) => {
 
     if (upsertError) {
       console.warn('⚠️ Error upserting subscriber:', upsertError);
-    }
-
-    console.log(`✅ Magic link verified successfully for ${tokenData.email}, preparing authentication...`);
-    
-    // Update user metadata to sync subscription tier
-    if (authUser) {
-      console.log(`🔄 Updating user metadata for: ${tokenData.email}`);
-      await supabase.auth.admin.updateUserById(authUser.id, {
-        user_metadata: {
-          ...authUser.user_metadata,
-          subscription_tier: tokenData.tier,
-          last_login_via: 'magic_link',
-          verified_at: new Date().toISOString()
-        }
-      });
+    } else {
+      console.log(`✅ Subscriber record updated for: ${tokenData.email}`);
     }
 
     console.log(`✅ Magic link authentication complete for ${tokenData.email}`);
