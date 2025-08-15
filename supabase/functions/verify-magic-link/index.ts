@@ -84,18 +84,29 @@ serve(async (req) => {
       .eq('token', token);
     console.log(`✅ Token deleted for: ${tokenData.email}`);
 
-    // Get or create user in Supabase auth with real session
+    // Get or create user in Supabase auth with proper error handling
     console.log(`🔄 Looking up existing user for: ${tokenData.email}`);
     let authUser;
-    const { data: existingUsers } = await supabase.auth.admin.listUsers();
-    authUser = existingUsers.users.find(u => u.email === tokenData.email);
-    console.log(`${authUser ? '✅ Found existing user' : '❌ No existing user found'} for: ${tokenData.email}`);
+    
+    // First try to find user by email using more efficient query
+    try {
+      const { data: userData, error: lookupError } = await supabase.auth.admin.getUserByEmail(tokenData.email);
+      
+      if (!lookupError && userData?.user) {
+        authUser = userData.user;
+        console.log(`✅ Found existing user for: ${tokenData.email}`);
+      } else {
+        console.log(`❌ No existing user found for: ${tokenData.email}`);
+      }
+    } catch (error) {
+      console.log(`⚠️ Error looking up user: ${error.message}`);
+    }
 
     if (!authUser) {
       console.log(`🔐 Creating Supabase auth user for: ${tokenData.email}`);
       
-      // Create user with temporary password they can reset later
-      const tempPassword = `temp_${Date.now()}_${Math.random().toString(36).substring(7)}`;
+      // Create user with secure temporary password
+      const tempPassword = `tmp_${Date.now()}_${crypto.randomUUID().substring(0, 8)}`;
       
       const { data: newUser, error: createError } = await supabase.auth.admin.createUser({
         email: tokenData.email,
@@ -110,34 +121,52 @@ serve(async (req) => {
       });
 
       if (createError) {
-        // If user already exists, just fetch them instead of failing
-        if (createError.message?.includes('already been registered')) {
-          console.log(`🔄 User already exists, fetching existing user: ${tokenData.email}`);
-          const { data: users } = await supabase.auth.admin.listUsers();
-          authUser = users.users.find(u => u.email === tokenData.email);
-          if (!authUser) {
-            console.error('❌ Could not find existing user after creation error');
-            return new Response('Failed to authenticate user', { status: 500 });
+        console.log(`⚠️ Create user error: ${createError.message}`);
+        // If user already exists, try to fetch them again
+        if (createError.message?.includes('already been registered') || createError.message?.includes('email_exists')) {
+          console.log(`🔄 User already exists, re-fetching: ${tokenData.email}`);
+          try {
+            const { data: existingUserData } = await supabase.auth.admin.getUserByEmail(tokenData.email);
+            if (existingUserData?.user) {
+              authUser = existingUserData.user;
+              console.log(`✅ Successfully found existing user on retry`);
+            }
+          } catch (retryError) {
+            console.error('❌ Failed to fetch existing user on retry:', retryError);
           }
-        } else {
-          console.error('❌ Error creating Supabase user:', createError);
-          return new Response('Failed to create user account', { status: 500 });
+        }
+        
+        if (!authUser) {
+          console.error('❌ Failed to create or fetch user:', createError);
+          const errorResponse = req.method === 'POST' 
+            ? JSON.stringify({ success: false, error: 'Failed to authenticate user' })
+            : 'Failed to authenticate user';
+          return new Response(errorResponse, { 
+            status: 500,
+            headers: req.method === 'POST' ? { 'content-type': 'application/json', ...corsHeaders } : {}
+          });
         }
       } else {
         authUser = newUser.user;
+        console.log(`✅ Successfully created new user: ${tokenData.email}`);
       }
-    } else {
-      console.log(`🔄 Updating existing Supabase user: ${tokenData.email}`);
-      
-      // Update existing user metadata with latest tier info
-      await supabase.auth.admin.updateUserById(authUser.id, {
-        user_metadata: {
-          ...authUser.user_metadata,
-          subscription_tier: tokenData.tier,
-          last_login_via: 'magic_link',
-          verified_at: new Date().toISOString()
-        }
-      });
+    }
+
+    // Update user metadata with latest tier info
+    if (authUser) {
+      console.log(`🔄 Updating user metadata for: ${tokenData.email}`);
+      try {
+        await supabase.auth.admin.updateUserById(authUser.id, {
+          user_metadata: {
+            ...authUser.user_metadata,
+            subscription_tier: tokenData.tier,
+            last_login_via: 'magic_link',
+            verified_at: new Date().toISOString()
+          }
+        });
+      } catch (updateError) {
+        console.warn('⚠️ Error updating user metadata:', updateError);
+      }
     }
 
     // Upsert subscriber in our database

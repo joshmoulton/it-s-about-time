@@ -30,12 +30,31 @@ serve(async (req) => {
       return json({ success: false, error: 'Email is required' }, { status: 400 });
     }
 
-    console.log(`📧 Sending UPDATED custom magic link for: ${email}`);
+    const normalizedEmail = email.toLowerCase().trim();
+    console.log(`📧 Processing magic link request for: ${normalizedEmail}`);
 
     // Initialize Supabase client
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, serviceKey);
+
+    // SERVER-SIDE RATE LIMITING: Check for recent tokens
+    const thirtySecondsAgo = new Date(Date.now() - 30 * 1000).toISOString();
+    const { data: recentTokens } = await supabase
+      .from('magic_link_tokens')
+      .select('email, created_at')
+      .eq('email', normalizedEmail)
+      .gt('created_at', thirtySecondsAgo)
+      .gt('expires_at', new Date().toISOString());
+
+    if (recentTokens && recentTokens.length > 0) {
+      console.log(`🚫 Rate limit: Recent token exists for ${normalizedEmail} (${recentTokens.length} found)`);
+      return json({ 
+        success: true, 
+        message: 'Magic link already sent. Please check your email or wait 30 seconds before requesting again.',
+        rateLimited: true
+      });
+    }
 
     // Get Beehiiv tier info
     const beehiivApiKey = Deno.env.get('BEEHIIV_API_KEY');
@@ -86,11 +105,18 @@ serve(async (req) => {
     const token = crypto.randomUUID();
     const expires_at = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
 
+    // Clean up any expired tokens for this email first
+    await supabase
+      .from('magic_link_tokens')
+      .delete()
+      .eq('email', normalizedEmail)
+      .lt('expires_at', new Date().toISOString());
+
     // Store magic link token in database
     const { error: dbError } = await supabase
       .from('magic_link_tokens')
       .insert({
-        email: email,
+        email: normalizedEmail,
         token: token,
         expires_at: expires_at.toISOString(),
         tier: tier
@@ -102,7 +128,7 @@ serve(async (req) => {
     }
 
     // Create the clean magic link URL - goes directly to your domain
-    const magicLinkUrl = `https://www.weeklywizdom.com/auth/verify?token=${token}&email=${encodeURIComponent(email)}`;
+    const magicLinkUrl = `https://www.weeklywizdom.com/auth/verify?token=${token}&email=${encodeURIComponent(normalizedEmail)}`;
     console.log(`🔗 Generated clean magic link URL: ${magicLinkUrl}`);
 
     // Send email using Resend with our custom template
@@ -112,13 +138,13 @@ serve(async (req) => {
       React.createElement(MagicLinkEmail, {
         magicLink: magicLinkUrl,
         userTier: tier,
-        email: email,
+        email: normalizedEmail,
       })
     );
 
     const emailResult = await resend.emails.send({
       from: 'Weekly Wizdom <noreply@weeklywizdom.app>',
-      to: [email],
+      to: [normalizedEmail],
       subject: 'Access Your Weekly Wizdom Account',
       html,
     });

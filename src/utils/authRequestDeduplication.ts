@@ -12,7 +12,7 @@ interface PendingRequest {
 
 class AuthRequestDeduplication {
   private pendingRequests = new Map<string, PendingRequest>();
-  private readonly DEDUP_WINDOW_MS = 5000; // 5 seconds deduplication window
+  private readonly DEDUP_WINDOW_MS = 30000; // 30 seconds deduplication window
 
   private getRequestKey(email: string, type: string): string {
     return `${type}:${email.toLowerCase().trim()}`;
@@ -28,19 +28,48 @@ class AuthRequestDeduplication {
     requestFn: () => Promise<T>
   ): Promise<T> {
     const key = this.getRequestKey(email, type);
+    
+    // Check both memory and localStorage for cross-tab deduplication
     const existing = this.pendingRequests.get(key);
+    const localStorageKey = `auth_dedup_${key}`;
+    const localStorageData = localStorage.getItem(localStorageKey);
+    
+    let recentRequest = existing;
+    if (!recentRequest && localStorageData) {
+      try {
+        const parsed = JSON.parse(localStorageData);
+        if (this.isRequestRecent(parsed.timestamp)) {
+          console.log(`🔄 Cross-tab deduplication for ${type} request for ${email} (${Date.now() - parsed.timestamp}ms ago)`);
+          // Return a resolved promise for cross-tab requests
+          return Promise.resolve({ success: true, message: 'Request already in progress in another tab' } as T);
+        } else {
+          localStorage.removeItem(localStorageKey);
+        }
+      } catch (e) {
+        localStorage.removeItem(localStorageKey);
+      }
+    }
 
     // If there's a recent pending request, return its promise
-    if (existing && this.isRequestRecent(existing.timestamp)) {
-      console.log(`🔄 Deduplicating ${type} request for ${email} (${Date.now() - existing.timestamp}ms ago)`);
-      return existing.promise;
+    if (recentRequest && this.isRequestRecent(recentRequest.timestamp)) {
+      console.log(`🔄 Deduplicating ${type} request for ${email} (${Date.now() - recentRequest.timestamp}ms ago)`);
+      return recentRequest.promise;
     }
 
     // Create new request
     console.log(`✅ Creating new ${type} request for ${email}`);
+    
+    // Store in localStorage for cross-tab deduplication
+    localStorage.setItem(localStorageKey, JSON.stringify({
+      email,
+      type,
+      timestamp: Date.now()
+    }));
+
     const promise = requestFn().finally(() => {
       // Clean up after request completes
       this.pendingRequests.delete(key);
+      localStorage.removeItem(localStorageKey);
     });
 
     // Store the request
