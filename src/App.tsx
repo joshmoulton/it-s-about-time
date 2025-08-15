@@ -1,5 +1,5 @@
 
-import { Suspense, useEffect } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { initializePerformanceOptimizations } from "@/utils/performanceOptimizations";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -40,6 +40,7 @@ import { AuthCallback } from "@/pages/AuthCallback";
 // Static pages
 import TermsOfService from "@/pages/TermsOfService";
 import PrivacyPolicy from "@/pages/PrivacyPolicy";
+import LoadingScreen from "@/components/LoadingScreen";
 
 // Loading fallback component
 const PageLoader = () => (
@@ -51,6 +52,15 @@ const PageLoader = () => (
 const queryClient = new QueryClient();
 
 const App = () => {
+  const [showLoading, setShowLoading] = useState(true);
+
+  useEffect(() => {
+    // Skip loading if user has seen it this session
+    if (sessionStorage.getItem('hasSeenLoading')) {
+      setShowLoading(false);
+    }
+  }, []);
+
   // Initialize safe performance optimizations
   useEffect(() => {
     const timeoutId = setTimeout(async () => {
@@ -63,21 +73,26 @@ const App = () => {
   }, []);
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <BrowserRouter>
-          <ThemeProvider>
-            <AccessibilityProvider>
-                <Toaster />
-                <Sonner />
-                {/* All mobile performance optimizations disabled to fix modal issues */}
-                 <DeveloperProvider>
-                 <EnhancedAuthProvider>
-                 <SessionDetector />
-                 <DeveloperToggle />
-                 <main id="main-content">
-                  <Suspense fallback={<PageLoader />}>
-                    <Routes>
+    <>
+      {showLoading && (
+        <LoadingScreen onLoadingComplete={() => setShowLoading(false)} />
+      )}
+      {!showLoading && (
+        <QueryClientProvider client={queryClient}>
+          <TooltipProvider>
+            <BrowserRouter>
+              <ThemeProvider>
+                <AccessibilityProvider>
+                    <Toaster />
+                    <Sonner />
+                    {/* All mobile performance optimizations disabled to fix modal issues */}
+                     <DeveloperProvider>
+                     <EnhancedAuthProvider>
+                     <SessionDetector />
+                     <DeveloperToggle />
+                     <main id="main-content">
+                      <Suspense fallback={<PageLoader />}>
+                        <Routes>
                       <Route path="/" element={<Index />} />
                       
                       <Route path="/auth" element={
@@ -161,17 +176,19 @@ const App = () => {
                      </ProtectedRoute>
                    }
                  />
-                    </Routes>
-                  </Suspense>
-                </main>
-                </EnhancedAuthProvider>
-              </DeveloperProvider>
-            </AccessibilityProvider>
-          </ThemeProvider>
-        </BrowserRouter>
-      </TooltipProvider>
-    </QueryClientProvider>
-  );
+                         </Routes>
+                       </Suspense>
+                     </main>
+                     </EnhancedAuthProvider>
+                   </DeveloperProvider>
+                 </AccessibilityProvider>
+               </ThemeProvider>
+             </BrowserRouter>
+           </TooltipProvider>
+         </QueryClientProvider>
+       )}
+     </>
+   );
 };
 
 export default App;
