@@ -38,10 +38,10 @@ const AuthVerify = () => {
         console.log('🔍 Token:', token);
         console.log('🔍 Email:', decodeURIComponent(email));
         
-        console.log('🔍 About to call magic-link-verify function with:', { token, email: decodeURIComponent(email) });
+        console.log('🔍 About to call verify-magic-link function with:', { token, email: decodeURIComponent(email) });
         
-        // Call the magic-link-verify function (the existing one that works)
-        const { data: verifyData, error: verifyError } = await supabase.functions.invoke('magic-link-verify', {
+        // Call the verify-magic-link function (the correct working one)
+        const { data: verifyData, error: verifyError } = await supabase.functions.invoke('verify-magic-link', {
           body: { 
             token: token,
             email: decodeURIComponent(email) 

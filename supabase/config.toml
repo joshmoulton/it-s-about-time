@@ -25,9 +25,6 @@ verify_jwt = false
 [functions.verify-magic-link]
 verify_jwt = false
 
-[functions.magic-link-verify]
-verify_jwt = false
-
 [functions.crypto-pricing]
 verify_jwt = false
 
