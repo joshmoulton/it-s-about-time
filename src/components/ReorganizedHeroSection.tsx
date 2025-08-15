@@ -23,12 +23,10 @@ const ReorganizedHeroSection = ({
   
   return (
     <section 
-      className="relative overflow-hidden bg-background hero-section performance-optimized" 
+      className="relative overflow-hidden bg-background hero-section" 
       style={{ 
         minHeight: '100vh',
-        height: 'auto',
-        contain: 'layout style paint',
-        willChange: 'auto'
+        height: 'auto'
       }}
     >
       {/* Dynamic Animated Background */}
