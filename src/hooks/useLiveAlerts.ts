@@ -1,6 +1,7 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 export interface LiveAlert {
   id: string;
@@ -16,7 +17,12 @@ export interface LiveAlert {
   status: 'active' | 'awaiting';
   created_at: string;
   targets?: number[];
+  hit_targets?: number[];
   risk_percentage?: number;
+  current_profit_pct?: number;
+  max_profit_pct?: number;
+  stopped_out?: boolean;
+  invalidation_type?: string;
 }
 
 interface Subscriber {
@@ -36,19 +42,52 @@ export function useLiveAlerts(limit = 10, subscriber?: Subscriber) {
 
   // Set up real-time subscription for instant updates
   useEffect(() => {
-    console.log('Setting up real-time subscription for live alerts...');
+    if (!shouldFetchData) return;
+    
+    console.log('Setting up real-time subscription for live trading...');
     
     const channel = supabase
-      .channel('live_alerts_changes')
+      .channel('rt:live_trading')
       .on(
         'postgres_changes',
         {
           event: 'INSERT',
           schema: 'public',
-          table: 'analyst_signals'
+          table: 'price_ticks'
         },
         (payload) => {
-          console.log('New live alert detected:', payload);
+          console.log('Price tick received:', payload);
+          // Invalidate queries to update current prices
+          queryClient.invalidateQueries({ queryKey: ['liveAlerts'] });
+          queryClient.invalidateQueries({ queryKey: ['cryptoPrices'] });
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'signal_events'
+        },
+        (payload) => {
+          console.log('Signal event received:', payload);
+          const event = payload.new as any;
+          
+          // Show toast notifications for important events
+          if (event.event === 'target_hit') {
+            toast.success(`🎯 Target ${event.level || ''} Hit!`, {
+              description: `Signal updated with new target hit`,
+            });
+          } else if (event.event === 'stop_hit') {
+            toast.error(`🛑 Stop Loss Hit!`, {
+              description: `Signal has been stopped out`,
+            });
+          } else if (event.event === 'invalidation') {
+            toast.warning(`❌ Signal Invalidated!`, {
+              description: `Signal has been invalidated`,
+            });
+          }
+          
           // Invalidate and refetch the query immediately
           queryClient.invalidateQueries({ queryKey: ['liveAlerts'] });
         }
@@ -58,10 +97,23 @@ export function useLiveAlerts(limit = 10, subscriber?: Subscriber) {
         {
           event: 'UPDATE',
           schema: 'public',
-          table: 'analyst_signals'
+          table: 'signals_overview'
         },
         (payload) => {
-          console.log('Live alert updated:', payload);
+          console.log('Signal overview updated:', payload);
+          // Invalidate and refetch the query immediately
+          queryClient.invalidateQueries({ queryKey: ['liveAlerts'] });
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'signals_overview'
+        },
+        (payload) => {
+          console.log('New signal added:', payload);
           // Invalidate and refetch the query immediately
           queryClient.invalidateQueries({ queryKey: ['liveAlerts'] });
         }
@@ -72,7 +124,7 @@ export function useLiveAlerts(limit = 10, subscriber?: Subscriber) {
       console.log('Cleaning up real-time subscription');
       supabase.removeChannel(channel);
     };
-  }, [queryClient]);
+  }, [queryClient, shouldFetchData]);
 
   return useQuery<LiveAlert[]>({
     queryKey: ['liveAlerts', limit, subscriber?.email],
@@ -84,10 +136,15 @@ export function useLiveAlerts(limit = 10, subscriber?: Subscriber) {
         return [];
       }
 
-      // Fetch latest active signals for live alerts
+      // Fetch latest active signals from signals_overview for enhanced data
       const { data, error } = await supabase
-        .from('analyst_signals')
-        .select('id, ticker, entry_price, trade_direction, created_at, status, stop_loss_price, targets, risk_percentage, analyst_name')
+        .from('signals_overview')
+        .select(`
+          id, ticker, direction, entry_type, entry_price, current_price, 
+          stop_loss_price, targets, hit_targets, status, created_at,
+          current_profit_pct, max_profit_pct, stopped_out, invalidation_type,
+          risk_score, confidence_score, analyst_id
+        `)
         .eq('status', 'active')
         .order('created_at', { ascending: false })
         .limit(limit);
@@ -104,20 +161,26 @@ export function useLiveAlerts(limit = 10, subscriber?: Subscriber) {
       }
 
       const mapped: LiveAlert[] = (data || []).map((row: any) => {
-        const direction = row.trade_direction?.toLowerCase() === 'short' ? 'short' : 'long';
+        const direction = row.direction?.toLowerCase() === 'short' ? 'short' : 'long';
         
         return {
           id: row.id,
           symbol: (row.ticker || '').toUpperCase(),
-          trader: row.analyst_name || 'Unknown',
+          trader: 'Live Signal', // Will be enhanced with analyst lookup later
           entry_price: row.entry_price != null ? Number(row.entry_price) : 'Market',
+          current_price: row.current_price != null ? Number(row.current_price) : undefined,
           stop_loss_price: row.stop_loss_price != null ? Number(row.stop_loss_price) : undefined,
           take_profit_price: row.targets && row.targets.length > 0 ? Number(row.targets[0]) : undefined,
           position_type: direction,
-          status: 'active',
+          status: row.status || 'active',
           created_at: row.created_at,
           targets: row.targets ? (Array.isArray(row.targets) ? row.targets.map(Number) : [Number(row.targets)]) : undefined,
-          risk_percentage: row.risk_percentage || undefined,
+          hit_targets: row.hit_targets ? (Array.isArray(row.hit_targets) ? row.hit_targets.map(Number) : [Number(row.hit_targets)]) : undefined,
+          risk_percentage: row.risk_score || undefined,
+          current_profit_pct: row.current_profit_pct != null ? Number(row.current_profit_pct) : undefined,
+          max_profit_pct: row.max_profit_pct != null ? Number(row.max_profit_pct) : undefined,
+          stopped_out: row.stopped_out || false,
+          invalidation_type: row.invalidation_type || undefined,
         };
       });
 
