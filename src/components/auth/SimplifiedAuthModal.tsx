@@ -136,36 +136,11 @@ export const SimplifiedAuthModal: React.FC<SimplifiedAuthModalProps> = memo(({ o
           return;
         }
         
-        // Direct authentication for the premium user to bypass edge function issues
+        // Use our custom magic link function that sends via Resend directly
         const result = await authRequestDeduplication.deduplicateRequest(
           email.toLowerCase().trim(),
           'magic_link',
           async () => {
-            if (email.toLowerCase().trim() === 'moulton.joshua@gmail.com') {
-              console.log('🎯 Direct authentication for premium user');
-              
-              // Set authentication data directly
-              localStorage.setItem('auth_user_email', email);
-              localStorage.setItem('auth_method', 'direct_premium');
-              localStorage.setItem('auth_verified_at', new Date().toISOString());
-              localStorage.setItem('auth_tier', 'premium');
-              localStorage.setItem('last_known_premium_email', email);
-              
-              // Set user in context
-              setAuthenticatedUser({
-                id: 'premium_user_direct',
-                email: email,
-                subscription_tier: 'premium',
-                user_type: 'unified_user',
-                status: 'active',
-                created_at: new Date().toISOString(),
-                updated_at: new Date().toISOString(),
-                metadata: { source: 'direct_auth' }
-              }, 'direct_premium');
-              
-              return { success: true, message: 'Authentication successful!' };
-            }
-            
             console.log('📧 Sending custom magic link via Resend...');
             
             // Use our custom send-magic-link function instead of Supabase's
