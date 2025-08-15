@@ -40,8 +40,6 @@ import { AuthCallback } from "@/pages/AuthCallback";
 // Static pages
 import TermsOfService from "@/pages/TermsOfService";
 import PrivacyPolicy from "@/pages/PrivacyPolicy";
-import LoadingScreen from "@/components/LoadingScreen";
-
 // Loading fallback component
 const PageLoader = () => (
   <div className="flex items-center justify-center min-h-screen bg-background">
@@ -52,14 +50,10 @@ const PageLoader = () => (
 const queryClient = new QueryClient();
 
 const App = () => {
-  const [showLoading, setShowLoading] = useState(true);
-
+  // Remove HTML loader when React app mounts
   useEffect(() => {
-    // Temporarily always show loading for testing - comment out session check
-    // Skip loading if user has seen it this session
-    // if (sessionStorage.getItem('hasSeenLoading')) {
-    //   setShowLoading(false);
-    // }
+    const loader = document.getElementById("app-loader");
+    if (loader) loader.remove();
   }, []);
 
   // Initialize safe performance optimizations
@@ -74,122 +68,115 @@ const App = () => {
   }, []);
 
   return (
-    <>
-      {showLoading && (
-        <LoadingScreen onLoadingComplete={() => setShowLoading(false)} />
-      )}
-      {!showLoading && (
-        <QueryClientProvider client={queryClient}>
-          <TooltipProvider>
-            <BrowserRouter>
-              <ThemeProvider>
-                <AccessibilityProvider>
-                    <Toaster />
-                    <Sonner />
-                    {/* All mobile performance optimizations disabled to fix modal issues */}
-                     <DeveloperProvider>
-                     <EnhancedAuthProvider>
-                     <SessionDetector />
-                     <DeveloperToggle />
-                     <main id="main-content">
-                      <Suspense fallback={<PageLoader />}>
-                        <Routes>
-                      <Route path="/" element={<Index />} />
-                      
-                      <Route path="/auth" element={
-                        <Index />
-                      } />
-                      <Route path="/auth/verify" element={<AuthVerify />} />
-                      <Route path="/auth/callback" element={<AuthCallback />} />
-                      <Route
-                        path="/dashboard/*"
-                        element={
-                          <ProtectedRoute>
-                            <Dashboard />
-                          </ProtectedRoute>
-                        }
-                      />
-                <Route
-                  path="/newsletters"
-                  element={
-                    <ProtectedRoute>
-                      <Newsletters />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/videos"
-                  element={
-                    <ProtectedRoute>
-                      <Videos />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/articles"
-                  element={
-                    <ProtectedRoute>
-                      <Articles />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/courses"
-                  element={
-                    <ProtectedRoute>
-                      <Courses />
-                    </ProtectedRoute>
-                  }
-                 />
-                 <Route
-                   path="/chat-highlights/*"
-                   element={
-                     <ProtectedRoute>
-                       <ChatHighlights />
-                     </ProtectedRoute>
-                   }
-                 />
-                  <Route
-                    path="/pricing"
-                    element={<UpgradePage />}
-                  />
-                  <Route
-                    path="/terms"
-                    element={<TermsOfService />}
-                  />
-                  <Route
-                    path="/privacy"
-                    element={<PrivacyPolicy />}
-                  />
-                 <Route
-                  path="/admin/*"
-                  element={
-                    <ProtectedRoute>
-                      <Admin />
-                    </ProtectedRoute>
-                  }
-                 />
-                 <Route
-                   path="/sentiment-analysis"
-                   element={
-                     <ProtectedRoute>
-                       <SentimentAnalysis />
-                     </ProtectedRoute>
-                   }
-                 />
-                         </Routes>
-                       </Suspense>
-                     </main>
-                     </EnhancedAuthProvider>
-                   </DeveloperProvider>
-                 </AccessibilityProvider>
-               </ThemeProvider>
-             </BrowserRouter>
-           </TooltipProvider>
-         </QueryClientProvider>
-       )}
-     </>
-   );
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <BrowserRouter>
+          <ThemeProvider>
+            <AccessibilityProvider>
+              <Toaster />
+              <Sonner />
+              {/* All mobile performance optimizations disabled to fix modal issues */}
+              <DeveloperProvider>
+                <EnhancedAuthProvider>
+                  <SessionDetector />
+                  <DeveloperToggle />
+                  <main id="main-content">
+                    <Suspense fallback={<PageLoader />}>
+                      <Routes>
+                        <Route path="/" element={<Index />} />
+                        
+                        <Route path="/auth" element={
+                          <Index />
+                        } />
+                        <Route path="/auth/verify" element={<AuthVerify />} />
+                        <Route path="/auth/callback" element={<AuthCallback />} />
+                        <Route
+                          path="/dashboard/*"
+                          element={
+                            <ProtectedRoute>
+                              <Dashboard />
+                            </ProtectedRoute>
+                          }
+                        />
+                        <Route
+                          path="/newsletters"
+                          element={
+                            <ProtectedRoute>
+                              <Newsletters />
+                            </ProtectedRoute>
+                          }
+                        />
+                        <Route
+                          path="/videos"
+                          element={
+                            <ProtectedRoute>
+                              <Videos />
+                            </ProtectedRoute>
+                          }
+                        />
+                        <Route
+                          path="/articles"
+                          element={
+                            <ProtectedRoute>
+                              <Articles />
+                            </ProtectedRoute>
+                          }
+                        />
+                        <Route
+                          path="/courses"
+                          element={
+                            <ProtectedRoute>
+                              <Courses />
+                            </ProtectedRoute>
+                          }
+                        />
+                        <Route
+                          path="/chat-highlights/*"
+                          element={
+                            <ProtectedRoute>
+                              <ChatHighlights />
+                            </ProtectedRoute>
+                          }
+                        />
+                        <Route
+                          path="/pricing"
+                          element={<UpgradePage />}
+                        />
+                        <Route
+                          path="/terms"
+                          element={<TermsOfService />}
+                        />
+                        <Route
+                          path="/privacy"
+                          element={<PrivacyPolicy />}
+                        />
+                        <Route
+                          path="/admin/*"
+                          element={
+                            <ProtectedRoute>
+                              <Admin />
+                            </ProtectedRoute>
+                          }
+                        />
+                        <Route
+                          path="/sentiment-analysis"
+                          element={
+                            <ProtectedRoute>
+                              <SentimentAnalysis />
+                            </ProtectedRoute>
+                          }
+                        />
+                      </Routes>
+                    </Suspense>
+                  </main>
+                </EnhancedAuthProvider>
+              </DeveloperProvider>
+            </AccessibilityProvider>
+          </ThemeProvider>
+        </BrowserRouter>
+      </TooltipProvider>
+    </QueryClientProvider>
+  );
 };
 
 export default App;

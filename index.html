@@ -112,8 +112,26 @@
     
     <!-- Web App Manifest -->
     <link rel="manifest" href="/manifest.json">
+    
+    <!-- Theme color to prevent white flash -->
+    <meta name="theme-color" content="#3355ff">
+    
+    <!-- Preload logo for instant loader -->
+    <link rel="preload" as="image" href="/lovable-uploads/2766797d-f12e-40af-bcc7-5fdee4ce7325.png" fetchpriority="high">
   </head>
-  <body>
+  <body style="background:#3355ff">
+    <!-- Instant loader: appears before any JS/CSS -->
+    <style>
+      #app-loader{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#3355ff;z-index:9999}
+      #app-loader .logo{inline-size:96px;block-size:auto;filter:brightness(0) invert(1)}
+      .sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}
+    </style>
+    
+    <div id="app-loader" role="status" aria-live="polite">
+      <img class="logo" alt="" src="/lovable-uploads/2766797d-f12e-40af-bcc7-5fdee4ce7325.png" fetchpriority="high" decoding="async">
+      <span class="sr-only">Loading Weekly Wizdom…</span>
+    </div>
+    
     <div id="root"></div>
 
     <!-- Disable Service Worker and clear caches on preview domains only -->
