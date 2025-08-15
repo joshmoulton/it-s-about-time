@@ -1759,6 +1759,39 @@ export type Database = {
         }
         Relationships: []
       }
+      magic_link_idempotency: {
+        Row: {
+          created_at: string
+          email: string
+          expires_at: string
+          id: string
+          idempotency_key: string
+          request_timestamp: string
+          response_data: Json | null
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          expires_at?: string
+          id?: string
+          idempotency_key: string
+          request_timestamp?: string
+          response_data?: Json | null
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          expires_at?: string
+          id?: string
+          idempotency_key?: string
+          request_timestamp?: string
+          response_data?: Json | null
+          status?: string
+        }
+        Relationships: []
+      }
       magic_link_tokens: {
         Row: {
           created_at: string
@@ -3787,6 +3820,10 @@ export type Database = {
         Returns: undefined
       }
       cleanup_auth_rate_limits: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
+      cleanup_expired_idempotency_records: {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }

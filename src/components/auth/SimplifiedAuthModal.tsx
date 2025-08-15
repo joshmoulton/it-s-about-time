@@ -136,37 +136,56 @@ export const SimplifiedAuthModal: React.FC<SimplifiedAuthModalProps> = memo(({ o
           return;
         }
         
+        // Generate unique idempotency key for this request
+        const idempotencyKey = crypto.randomUUID();
+        console.log(`🔑 Generated idempotency key: ${idempotencyKey}`);
+        
         // Use our custom magic link function that sends via Resend directly
         const result = await authRequestDeduplication.deduplicateRequest(
           email.toLowerCase().trim(),
           'magic_link',
           async () => {
-            console.log('📧 Sending magic link via custom edge function...');
+            console.log(`📧 Sending magic link via custom edge function [${idempotencyKey}]...`);
             
             const { data, error } = await supabase.functions.invoke('send-magic-link', {
-              body: { email: email.toLowerCase().trim() }
+              body: { email: email.toLowerCase().trim() },
+              headers: {
+                'X-Idempotency-Key': idempotencyKey
+              }
             });
 
             if (error) {
-              console.error('❌ Magic link error:', error);
+              console.error(`❌ [${idempotencyKey}] Magic link error:`, error);
               throw new Error(error.message || 'Failed to send magic link');
             }
 
             if (!data?.success) {
-              console.error('❌ Magic link failed:', data);
+              console.error(`❌ [${idempotencyKey}] Magic link failed:`, data);
+              
+              // Check if this was a deduped request
+              if (data?.deduped) {
+                console.log(`🔄 [${idempotencyKey}] Request was deduplicated at server level`);
+                
+                // If it was successfully deduped, treat as success
+                if (data?.tier) {
+                  return { success: true, deduped: true, tier: data.tier };
+                }
+              }
+              
               throw new Error(data?.error || 'Failed to send magic link');
             }
 
-            console.log('✅ Magic link sent successfully:', data);
+            console.log(`✅ [${idempotencyKey}] Magic link sent successfully:`, data);
             return data;
           }
         );
         
         if (result && result.success) {
-          console.log('📧 Magic link sent successfully via Resend');
+          console.log(`📧 Magic link sent successfully via Resend${result.deduped ? ' (deduplicated)' : ''}`);
           setError(
             <div className="text-green-600 text-sm">
               ✅ Magic link sent! Check your email and click the link to sign in.
+              {result.deduped && <div className="text-xs mt-1 opacity-75">(Request was processed already)</div>}
             </div>
           );
           
