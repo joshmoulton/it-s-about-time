@@ -14,12 +14,46 @@ const LoadingScreen = ({ onLoadingComplete }: LoadingScreenProps) => {
   const mainLogoUrl = '/lovable-uploads/92103cfe-defa-4004-b1bb-7d6498f567ed.png';
   const textLogoUrl = '/lovable-uploads/760c309c-e0cf-4e84-96b7-5cedf426aa74.png';
 
+  // Preload images for immediate display
   useEffect(() => {
-    // Fade in main logo first
-    const logoTimer = setTimeout(() => setShowMainLogo(true), 400);
+    const preloadImages = () => {
+      const mainImg = new Image();
+      const textImg = new Image();
+      
+      mainImg.src = mainLogoUrl;
+      textImg.src = textLogoUrl;
+      
+      // Add to document head for faster loading
+      const mainLink = document.createElement('link');
+      mainLink.rel = 'preload';
+      mainLink.as = 'image';
+      mainLink.href = mainLogoUrl;
+      
+      const textLink = document.createElement('link');
+      textLink.rel = 'preload';
+      textLink.as = 'image';
+      textLink.href = textLogoUrl;
+      
+      document.head.appendChild(mainLink);
+      document.head.appendChild(textLink);
+      
+      // Cleanup function
+      return () => {
+        document.head.removeChild(mainLink);
+        document.head.removeChild(textLink);
+      };
+    };
     
-    // Show text logo with more delay
-    const textTimer = setTimeout(() => setShowTextLogo(true), 1000);
+    const cleanup = preloadImages();
+    return cleanup;
+  }, []);
+
+  useEffect(() => {
+    // Show main logo immediately (reduced from 400ms to 100ms)
+    const logoTimer = setTimeout(() => setShowMainLogo(true), 100);
+    
+    // Show text logo faster (reduced from 1000ms to 600ms)
+    const textTimer = setTimeout(() => setShowTextLogo(true), 600);
     
     // Start fade out after 2.2 seconds
     const fadeTimer = setTimeout(() => {
@@ -48,35 +82,47 @@ const LoadingScreen = ({ onLoadingComplete }: LoadingScreenProps) => {
         isFadingOut ? 'opacity-0' : 'opacity-100'
       }`}
     >
-      <div className="flex flex-col items-center justify-center space-y-6">
-        {/* Main Logo (Icon/Symbol) */}
+      <div className="flex flex-col items-center justify-center space-y-4 sm:space-y-6 lg:space-y-8">
+        {/* Main Logo (Icon/Symbol) - Enhanced Responsive Sizing */}
         <img 
           src={mainLogoUrl}
           alt="Weekly Wizdom Logo" 
-          className={`w-32 h-32 object-contain transition-all duration-700 ease-out will-change-transform ${
+          className={`w-56 sm:w-64 lg:w-72 h-56 sm:h-64 lg:h-72 max-w-xs sm:max-w-sm lg:max-w-md object-contain transition-all duration-700 ease-out will-change-transform gpu-accelerated ${
             showMainLogo && !isFadingOut ? 'opacity-100 scale-100' : 'opacity-0 scale-95'
           }`}
+          loading="eager"
+          decoding="async"
           onError={(e) => {
-            // Fallback if main logo fails to load
-            e.currentTarget.style.display = 'none';
+            // Enhanced fallback with responsive sizing
+            const target = e.currentTarget;
+            target.outerHTML = `
+              <div class="w-56 sm:w-64 lg:w-72 h-56 sm:h-64 lg:h-72 max-w-xs sm:max-w-sm lg:max-w-md bg-white/20 rounded-2xl flex items-center justify-center transition-all duration-700 ease-out will-change-transform ${
+                showMainLogo && !isFadingOut ? 'opacity-100 scale-100' : 'opacity-0 scale-95'
+              }">
+                <span class="text-white text-5xl sm:text-6xl lg:text-7xl font-bold">WW</span>
+              </div>
+            `;
           }}
         />
         
-        {/* Text Logo (Brand Name) */}
+        {/* Text Logo (Brand Name) - Enhanced Responsive Sizing */}
         <img 
           src={textLogoUrl}
           alt="Weekly Wizdom Brand" 
-          className={`h-16 object-contain transition-all duration-700 ease-out delay-150 will-change-transform ${
+          className={`h-20 sm:h-24 lg:h-28 max-w-xs sm:max-w-sm lg:max-w-md object-contain transition-all duration-700 ease-out delay-150 will-change-transform gpu-accelerated ${
             showTextLogo && !isFadingOut ? 'opacity-100 scale-100' : 'opacity-0 scale-95'
           }`}
+          loading="eager"
+          decoding="async"
           onError={(e) => {
-            // Fallback to text if text logo fails to load
-            e.currentTarget.outerHTML = `
-              <div class="transition-all duration-700 ease-out delay-150 will-change-transform ${
+            // Enhanced fallback to responsive text
+            const target = e.currentTarget;
+            target.outerHTML = `
+              <div class="max-w-xs sm:max-w-sm lg:max-w-md transition-all duration-700 ease-out delay-150 will-change-transform ${
                 showTextLogo && !isFadingOut ? 'opacity-100 scale-100' : 'opacity-0 scale-95'
               }">
-                <h1 class="text-white text-4xl font-bold tracking-tight">Weekly Wizdom</h1>
-                <p class="text-white/80 text-center text-lg mt-2">Financial Intelligence Delivered</p>
+                <h1 class="text-white text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-center">Weekly Wizdom</h1>
+                <p class="text-white/80 text-center text-base sm:text-lg lg:text-xl mt-2">Financial Intelligence Delivered</p>
               </div>
             `;
           }}
