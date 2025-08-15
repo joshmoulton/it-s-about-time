@@ -21,6 +21,7 @@ export function AuthCallback() {
 
         if (tokenHash && type === 'email') {
           console.log('🔄 Processing Supabase magic link verification...');
+          setMessage('Verifying your login...');
           
           try {
             const { data, error } = await supabase.auth.verifyOtp({
@@ -37,40 +38,70 @@ export function AuthCallback() {
 
             if (data.user) {
               console.log('✅ Magic link verified successfully:', data);
+              setMessage('Verifying subscription access...');
               
-              // Get tier from user metadata or verify with Beehiiv
-              let tier = data.user.user_metadata?.subscription_tier || 'free';
-              
-              if (data.user.email) {
-                try {
-                  const { data: verifyData } = await supabase.functions.invoke('beehiiv-subscriber-verify', {
-                    body: { email: data.user.email }
-                  });
-                  
-                  if (verifyData?.success) {
-                    tier = verifyData.tier;
-                    console.log(`✅ User tier verified: ${tier}`);
-                    
-                    // Update user metadata with tier info
-                    await supabase.auth.updateUser({
-                      data: {
-                        subscription_tier: tier,
-                        source: 'magic_link',
-                        verified_at: new Date().toISOString()
-                      }
-                    });
-                  }
-                } catch (verifyError) {
-                  console.warn('⚠️ Could not verify tier:', verifyError);
-                }
+              // CRITICAL: Verify beehiiv subscription BEFORE allowing dashboard access
+              if (!data.user.email) {
+                setStatus('error');
+                setMessage('No email found in authentication data');
+                return;
               }
-              
-              setMessage(`Welcome! Your subscription tier: ${tier}`);
-              setStatus('success');
-              
-              setTimeout(() => {
-                navigate('/dashboard', { replace: true });
-              }, 1500);
+
+              try {
+                console.log('🔍 Verifying beehiiv subscription for:', data.user.email);
+                
+                const { data: verifyData, error: verifyError } = await supabase.functions.invoke('beehiiv-subscriber-verify', {
+                  body: { email: data.user.email }
+                });
+                
+                if (verifyError) {
+                  console.error('❌ Beehiiv verification failed:', verifyError);
+                  setStatus('error');
+                  setMessage('Failed to verify subscription access. Please try again.');
+                  return;
+                }
+
+                if (!verifyData || !verifyData.tier) {
+                  console.error('❌ No tier data received from beehiiv');
+                  setStatus('error');
+                  setMessage('Unable to verify subscription tier. Please contact support.');
+                  return;
+                }
+
+                const tier = verifyData.tier;
+                console.log(`✅ Beehiiv verification successful - Tier: ${tier}`);
+                
+                // Update user metadata with verified tier - CRITICAL for dashboard access
+                const { error: updateError } = await supabase.auth.updateUser({
+                  data: {
+                    subscription_tier: tier,
+                    beehiiv_verified: true,
+                    verified_at: new Date().toISOString(),
+                    beehiiv_status: verifyData.status || 'active'
+                  }
+                });
+
+                if (updateError) {
+                  console.warn('⚠️ Failed to update user metadata:', updateError);
+                  setStatus('error');
+                  setMessage('Authentication successful but failed to update profile. Please refresh.');
+                  return;
+                }
+
+                console.log('✅ User metadata updated with verified tier:', tier);
+                setMessage(`Welcome! Access verified - Tier: ${tier}`);
+                setStatus('success');
+                
+                // Navigate to dashboard only after successful verification
+                setTimeout(() => {
+                  navigate('/dashboard', { replace: true });
+                }, 1500);
+
+              } catch (verifyError) {
+                console.error('❌ Beehiiv verification error:', verifyError);
+                setStatus('error');
+                setMessage('Failed to verify subscription access. Please try again.');
+              }
 
               return;
             }

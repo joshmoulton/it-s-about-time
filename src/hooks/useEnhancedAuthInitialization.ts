@@ -218,35 +218,76 @@ export const useEnhancedAuthInitialization = ({
                  userEmail: session.user.email
                });
             } else {
-              // For non-admin users, verify with Beehiiv immediately
-              const { data: verifyData } = await supabase.functions.invoke('unified-auth-verify', {
-                body: { email: session.user.email.toLowerCase().trim() }
-              });
+              // For non-admin users, verify with Beehiiv immediately - CRITICAL for dashboard access
+              console.log('🔍 Verifying beehiiv subscription for non-admin user:', session.user.email);
               
-              const tier = (verifyData?.tier === 'free') ? 'free' : 'premium';
-              
-              const userData = {
-                id: session.user.id,
-                email: session.user.email!,
-                subscription_tier: tier as 'free' | 'premium',
-                user_type: userType as 'supabase_user',
-                status: 'active',
-                created_at: session.user.created_at,
-                updated_at: new Date().toISOString(),
-                metadata: session.user.user_metadata
-              };
-              
-               localStorage.setItem('auth_method', authMethod);
-               if (tier === 'premium') {
-                 localStorage.setItem('last_known_premium_email', session.user.email!);
-               }
-               setCurrentUser(userData);
-               
-               await setSupabaseAuthContext({
-                 authMethod,
-                 authTier: tier,
-                 userEmail: session.user.email
-               });
+              try {
+                const { data: verifyData, error: verifyError } = await supabase.functions.invoke('beehiiv-subscriber-verify', {
+                  body: { email: session.user.email.toLowerCase().trim() }
+                });
+                
+                if (verifyError) {
+                  console.error('❌ Beehiiv verification failed:', verifyError);
+                  // Default to free tier if verification fails
+                  const userData = {
+                    id: session.user.id,
+                    email: session.user.email!,
+                    subscription_tier: 'free' as const,
+                    user_type: userType as 'supabase_user',
+                    status: 'active',
+                    created_at: session.user.created_at,
+                    updated_at: new Date().toISOString(),
+                    metadata: session.user.user_metadata
+                  };
+                  setCurrentUser(userData);
+                  return;
+                }
+
+                const tier = verifyData?.tier === 'premium' ? 'premium' : 'free';
+                console.log(`✅ Beehiiv verification complete - Tier: ${tier}`);
+                
+                const userData = {
+                  id: session.user.id,
+                  email: session.user.email!,
+                  subscription_tier: tier as 'free' | 'premium',
+                  user_type: userType as 'supabase_user',
+                  status: 'active',
+                  created_at: session.user.created_at,
+                  updated_at: new Date().toISOString(),
+                  metadata: {
+                    ...session.user.user_metadata,
+                    beehiiv_verified: true,
+                    beehiiv_tier: tier,
+                    verified_at: new Date().toISOString()
+                  }
+                };
+                
+                localStorage.setItem('auth_method', authMethod);
+                if (tier === 'premium') {
+                  localStorage.setItem('last_known_premium_email', session.user.email!);
+                }
+                setCurrentUser(userData);
+                
+                await setSupabaseAuthContext({
+                  authMethod,
+                  authTier: tier,
+                  userEmail: session.user.email
+                });
+              } catch (error) {
+                console.error('❌ Error during beehiiv verification:', error);
+                // Fallback to free tier
+                const userData = {
+                  id: session.user.id,
+                  email: session.user.email!,
+                  subscription_tier: 'free' as const,
+                  user_type: userType as 'supabase_user',
+                  status: 'active',
+                  created_at: session.user.created_at,
+                  updated_at: new Date().toISOString(),
+                  metadata: session.user.user_metadata
+                };
+                setCurrentUser(userData);
+              }
             }
           } catch (error) {
             console.error('❌ Error determining user tier:', error);
