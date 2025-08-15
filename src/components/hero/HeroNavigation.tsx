@@ -63,7 +63,7 @@ const HeroNavigation = ({
         <div className="hidden lg:flex items-center space-x-6 xl:space-x-8 justify-self-center">
           <a 
             href="#services" 
-            className="text-foreground hover:text-primary transition-all duration-300 font-montserrat hover:translate-y-[-1px] drop-shadow-sm hover:drop-shadow-md"
+            className="text-foreground hover:text-primary transition-all duration-300 font-montserrat font-medium text-sm hover:translate-y-[-1px] drop-shadow-sm hover:drop-shadow-md"
             onClick={(e) => {
               e.preventDefault();
               navigateToSection('services');
@@ -73,7 +73,7 @@ const HeroNavigation = ({
           </a>
           <a 
             href="#reviews" 
-            className="text-foreground hover:text-primary transition-all duration-300 font-montserrat hover:translate-y-[-1px] drop-shadow-sm hover:drop-shadow-md"
+            className="text-foreground hover:text-primary transition-all duration-300 font-montserrat font-medium text-sm hover:translate-y-[-1px] drop-shadow-sm hover:drop-shadow-md"
             onClick={(e) => {
               e.preventDefault();
               navigateToSection('reviews');
@@ -83,7 +83,7 @@ const HeroNavigation = ({
           </a>
           <a 
             href="#pricing" 
-            className="text-foreground hover:text-primary transition-all duration-300 font-montserrat hover:translate-y-[-1px] drop-shadow-sm hover:drop-shadow-md"
+            className="text-foreground hover:text-primary transition-all duration-300 font-montserrat font-medium text-sm hover:translate-y-[-1px] drop-shadow-sm hover:drop-shadow-md"
             onClick={(e) => {
               e.preventDefault();
               navigateToSection('pricing');
@@ -93,7 +93,7 @@ const HeroNavigation = ({
           </a>
           <a 
             href="#faq" 
-            className="text-foreground hover:text-primary transition-all duration-300 font-montserrat hover:translate-y-[-1px] drop-shadow-sm hover:drop-shadow-md"
+            className="text-foreground hover:text-primary transition-all duration-300 font-montserrat font-medium text-sm hover:translate-y-[-1px] drop-shadow-sm hover:drop-shadow-md"
             onClick={(e) => {
               e.preventDefault();
               navigateToSection('faq');
@@ -103,7 +103,7 @@ const HeroNavigation = ({
           </a>
           <a 
             href="#contact" 
-            className="text-foreground hover:text-primary transition-all duration-300 font-montserrat hover:translate-y-[-1px] drop-shadow-sm hover:drop-shadow-md"
+            className="text-foreground hover:text-primary transition-all duration-300 font-montserrat font-medium text-sm hover:translate-y-[-1px] drop-shadow-sm hover:drop-shadow-md"
             onClick={(e) => {
               e.preventDefault();
               navigateToSection('contact');
@@ -129,7 +129,7 @@ const HeroNavigation = ({
             <Button 
               variant="outline" 
               size="sm" 
-              className="font-medium font-montserrat border-[#3355FF] text-[#3355FF] hover:bg-[#3355FF] hover:text-white text-xs sm:text-sm px-3 sm:px-4 h-9 rounded-full transition-all duration-300 hover:scale-105 hover:translate-y-[-2px] shadow-[0_2px_4px_rgba(51,85,255,0.2)] hover:shadow-[0_4px_8px_rgba(51,85,255,0.3)] drop-shadow-md" 
+              className="font-semibold font-montserrat border-[#3355FF] text-[#3355FF] hover:bg-[#3355FF] hover:text-white text-xs sm:text-sm px-3 sm:px-4 h-9 rounded-full transition-all duration-300 hover:scale-105 hover:translate-y-[-2px] shadow-[0_2px_4px_rgba(51,85,255,0.2)] hover:shadow-[0_4px_8px_rgba(51,85,255,0.3)] drop-shadow-md" 
               onClick={() => navigate('/dashboard')}
             >
               Dashboard
@@ -138,7 +138,7 @@ const HeroNavigation = ({
             <Button 
               variant="outline" 
               size="sm" 
-              className="font-medium font-montserrat border-[#3355FF] text-[#3355FF] hover:bg-[#3355FF] hover:text-white text-xs sm:text-sm px-3 sm:px-4 h-9 rounded-full transition-all duration-300 hover:scale-105 hover:translate-y-[-2px] shadow-[0_2px_4px_rgba(51,85,255,0.2)] hover:shadow-[0_4px_8px_rgba(51,85,255,0.3)] drop-shadow-md" 
+              className="font-semibold font-montserrat border-[#3355FF] text-[#3355FF] hover:bg-[#3355FF] hover:text-white text-xs sm:text-sm px-3 sm:px-4 h-9 rounded-full transition-all duration-300 hover:scale-105 hover:translate-y-[-2px] shadow-[0_2px_4px_rgba(51,85,255,0.2)] hover:shadow-[0_4px_8px_rgba(51,85,255,0.3)] drop-shadow-md" 
               onClick={onAuthClick}
               disabled={isLoading}
             >
@@ -150,7 +150,7 @@ const HeroNavigation = ({
           {!isAuthenticated && (
             <Button 
               size="sm" 
-              className="font-medium font-montserrat bg-brand-primary hover:bg-background hover:text-brand-primary text-white border-2 border-brand-primary text-xs sm:text-sm px-3 sm:px-4 h-9 rounded-full relative overflow-hidden transition-all duration-300 hover:scale-105 hover:translate-y-[-2px] before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-white/20 before:to-transparent before:translate-x-[-100%] before:animate-shimmer-subtle hover:before:opacity-0" 
+              className="font-bold font-montserrat bg-brand-primary hover:bg-background hover:text-brand-primary text-white border-2 border-brand-primary text-xs sm:text-sm px-3 sm:px-4 h-9 rounded-full relative overflow-hidden transition-all duration-300 hover:scale-105 hover:translate-y-[-2px] before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-white/20 before:to-transparent before:translate-x-[-100%] before:animate-shimmer-subtle hover:before:opacity-0" 
               onClick={() => navigateToSection('pricing')}
             >
               Get Started
@@ -166,7 +166,7 @@ const HeroNavigation = ({
             {/* Removed Sign In from mobile menu - now in header */}
             <a 
               href="#services" 
-              className="block text-foreground hover:text-primary transition-all duration-300 font-montserrat hover:translate-x-2 hover:drop-shadow-sm py-2 min-h-[44px] flex items-center"
+              className="block text-foreground hover:text-primary transition-all duration-300 font-montserrat font-medium hover:translate-x-2 hover:drop-shadow-sm py-2 min-h-[44px] flex items-center"
               onClick={(e) => {
                 e.preventDefault();
                 setIsMobileMenuOpen(false);
@@ -177,7 +177,7 @@ const HeroNavigation = ({
             </a>
             <a 
               href="#reviews" 
-              className="block text-foreground hover:text-primary transition-all duration-300 font-montserrat hover:translate-x-2 hover:drop-shadow-sm py-2 min-h-[44px] flex items-center"
+              className="block text-foreground hover:text-primary transition-all duration-300 font-montserrat font-medium hover:translate-x-2 hover:drop-shadow-sm py-2 min-h-[44px] flex items-center"
               onClick={(e) => {
                 e.preventDefault();
                 setIsMobileMenuOpen(false);
@@ -188,7 +188,7 @@ const HeroNavigation = ({
             </a>
             <a 
               href="#pricing" 
-              className="block text-foreground hover:text-primary transition-all duration-300 font-montserrat hover:translate-x-2 hover:drop-shadow-sm py-2 min-h-[44px] flex items-center"
+              className="block text-foreground hover:text-primary transition-all duration-300 font-montserrat font-medium hover:translate-x-2 hover:drop-shadow-sm py-2 min-h-[44px] flex items-center"
               onClick={(e) => {
                 e.preventDefault();
                 setIsMobileMenuOpen(false);
@@ -199,7 +199,7 @@ const HeroNavigation = ({
             </a>
             <a 
               href="#faq" 
-              className="block text-foreground hover:text-primary transition-all duration-300 font-montserrat hover:translate-x-2 hover:drop-shadow-sm py-2 min-h-[44px] flex items-center"
+              className="block text-foreground hover:text-primary transition-all duration-300 font-montserrat font-medium hover:translate-x-2 hover:drop-shadow-sm py-2 min-h-[44px] flex items-center"
               onClick={(e) => {
                 e.preventDefault();
                 setIsMobileMenuOpen(false);
@@ -210,7 +210,7 @@ const HeroNavigation = ({
             </a>
             <a 
               href="#contact" 
-              className="block text-foreground hover:text-primary transition-all duration-300 font-montserrat hover:translate-x-2 hover:drop-shadow-sm py-2 min-h-[44px] flex items-center"
+              className="block text-foreground hover:text-primary transition-all duration-300 font-montserrat font-medium hover:translate-x-2 hover:drop-shadow-sm py-2 min-h-[44px] flex items-center"
               onClick={(e) => {
                 e.preventDefault();
                 setIsMobileMenuOpen(false);

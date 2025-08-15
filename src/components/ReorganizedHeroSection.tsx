@@ -42,7 +42,7 @@ const ReorganizedHeroSection = ({
             {/* Centered Hero Text */}
             <div className="flex flex-col space-y-4 xs:space-y-5 sm:space-y-6 lg:space-y-8 py-6 sm:py-6 lg:py-12 text-center items-center justify-center">
               {/* Main Headline */}
-              <h1 className="text-xl xs:text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-[3.5rem] 2xl:text-[4.75rem] leading-[1.2] font-medium text-foreground font-merriweather drop-shadow-lg max-w-5xl px-2 sm:px-0">
+              <h1 className="text-xl xs:text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-[3.5rem] 2xl:text-[4.75rem] leading-[1.2] font-bold text-foreground font-merriweather drop-shadow-lg max-w-5xl px-2 sm:px-0">
                 <span className="text-foreground drop-shadow-md">
                   Join the #1 Newsletter & Community for{' '}
                   <span className="relative inline-block min-w-[120px] text-left">
