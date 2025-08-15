@@ -42,11 +42,11 @@ const HeroNavigation = ({
   }, []);
   
   return (
-    <nav className="fixed top-0 left-0 right-0 z-[100] px-3 sm:px-6 lg:px-12 py-2 sm:py-4 lg:py-6 backdrop-blur-md bg-background/90 shadow-sm border-b border-border/10" style={{ position: 'fixed', top: 0 }}>
-      <div className="grid grid-cols-3 items-center w-full">
-        {/* Logo - Left Column */}
+    <nav className="fixed top-0 left-0 right-0 z-50 px-3 sm:px-6 lg:px-12 py-2 sm:py-4 lg:py-6 backdrop-blur-md bg-background/90 shadow-sm border-b border-border/10" style={{ position: 'fixed', top: 0 }}>
+      <div className="flex items-center justify-between w-full relative">
+        {/* Logo - Left */}
         <div 
-          className="flex items-center drop-shadow-sm cursor-pointer justify-self-start"
+          className="flex items-center drop-shadow-sm cursor-pointer"
           onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
         >
           <LazyImage
@@ -59,11 +59,11 @@ const HeroNavigation = ({
           />
         </div>
 
-        {/* Desktop Navigation - Center Column */}
-        <div className="hidden lg:flex items-center space-x-6 xl:space-x-8 justify-self-center">
+        {/* Desktop Navigation - Center */}
+        <div className="hidden lg:flex items-center space-x-6 xl:space-x-8 absolute left-1/2 transform -translate-x-1/2">
           <a 
             href="#services" 
-            className="text-foreground hover:text-primary transition-all duration-300 font-montserrat font-medium text-sm hover:translate-y-[-1px] drop-shadow-sm hover:drop-shadow-md"
+            className="text-foreground hover:text-primary transition-all duration-300 font-montserrat font-medium hover:translate-y-[-1px] drop-shadow-sm hover:drop-shadow-md"
             onClick={(e) => {
               e.preventDefault();
               navigateToSection('services');
@@ -73,7 +73,7 @@ const HeroNavigation = ({
           </a>
           <a 
             href="#reviews" 
-            className="text-foreground hover:text-primary transition-all duration-300 font-montserrat font-medium text-sm hover:translate-y-[-1px] drop-shadow-sm hover:drop-shadow-md"
+            className="text-foreground hover:text-primary transition-all duration-300 font-montserrat font-medium hover:translate-y-[-1px] drop-shadow-sm hover:drop-shadow-md"
             onClick={(e) => {
               e.preventDefault();
               navigateToSection('reviews');
@@ -83,7 +83,7 @@ const HeroNavigation = ({
           </a>
           <a 
             href="#pricing" 
-            className="text-foreground hover:text-primary transition-all duration-300 font-montserrat font-medium text-sm hover:translate-y-[-1px] drop-shadow-sm hover:drop-shadow-md"
+            className="text-foreground hover:text-primary transition-all duration-300 font-montserrat font-medium hover:translate-y-[-1px] drop-shadow-sm hover:drop-shadow-md"
             onClick={(e) => {
               e.preventDefault();
               navigateToSection('pricing');
@@ -93,7 +93,7 @@ const HeroNavigation = ({
           </a>
           <a 
             href="#faq" 
-            className="text-foreground hover:text-primary transition-all duration-300 font-montserrat font-medium text-sm hover:translate-y-[-1px] drop-shadow-sm hover:drop-shadow-md"
+            className="text-foreground hover:text-primary transition-all duration-300 font-montserrat font-medium hover:translate-y-[-1px] drop-shadow-sm hover:drop-shadow-md"
             onClick={(e) => {
               e.preventDefault();
               navigateToSection('faq');
@@ -103,7 +103,7 @@ const HeroNavigation = ({
           </a>
           <a 
             href="#contact" 
-            className="text-foreground hover:text-primary transition-all duration-300 font-montserrat font-medium text-sm hover:translate-y-[-1px] drop-shadow-sm hover:drop-shadow-md"
+            className="text-foreground hover:text-primary transition-all duration-300 font-montserrat font-medium hover:translate-y-[-1px] drop-shadow-sm hover:drop-shadow-md"
             onClick={(e) => {
               e.preventDefault();
               navigateToSection('contact');
@@ -113,8 +113,8 @@ const HeroNavigation = ({
           </a>
         </div>
 
-        {/* Right Column - Mobile menu + Sign In + Get Started */}
-        <div className="flex items-center gap-1 xs:gap-2 sm:gap-3 justify-self-end">
+        {/* Right Side - Mobile menu + Sign In + Get Started */}
+        <div className="flex items-center gap-1 xs:gap-2 sm:gap-3">
           {/* Mobile menu button */}
           <button 
             className="lg:hidden p-2 text-foreground hover:text-primary transition-all duration-300 hover:scale-110 hover:translate-y-[-1px] drop-shadow-sm hover:drop-shadow-md min-h-[44px] min-w-[44px] flex items-center justify-center"
@@ -129,7 +129,7 @@ const HeroNavigation = ({
             <Button 
               variant="outline" 
               size="sm" 
-              className="font-semibold font-montserrat border-[#3355FF] text-[#3355FF] hover:bg-[#3355FF] hover:text-white text-xs sm:text-sm px-3 sm:px-4 h-9 rounded-full transition-all duration-300 hover:scale-105 hover:translate-y-[-2px] shadow-[0_2px_4px_rgba(51,85,255,0.2)] hover:shadow-[0_4px_8px_rgba(51,85,255,0.3)] drop-shadow-md" 
+              className="font-medium font-montserrat border-[#3355FF] text-[#3355FF] hover:bg-[#3355FF] hover:text-white text-xs sm:text-sm px-3 sm:px-4 h-9 rounded-full transition-all duration-300 hover:scale-105 hover:translate-y-[-2px] shadow-[0_2px_4px_rgba(51,85,255,0.2)] hover:shadow-[0_4px_8px_rgba(51,85,255,0.3)] drop-shadow-md"
               onClick={() => navigate('/dashboard')}
             >
               Dashboard
@@ -138,7 +138,7 @@ const HeroNavigation = ({
             <Button 
               variant="outline" 
               size="sm" 
-              className="font-semibold font-montserrat border-[#3355FF] text-[#3355FF] hover:bg-[#3355FF] hover:text-white text-xs sm:text-sm px-3 sm:px-4 h-9 rounded-full transition-all duration-300 hover:scale-105 hover:translate-y-[-2px] shadow-[0_2px_4px_rgba(51,85,255,0.2)] hover:shadow-[0_4px_8px_rgba(51,85,255,0.3)] drop-shadow-md" 
+              className="font-medium font-montserrat border-[#3355FF] text-[#3355FF] hover:bg-[#3355FF] hover:text-white text-xs sm:text-sm px-3 sm:px-4 h-9 rounded-full transition-all duration-300 hover:scale-105 hover:translate-y-[-2px] shadow-[0_2px_4px_rgba(51,85,255,0.2)] hover:shadow-[0_4px_8px_rgba(51,85,255,0.3)] drop-shadow-md" 
               onClick={onAuthClick}
               disabled={isLoading}
             >
@@ -150,7 +150,7 @@ const HeroNavigation = ({
           {!isAuthenticated && (
             <Button 
               size="sm" 
-              className="font-bold font-montserrat bg-brand-primary hover:bg-background hover:text-brand-primary text-white border-2 border-brand-primary text-xs sm:text-sm px-3 sm:px-4 h-9 rounded-full relative overflow-hidden transition-all duration-300 hover:scale-105 hover:translate-y-[-2px] before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-white/20 before:to-transparent before:translate-x-[-100%] before:animate-shimmer-subtle hover:before:opacity-0" 
+              className="font-medium font-montserrat bg-brand-primary hover:bg-background hover:text-brand-primary text-white border-2 border-brand-primary text-xs sm:text-sm px-3 sm:px-4 h-9 rounded-full relative overflow-hidden transition-all duration-300 hover:scale-105 hover:translate-y-[-2px] before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-white/20 before:to-transparent before:translate-x-[-100%] before:animate-shimmer-subtle hover:before:opacity-0" 
               onClick={() => navigateToSection('pricing')}
             >
               Get Started
@@ -224,7 +224,7 @@ const HeroNavigation = ({
       )}
       
       {/* Mobile scroll progress bar */}
-      <div className="block sm:hidden fixed top-[58px] left-0 right-0 z-[90] h-1 bg-background/20 backdrop-blur-sm" style={{ position: 'fixed', top: '58px' }}>
+      <div className="block sm:hidden fixed top-[58px] left-0 right-0 z-40 h-1 bg-background/20 backdrop-blur-sm" style={{ position: 'fixed', top: '58px' }}>
         <div 
           className="h-full bg-brand-primary"
           style={{ 
