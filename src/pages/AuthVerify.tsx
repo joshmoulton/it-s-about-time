@@ -54,12 +54,18 @@ const AuthVerify = () => {
           }
         });
         
-        console.log('🔍 Function call response:', { verifyData, verifyError });
-        console.log('🔍 Full response details:', { 
-          data: verifyData, 
-          error: verifyError,
-          errorMessage: verifyError?.message 
-        });
+        console.log('🔍 Function call complete');
+        console.log('🔍 Response data:', verifyData);
+        console.log('🔍 Response error:', verifyError);
+        
+        if (verifyError) {
+          console.log('🔍 Error details:', {
+            message: verifyError.message,
+            code: verifyError.code,
+            details: verifyError.details,
+            hint: verifyError.hint
+          });
+        }
 
         console.log('🔍 Verification response:', { verifyData, verifyError });
 
@@ -72,8 +78,9 @@ const AuthVerify = () => {
 
         if (!verifyData?.success) {
           console.log('⚠️ Invalid magic link token');
+          console.log('🔍 Response details:', verifyData);
           setStatus('error');
-          setMessage(verifyData?.error || 'Invalid or expired access link. Please request a new one.');
+          setMessage(verifyData?.error || 'This magic link has expired or been used. Please request a new one from the homepage.');
           return;
         }
 

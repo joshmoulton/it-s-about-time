@@ -63,8 +63,19 @@ serve(async (req) => {
     
     const { data: tokenData, error: tokenError } = await query.maybeSingle();
 
-    if (tokenError || !tokenData) {
-      console.log('❌ Invalid or expired token:', tokenError);
+    if (tokenError) {
+      console.log('❌ Database error looking up token:', tokenError);
+      const errorResponse = req.method === 'POST' 
+        ? JSON.stringify({ success: false, error: 'Database error during verification' })
+        : 'Database error during verification';
+      return new Response(errorResponse, { 
+        status: 500,
+        headers: req.method === 'POST' ? { 'content-type': 'application/json', ...corsHeaders } : {}
+      });
+    }
+
+    if (!tokenData) {
+      console.log('❌ Invalid or expired token');
       const errorResponse = req.method === 'POST' 
         ? JSON.stringify({ success: false, error: 'Invalid or expired token' })
         : 'Invalid or expired token';
@@ -76,13 +87,9 @@ serve(async (req) => {
 
     console.log(`✅ Token validated for: ${tokenData.email}`);
 
-    // Delete token after use (one-time use)
-    console.log(`🔄 Deleting used token for: ${tokenData.email}`);
-    await supabase
-      .from('magic_link_tokens')
-      .delete()
-      .eq('token', token);
-    console.log(`✅ Token deleted for: ${tokenData.email}`);
+    // Delete token after use (one-time use) - but only after successful verification
+    console.log(`🔄 Marking token as used for: ${tokenData.email}`);
+    const tokenToDelete = token; // Store token before we potentially lose it
 
     // Get or create user in Supabase auth with proper error handling
     console.log(`🔄 Looking up existing user for: ${tokenData.email}`);
@@ -204,6 +211,12 @@ serve(async (req) => {
 
     console.log(`✅ Magic link authentication complete for ${tokenData.email}`);
     
+    // NOW delete the token after successful authentication
+    await supabase
+      .from('magic_link_tokens')
+      .delete()
+      .eq('token', tokenToDelete);
+    console.log(`✅ Token deleted after successful verification for: ${tokenData.email}`);
     // Handle response based on request method
     if (req.method === 'POST') {
       // Return JSON response for API calls
