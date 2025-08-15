@@ -97,10 +97,10 @@ export function useLiveAlerts(limit = 10, subscriber?: Subscriber) {
         {
           event: 'UPDATE',
           schema: 'public',
-          table: 'signals_overview'
+          table: 'live_trading_signals'
         },
         (payload) => {
-          console.log('Signal overview updated:', payload);
+          console.log('Live trading signal updated:', payload);
           // Invalidate and refetch the query immediately
           queryClient.invalidateQueries({ queryKey: ['liveAlerts'] });
         }
@@ -110,10 +110,10 @@ export function useLiveAlerts(limit = 10, subscriber?: Subscriber) {
         {
           event: 'INSERT',
           schema: 'public',
-          table: 'signals_overview'
+          table: 'live_trading_signals'
         },
         (payload) => {
-          console.log('New signal added:', payload);
+          console.log('New live trading signal added:', payload);
           // Invalidate and refetch the query immediately
           queryClient.invalidateQueries({ queryKey: ['liveAlerts'] });
         }
@@ -138,7 +138,7 @@ export function useLiveAlerts(limit = 10, subscriber?: Subscriber) {
 
       // Fetch latest active signals from signals_overview for enhanced data
       const { data, error } = await supabase
-        .from('signals_overview')
+        .from('live_trading_signals')
         .select(`
           id, ticker, direction, entry_type, entry_price, current_price, 
           stop_loss_price, targets, hit_targets, status, created_at,
