@@ -208,24 +208,24 @@ export const EnhancedChatHighlights: React.FC = () => {
   }, []);
 
   return (
-    <div className="bg-gradient-to-br from-purple-900/20 via-pink-900/10 to-slate-800/50 border border-purple-500/20 rounded-2xl p-6 space-y-6">
-      {/* Header */}
-      <div className="flex items-center gap-3 mb-6">
-        <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg flex items-center justify-center shadow-sm">
-          <MessageSquare className="h-5 w-5 text-white" />
+    <div className="bg-gradient-to-br from-purple-900/20 via-pink-900/10 to-slate-800/50 border border-purple-500/20 rounded-2xl p-4 sm:p-6 space-y-4 sm:space-y-6">
+      {/* Header - Mobile Optimized */}
+      <div className="flex items-center gap-3 mb-4 sm:mb-6">
+        <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg flex items-center justify-center shadow-sm">
+          <MessageSquare className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
         </div>
-        <h1 className="text-2xl font-bold text-white">Chat Highlights</h1>
+        <h1 className="text-xl sm:text-2xl font-bold text-white">Chat Highlights</h1>
       </div>
 
-      {/* Topic Activity Overview - Widget Style */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      {/* Topic Activity Overview - Mobile Responsive Grid */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-4 sm:mb-6">
         {topicStats.slice(0, 4).map((topic) => (
-          <div key={topic.topic_name} className="p-4 bg-purple-900/30 rounded-xl border border-purple-500/20">
+          <div key={topic.topic_name} className="p-3 sm:p-4 bg-purple-900/30 rounded-xl border border-purple-500/20">
             <div className="flex items-center justify-between mb-2">
-              <span className="font-medium text-sm text-white truncate">{topic.topic_name}</span>
-              <div className="flex items-center gap-1">
+              <span className="font-medium text-xs sm:text-sm text-white truncate pr-1">{topic.topic_name}</span>
+              <div className="flex items-center gap-1 flex-shrink-0">
                 <BarChart3 className="h-3 w-3 text-purple-400" />
-                <span className="text-sm font-bold text-purple-300">
+                <span className="text-xs sm:text-sm font-bold text-purple-300">
                   {topic.message_count}
                 </span>
               </div>
@@ -237,9 +237,9 @@ export const EnhancedChatHighlights: React.FC = () => {
         ))}
       </div>
 
-      {/* Filters and Search - Widget Style */}
-      <div className="bg-purple-900/30 rounded-xl border border-purple-500/20 p-4">
-        <div className="flex flex-wrap gap-4 items-center">
+      {/* Filters and Search - Mobile Responsive */}
+      <div className="bg-purple-900/30 rounded-xl border border-purple-500/20 p-3 sm:p-4">
+        <div className="space-y-3 sm:space-y-0 sm:flex sm:flex-wrap sm:gap-4 sm:items-center">
           <div className="flex-1 min-w-[200px]">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-purple-300" />
@@ -247,62 +247,64 @@ export const EnhancedChatHighlights: React.FC = () => {
                 placeholder="Search highlights..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 bg-purple-800/30 border-purple-500/30 text-white placeholder-purple-300/60 focus:border-purple-400"
+                className="pl-10 bg-purple-800/30 border-purple-500/30 text-white placeholder-purple-300/60 focus:border-purple-400 min-h-[44px]"
               />
             </div>
           </div>
           
-          <Select value={selectedTopic} onValueChange={setSelectedTopic}>
-            <SelectTrigger className="w-[180px] bg-purple-800/30 border-purple-500/30 text-white">
-              <Filter className="h-4 w-4 mr-2" />
-              <SelectValue placeholder="Filter by topic" />
-            </SelectTrigger>
-            <SelectContent className="bg-purple-900 border-purple-500/30">
-              <SelectItem value="all">All Topics</SelectItem>
-              {availableTopics.map((topic) => (
-                <SelectItem key={topic} value={topic}>{topic}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          
-          <Select value={sortBy} onValueChange={(value: 'recent' | 'engagement' | 'priority') => setSortBy(value)}>
-            <SelectTrigger className="w-[150px] bg-purple-800/30 border-purple-500/30 text-white">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent className="bg-purple-900 border-purple-500/30">
-              <SelectItem value="priority">Priority</SelectItem>
-              <SelectItem value="engagement">Engagement</SelectItem>
-              <SelectItem value="recent">Most Recent</SelectItem>
-            </SelectContent>
-          </Select>
+          <div className="grid grid-cols-2 gap-2 sm:flex sm:gap-4">
+            <Select value={selectedTopic} onValueChange={setSelectedTopic}>
+              <SelectTrigger className="min-h-[44px] bg-purple-800/30 border-purple-500/30 text-white">
+                <Filter className="h-4 w-4 mr-2" />
+                <SelectValue placeholder="All Topics" />
+              </SelectTrigger>
+              <SelectContent className="bg-purple-900 border-purple-500/30 z-50">
+                <SelectItem value="all">All Topics</SelectItem>
+                {availableTopics.map((topic) => (
+                  <SelectItem key={topic} value={topic}>{topic}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            
+            <Select value={sortBy} onValueChange={(value: 'recent' | 'engagement' | 'priority') => setSortBy(value)}>
+              <SelectTrigger className="min-h-[44px] bg-purple-800/30 border-purple-500/30 text-white">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent className="bg-purple-900 border-purple-500/30 z-50">
+                <SelectItem value="priority">Priority</SelectItem>
+                <SelectItem value="engagement">Engagement</SelectItem>
+                <SelectItem value="recent">Recent</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
       </div>
 
-      {/* Enhanced Highlights List - Compact Card Style */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+      {/* Enhanced Highlights List - Mobile Responsive */}
+      <div className="grid grid-cols-1 gap-3 sm:gap-4">
         {isLoading ? (
-          <div className="col-span-full text-center py-8">
+          <div className="text-center py-8">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500 mx-auto"></div>
             <p className="text-sm text-purple-300/60 mt-2">Analyzing highlights...</p>
           </div>
         ) : filteredHighlights && filteredHighlights.length > 0 ? (
           filteredHighlights.map((highlight) => (
-            <div key={highlight.id} className="p-3 bg-purple-900/30 rounded-xl border border-purple-500/20 hover:border-purple-400/40 hover:bg-purple-900/40 transition-all duration-200">
-              <div className="space-y-2">
+            <div key={highlight.id} className="p-3 sm:p-4 bg-purple-900/30 rounded-xl border border-purple-500/20 hover:border-purple-400/40 hover:bg-purple-900/40 transition-all duration-200">
+              <div className="space-y-2 sm:space-y-3">
                 {/* Header row with user and topic */}
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <div className="w-6 h-6 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white text-xs font-medium flex-shrink-0">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2 min-w-0 flex-1">
+                    <div className="w-6 h-6 sm:w-7 sm:h-7 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white text-xs font-medium flex-shrink-0">
                       {highlight.first_name?.[0] || highlight.username?.[0] || 'U'}
                     </div>
-                    <span className="font-medium text-sm text-white truncate">
+                    <span className="font-medium text-sm sm:text-base text-white truncate">
                       {highlight.username ? `@${highlight.username}` : highlight.first_name}
                     </span>
                   </div>
-                  <div className="flex items-center gap-1">
+                  <div className="flex items-center gap-1 flex-shrink-0">
                     {highlight.topic_name && (
                       <Badge 
-                        className={`text-xs px-2 py-0.5 ${getTopicBadgeColor(highlight.topic_name)} text-white`}
+                        className={`text-xs px-2 py-0.5 ${getTopicBadgeColor(highlight.topic_name)} text-white whitespace-nowrap`}
                       >
                         {highlight.topic_name}
                       </Badge>
@@ -311,13 +313,13 @@ export const EnhancedChatHighlights: React.FC = () => {
                 </div>
 
                 {/* Message content */}
-                <p className="text-sm text-purple-200/80 leading-relaxed line-clamp-3">
+                <p className="text-sm sm:text-base text-purple-200/80 leading-relaxed break-words">
                   {highlight.message_text}
                 </p>
 
-                {/* Footer with stats */}
-                <div className="flex items-center justify-between text-xs text-purple-300/60">
-                  <div className="flex items-center gap-3">
+                {/* Footer with stats - Mobile Responsive */}
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between text-xs text-purple-300/60">
+                  <div className="flex items-center gap-3 flex-wrap">
                     <div className="flex items-center gap-1">
                       <BarChart3 className="h-3 w-3" />
                       <span>Priority: {highlight.priority_score}</span>
@@ -329,7 +331,7 @@ export const EnhancedChatHighlights: React.FC = () => {
                       </div>
                     )}
                   </div>
-                  <span className="text-xs text-purple-300/60">
+                  <span className="text-xs text-purple-300/60 sm:text-right">
                     {formatTimeAgo(highlight.timestamp)}
                   </span>
                 </div>
@@ -337,10 +339,10 @@ export const EnhancedChatHighlights: React.FC = () => {
             </div>
           ))
         ) : (
-          <div className="col-span-full text-center py-12 bg-purple-900/30 rounded-xl border border-purple-500/20">
-            <MessageSquare className="h-12 w-12 mx-auto text-purple-400 mb-4" />
+          <div className="text-center py-8 sm:py-12 bg-purple-900/30 rounded-xl border border-purple-500/20">
+            <MessageSquare className="h-10 w-10 sm:h-12 sm:w-12 mx-auto text-purple-400 mb-3 sm:mb-4" />
             <h3 className="text-lg font-semibold text-white mb-2">No highlights found</h3>
-            <p className="text-purple-300/60">
+            <p className="text-sm sm:text-base text-purple-300/60 px-4">
               {searchTerm || selectedTopic !== 'all' 
                 ? 'Try adjusting your filters or search terms.' 
                 : 'Highlights will appear here as messages are analyzed.'}
