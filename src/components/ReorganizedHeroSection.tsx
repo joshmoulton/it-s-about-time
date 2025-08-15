@@ -42,7 +42,7 @@ const ReorganizedHeroSection = ({
             {/* Centered Hero Text */}
             <div className="flex flex-col space-y-4 xs:space-y-5 sm:space-y-6 lg:space-y-8 py-6 sm:py-6 lg:py-12 text-center items-center justify-center">
               {/* Main Headline */}
-              <h1 className="text-xl xs:text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-[3.5rem] 2xl:text-[4.75rem] leading-[1.2] font-bold text-foreground font-merriweather drop-shadow-lg max-w-5xl px-2 sm:px-0">
+              <h1 className="text-xl xs:text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-[3.5rem] 2xl:text-[4.75rem] leading-[1.2] font-medium text-foreground font-merriweather drop-shadow-lg max-w-5xl px-2 sm:px-0">
                 <span className="text-foreground drop-shadow-md">
                   Join the #1 Newsletter & Community for{' '}
                   <span className="relative inline-block min-w-[120px] text-left">
@@ -63,7 +63,7 @@ const ReorganizedHeroSection = ({
                   <Button 
                     onClick={() => navigate('/dashboard')}
                     size="lg" 
-                     className="font-bold rounded-full transition-all duration-300 font-montserrat bg-brand-primary hover:bg-background hover:text-brand-primary text-white border-2 border-brand-primary w-full sm:w-auto min-w-[280px] xs:min-w-[300px] max-w-[340px] relative overflow-hidden sm:hover:scale-105 sm:hover:translate-y-[-2px] drop-shadow-lg touch-manipulation min-h-[48px] xs:min-h-[52px] sm:h-12 md:h-14 px-6 xs:px-7 sm:px-8 text-sm xs:text-base sm:text-base"
+                     className="font-bold rounded-full transition-all duration-300 font-montserrat bg-brand-primary hover:bg-background hover:text-brand-primary text-white border-2 border-brand-primary w-full sm:w-auto min-w-[280px] xs:min-w-[300px] max-w-[340px] relative overflow-hidden hover:scale-105 hover:translate-y-[-2px] before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-white/20 before:to-transparent before:translate-x-[-100%] before:animate-shimmer-subtle hover:before:opacity-0 drop-shadow-lg touch-manipulation min-h-[48px] xs:min-h-[52px] sm:h-12 md:h-14 px-6 xs:px-7 sm:px-8 text-sm xs:text-base sm:text-base"
                   >
                     Go to Dashboard
                     <ArrowRight className="ml-2 h-4 w-4 sm:h-4 sm:w-4" />
@@ -72,7 +72,7 @@ const ReorganizedHeroSection = ({
                   <Button 
                     onClick={() => navigateToSection('pricing')}
                     size="lg" 
-                    className="font-bold rounded-full transition-all duration-300 font-montserrat bg-brand-primary hover:bg-background hover:text-brand-primary text-white border-2 border-brand-primary w-full sm:w-auto min-w-[280px] xs:min-w-[300px] max-w-[340px] relative overflow-hidden sm:hover:scale-105 sm:hover:translate-y-[-2px] drop-shadow-lg touch-manipulation min-h-[48px] xs:min-h-[52px] sm:h-12 md:h-14 px-6 xs:px-7 sm:px-8 text-sm xs:text-base sm:text-base"
+                    className="font-bold rounded-full transition-all duration-300 font-montserrat bg-brand-primary hover:bg-background hover:text-brand-primary text-white border-2 border-brand-primary w-full sm:w-auto min-w-[280px] xs:min-w-[300px] max-w-[340px] relative overflow-hidden hover:scale-105 hover:translate-y-[-2px] before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-white/20 before:to-transparent before:translate-x-[-100%] before:animate-shimmer-subtle hover:before:opacity-0 drop-shadow-lg touch-manipulation min-h-[48px] xs:min-h-[52px] sm:h-12 md:h-14 px-6 xs:px-7 sm:px-8 text-sm xs:text-base sm:text-base"
                   >
                     Get Started
                     <ArrowRight className="ml-2 h-4 w-4 sm:h-4 sm:w-4" />
