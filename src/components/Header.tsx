@@ -119,10 +119,10 @@ export default function Header({ onAuthClick, onPremiumClick }: HeaderProps) {
             </Button>
           )}
 
-          {/* Get Started Button - Only show if not authenticated */}
+          {/* Get Started Button - Only show if not authenticated and on desktop */}
           {!isAuthenticated && (
             <Button 
-              className="h-10 px-6 rounded-md text-sm font-medium bg-brand-primary"
+              className="hidden sm:flex h-10 px-6 rounded-md text-sm font-medium bg-brand-primary"
               onClick={() => navigateToSection('pricing')}
             >
               Get Started
@@ -158,6 +158,18 @@ export default function Header({ onAuthClick, onPremiumClick }: HeaderProps) {
                 {n.label}
               </a>
             ))}
+            {/* Mobile Get Started Button */}
+            {!isAuthenticated && (
+              <Button 
+                className="mt-4 h-10 w-full bg-brand-primary text-sm font-medium"
+                onClick={() => {
+                  setIsMobileMenuOpen(false);
+                  navigateToSection('pricing');
+                }}
+              >
+                Get Started
+              </Button>
+            )}
           </nav>
         </div>
       )}
