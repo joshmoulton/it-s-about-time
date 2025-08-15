@@ -94,35 +94,70 @@ serve(async (req) => {
     // Create or get Supabase session for the user
     console.log(`🔄 Creating session for verified email: ${tokenData.email}`);
     
-    // Use generateLink to create a session - this works whether user exists or not
-    const { data: authData, error: authError } = await supabase.auth.admin.generateLink({
-      type: 'magiclink',
-      email: tokenData.email,
-      options: {
-        redirectTo: `${req.headers.get('origin') || 'https://www.weeklywizdom.com'}/dashboard`
+    // First, ensure user exists in Supabase Auth
+    let authUser;
+    
+    // Check if user exists first
+    const { data: existingUserData } = await supabase.auth.admin.listUsers();
+    const existingUser = existingUserData?.users?.find(u => u.email === tokenData.email);
+    
+    if (existingUser) {
+      console.log(`✅ Found existing user: ${existingUser.id}`);
+      authUser = existingUser;
+    } else {
+      // Create user if doesn't exist
+      console.log(`🔄 Creating new user for: ${tokenData.email}`);
+      const { data: newUserData, error: createUserError } = await supabase.auth.admin.createUser({
+        email: tokenData.email,
+        email_confirm: true,
+        user_metadata: {
+          subscription_tier: tokenData.tier,
+          created_via: 'magic_link',
+          verified_at: new Date().toISOString()
+        }
+      });
+
+      if (createUserError) {
+        console.error('❌ Failed to create user:', createUserError);
+        const errorResponse = req.method === 'POST' 
+          ? JSON.stringify({ success: false, error: 'Failed to create user account' })
+          : 'Failed to create user account';
+        return new Response(errorResponse, { 
+          status: 500,
+          headers: req.method === 'POST' ? { 'content-type': 'application/json', ...corsHeaders } : {}
+        });
       }
+      
+      authUser = newUserData.user;
+      console.log(`✅ Created new user: ${authUser.id}`);
+    }
+
+    // Generate session tokens for the user
+    const { data: sessionData, error: sessionError } = await supabase.auth.admin.generateLink({
+      type: 'recovery',
+      email: tokenData.email
     });
 
-    if (authError) {
-      console.error('❌ Failed to generate auth session:', authError);
+    if (sessionError) {
+      console.error('❌ Failed to generate session:', sessionError);
       const errorResponse = req.method === 'POST' 
-        ? JSON.stringify({ success: false, error: 'Failed to create user session' })
-        : 'Failed to create user session';
+        ? JSON.stringify({ success: false, error: 'Failed to create session' })
+        : 'Failed to create session';
       return new Response(errorResponse, { 
         status: 500,
         headers: req.method === 'POST' ? { 'content-type': 'application/json', ...corsHeaders } : {}
       });
     }
 
-    console.log(`✅ Auth session generated for: ${tokenData.email}`);
+    console.log(`✅ Session generated for: ${tokenData.email}`);
     
-    // Extract access and refresh tokens from the magic link
-    const magicLinkUrl = new URL(authData.properties.action_link);
-    const accessToken = magicLinkUrl.searchParams.get('access_token');
-    const refreshToken = magicLinkUrl.searchParams.get('refresh_token');
+    // Extract tokens from the recovery link
+    const recoveryUrl = new URL(sessionData.properties.action_link);
+    const accessToken = recoveryUrl.searchParams.get('access_token');
+    const refreshToken = recoveryUrl.searchParams.get('refresh_token');
 
     if (!accessToken || !refreshToken) {
-      console.error('❌ Failed to extract tokens from auth session');
+      console.error('❌ Failed to extract tokens from session link');
       const errorResponse = req.method === 'POST' 
         ? JSON.stringify({ success: false, error: 'Failed to extract session tokens' })
         : 'Failed to extract session tokens';
@@ -131,9 +166,6 @@ serve(async (req) => {
         headers: req.method === 'POST' ? { 'content-type': 'application/json', ...corsHeaders } : {}
       });
     }
-
-    // Get user info from the auth data
-    const authUser = authData.user;
     console.log(`✅ Session tokens extracted for user: ${authUser?.id}`);
 
     // Ensure we have a valid user at this point
