@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { AccountSettingsNav, AccountTab } from './AccountSettingsNav';
-import { UserProfileSection } from './UserProfileSection';
+import { TierRestrictedUserProfile } from './TierRestrictedUserProfile';
 import { TelegramSettingsSection } from './TelegramSettingsSection';
 import { SecuritySettingsSection } from './SecuritySettingsSection';
-import { ClientSideTradingProfile } from './ClientSideTradingProfile';
+import { TierRestrictedTradingProfile } from './TierRestrictedTradingProfile';
 import { SubscriptionManagement } from './SubscriptionManagement';
 import { useEnhancedAuth } from '@/contexts/EnhancedAuthContext';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -27,13 +27,13 @@ export function AccountSection() {
   const renderActiveTab = () => {
     switch (activeTab) {
       case 'profile':
-        return <UserProfileSection />;
+        return <TierRestrictedUserProfile />;
       case 'security':
         return <SecuritySettingsSection />;
       case 'telegram':
         return <TelegramSettingsSection />;
       case 'trading':
-        return <ClientSideTradingProfile />;
+        return <TierRestrictedTradingProfile />;
       case 'subscription':
         return (
           <SubscriptionManagement subscriber={{
@@ -47,7 +47,7 @@ export function AccountSection() {
           }} />
         );
       default:
-        return <UserProfileSection />;
+        return <TierRestrictedUserProfile />;
     }
   };
 

@@ -348,8 +348,8 @@ export const TradingQuestionnaire: React.FC<TradingQuestionnaireProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto flex flex-col">
-        <DialogHeader className="pb-6">
+      <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col">
+        <DialogHeader className="flex-shrink-0 pb-6">
           <div className="flex items-center justify-between">
             <DialogTitle className="text-xl">Complete Your Trading Profile</DialogTitle>
             <Button
@@ -370,11 +370,13 @@ export const TradingQuestionnaire: React.FC<TradingQuestionnaireProps> = ({
           <Progress value={progress} className="w-full" />
         </DialogHeader>
 
-        <div className="flex-1 py-8 overflow-y-auto">
-          {renderStep()}
+        <div className="flex-1 min-h-0 py-8 overflow-y-auto">
+          <div className="px-1">
+            {renderStep()}
+          </div>
         </div>
 
-        <div className="flex justify-between pt-6 border-t">
+        <div className="flex-shrink-0 flex justify-between pt-6 border-t">
           <Button
             variant="ghost"
             onClick={prevStep}

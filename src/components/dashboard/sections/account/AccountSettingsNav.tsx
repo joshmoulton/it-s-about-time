@@ -2,6 +2,7 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { User, Shield, MessageSquare, TrendingUp, CreditCard, ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useEnhancedAuth } from '@/contexts/EnhancedAuthContext';
 
 export type AccountTab = 'profile' | 'security' | 'telegram' | 'trading' | 'subscription';
 
@@ -13,14 +14,23 @@ interface AccountSettingsNavProps {
 
 export function AccountSettingsNav({ activeTab, onTabChange, isMobile = false }: AccountSettingsNavProps) {
   const navigate = useNavigate();
+  const { currentUser } = useEnhancedAuth();
 
-  const tabs = [
+  // Filter tabs based on user tier
+  const isPremiumUser = currentUser?.subscription_tier === 'premium' || currentUser?.subscription_tier === 'paid';
+  
+  const allTabs = [
     { id: 'profile' as AccountTab, label: 'Profile', icon: User },
     { id: 'security' as AccountTab, label: 'Security', icon: Shield },
     { id: 'telegram' as AccountTab, label: 'Telegram', icon: MessageSquare },
     { id: 'trading' as AccountTab, label: 'Trading Profile', icon: TrendingUp },
     { id: 'subscription' as AccountTab, label: 'Subscription', icon: CreditCard },
   ];
+
+  // Free users only see profile and subscription tabs
+  const tabs = isPremiumUser ? allTabs : allTabs.filter(tab => 
+    tab.id === 'profile' || tab.id === 'subscription'
+  );
 
   const handleBackToDashboard = () => {
     navigate('/dashboard');
