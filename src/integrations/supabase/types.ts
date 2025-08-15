@@ -4086,6 +4086,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: boolean
       }
+      is_current_user_premium: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
       is_device_authorized: {
         Args: { admin_email: string; device_fingerprint: string }
         Returns: boolean
