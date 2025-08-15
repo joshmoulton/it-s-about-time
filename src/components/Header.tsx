@@ -6,6 +6,7 @@ import { useEnhancedAuth } from "@/contexts/EnhancedAuthContext";
 import { navigateToSection } from '@/utils/hashNavigation';
 import { createScrollHandler } from '@/utils/smoothScroll';
 import { getLogoUrl } from '@/utils/uploadLogo';
+import logoImage from '@/assets/logo.png';
 
 interface HeaderProps {
   onAuthClick: () => void;
@@ -67,16 +68,12 @@ export default function Header({ onAuthClick, onPremiumClick }: HeaderProps) {
           onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
           aria-label="Home"
         >
-          <div className="h-10 w-10 rounded-md bg-brand-primary grid place-items-center overflow-hidden">
-            {logoUrl ? (
-              <img 
-                src={logoUrl} 
-                alt="Weekly Wizdom Logo" 
-                className="h-full w-full object-contain"
-              />
-            ) : (
-              <span className="text-white font-semibold text-lg leading-none">W</span>
-            )}
+          <div className="h-10 w-10 rounded-md overflow-hidden">
+            <img 
+              src={logoUrl || logoImage} 
+              alt="Weekly Wizdom Logo" 
+              className="h-full w-full object-contain"
+            />
           </div>
         </div>
 
