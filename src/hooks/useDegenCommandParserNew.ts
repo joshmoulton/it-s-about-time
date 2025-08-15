@@ -213,8 +213,8 @@ export function useDegenCommandParser() {
 
       // Map to correct database field names for live_trading_signals table
       const signalData = {
-        // Required fields that match the database schema
-        symbol: commandData.symbol,
+        // Use ticker instead of symbol to match database schema
+        ticker: commandData.symbol,
         direction: commandData.direction,
         entry_type: commandData.entry_type || 'market',
         entry_price: commandData.entry_price || 0,
@@ -291,7 +291,7 @@ export function useDegenCommandParser() {
       const { data: activeSignals, error: fetchError } = await supabase
         .from('live_trading_signals')
         .select('*')
-        .eq('symbol', symbol.toUpperCase())
+        .eq('ticker', symbol.toUpperCase()) // Use ticker field
         .eq('status', 'active');
 
       if (fetchError) {
@@ -320,7 +320,7 @@ export function useDegenCommandParser() {
           status: 'closed',
           close_reason: 'Manual close command',
         })
-        .eq('symbol', symbol.toUpperCase())
+        .eq('ticker', symbol.toUpperCase()) // Use ticker field
         .eq('status', 'active');
 
       if (updateError) {
@@ -360,8 +360,8 @@ export function useDegenCommandParser() {
 
       // Map to correct database field names for live_trading_signals table
       const signalData = {
-        // Required fields that match the database schema
-        symbol: commandData.symbol,
+        // Use ticker instead of symbol to match database schema
+        ticker: commandData.symbol,
         direction: commandData.direction,
         entry_type: commandData.entry_type || 'market',
         entry_price: commandData.entry_price || 0,
