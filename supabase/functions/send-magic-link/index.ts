@@ -281,13 +281,22 @@ serve(async (req) => {
       email_id: emailResult.data?.id
     };
 
-    // Update idempotency record with success
+    // Update idempotency record with success (WITHOUT sensitive action_link)
     if (idempotencyKey) {
+      const sanitizedResponse = {
+        success: true,
+        tier: tier,
+        message: 'Magic link sent successfully',
+        request_id: requestId,
+        email_id: emailResult.data?.id
+        // NOTE: action_link intentionally omitted for security
+      };
+      
       await supabase
         .from('magic_link_idempotency')
         .update({ 
           status: 'completed',
-          response_data: successResponse
+          response_data: sanitizedResponse
         })
         .eq('idempotency_key', idempotencyKey);
     }
