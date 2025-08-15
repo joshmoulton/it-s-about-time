@@ -56,6 +56,17 @@ export const useDegenCommandParser = () => {
     const cleanMessage = message.trim();
     console.log('Parsing degen command:', cleanMessage);
     
+    // Check for close command first
+    const closeFormat = /!close\s+([A-Za-z0-9]+)/i;
+    const closeMatch = cleanMessage.match(closeFormat);
+    
+    if (closeMatch) {
+      const ticker = closeMatch[1].toUpperCase();
+      console.log('Close command detected for ticker:', ticker);
+      await closePosition(ticker);
+      return null; // Return null to indicate this was a close command, not a new degen call
+    }
+    
     // Match patterns: 
     // !degen supporting long|short TICKER (optional entry/stop/target)
     // !degen long|short TICKER [entry] (optional stop/target)
@@ -152,6 +163,100 @@ export const useDegenCommandParser = () => {
     return commandData;
   };
 
+  const closePosition = async (ticker: string) => {
+    setIsProcessing(true);
+    try {
+      // Get current price for final calculations
+      const currentPrice = await fetchCurrentPrice(ticker);
+      
+      // Find active signals for this ticker
+      const { data: activeSignals, error: fetchError } = await supabase
+        .from('analyst_signals')
+        .select('*')
+        .eq('ticker', ticker)
+        .eq('status', 'active');
+
+      if (fetchError) throw fetchError;
+
+      if (!activeSignals || activeSignals.length === 0) {
+        toast.error(`No active ${ticker} position found to close`);
+        return;
+      }
+
+      // Close all active positions for this ticker
+      for (const signal of activeSignals) {
+        const finalPrice = currentPrice || signal.entry_price;
+        const profitPct = signal.entry_price ? 
+          ((finalPrice - signal.entry_price) / signal.entry_price) * 100 : 0;
+
+        // Update signal status to closed
+        const { error: updateError } = await supabase
+          .from('analyst_signals')
+          .update({
+            status: 'closed',
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', signal.id);
+
+        if (updateError) throw updateError;
+
+        // Log the manual close event using 'note' type
+        const { error: eventError } = await supabase
+          .from('signal_events')
+          .insert({
+            id: crypto.randomUUID(),
+            signal_id: signal.id,
+            event: 'note',
+            detail: { 
+              type: 'manual_close',
+              price: finalPrice, 
+              profit_pct: profitPct,
+              closed_by: 'user_command'
+            }
+          });
+
+        if (eventError) {
+          console.error('Failed to log close event:', eventError);
+        }
+
+        // Send notification
+        try {
+          const { error: notifyError } = await supabase.functions.invoke('degen-call-notifier', {
+            body: {
+              type: 'live_trading_event',
+              ticker,
+              kind: 'position_closed',
+              reason: 'manual_close',
+              price: finalPrice,
+              signal_id: signal.id,
+              entry_price: signal.entry_price,
+              profit_pct: profitPct
+            }
+          });
+
+          if (notifyError) {
+            console.error('Failed to send close notification:', notifyError);
+          }
+        } catch (notifyError) {
+          console.error('Error sending close notification:', notifyError);
+        }
+      }
+
+      const profit = activeSignals[0]?.entry_price && currentPrice ? 
+        ((currentPrice - activeSignals[0].entry_price) / activeSignals[0].entry_price) * 100 : 0;
+      
+      const profitText = profit > 0 ? `+${profit.toFixed(2)}%` : `${profit.toFixed(2)}%`;
+      
+      toast.success(`${ticker} position closed manually at $${currentPrice?.toFixed(6) || 'market'} (${profitText})`);
+      
+    } catch (error) {
+      console.error('Error closing position:', error);
+      toast.error(`Failed to close ${ticker} position`);
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
   const createSignalFromCommand = async (commandData: DegenCommandData, analystName: string = 'Degen Caller') => {
     setIsProcessing(true);
     try {
@@ -225,6 +330,7 @@ Degen call for ${commandData.ticker} ${commandData.direction}`;
     parseDegenCommand,
     createSignalFromCommand,
     fetchCurrentPrice,
+    closePosition,
     isProcessing,
   };
 };
