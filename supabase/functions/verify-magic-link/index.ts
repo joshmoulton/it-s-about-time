@@ -203,7 +203,10 @@ serve(async (req) => {
           subscription_tier: tokenData.tier,
           source: 'magic_link'
         },
-        session: null // Frontend will handle session creation
+        session: {
+          access_token: accessToken,
+          refresh_token: refreshToken
+        }
       }), {
         headers: { 'content-type': 'application/json', ...corsHeaders }
       });
