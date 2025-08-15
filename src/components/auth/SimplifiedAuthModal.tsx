@@ -141,24 +141,22 @@ export const SimplifiedAuthModal: React.FC<SimplifiedAuthModalProps> = memo(({ o
           email.toLowerCase().trim(),
           'magic_link',
           async () => {
-            console.log('📧 Sending custom magic link via Resend...');
+            console.log('📧 Sending magic link via Supabase + Resend SMTP...');
             
-            // Use our custom send-magic-link function instead of Supabase's
-            const { data, error } = await supabase.functions.invoke('send-magic-link', {
-              body: { email: email.toLowerCase().trim() }
+            const { error } = await supabase.auth.signInWithOtp({
+              email: email.toLowerCase().trim(),
+              options: {
+                emailRedirectTo: `${window.location.origin}/auth/callback`
+              }
             });
 
             if (error) {
-              console.error('❌ Custom magic link error:', error);
+              console.error('❌ Magic link error:', error);
               throw new Error(error.message || 'Failed to send magic link');
             }
 
-            if (!data?.success) {
-              throw new Error(data?.error || 'Failed to send magic link');
-            }
-
-            console.log('✅ Custom magic link sent successfully via Resend');
-            return { success: true, tier: data.tier || 'free' };
+            console.log('✅ Magic link sent successfully via Supabase + Resend');
+            return { success: true };
           }
         );
         
