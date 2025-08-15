@@ -1,7 +1,7 @@
 
 import { ArrowRight, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import HeroNavigation from "./hero/HeroNavigation";
+import Header from "./Header";
 import DynamicHeroBackground from "./DynamicHeroBackground";
 import CyclingText from "@/components/ui/cycling-text";
 import { navigateToSection } from "@/utils/hashNavigation";
@@ -33,7 +33,7 @@ const ReorganizedHeroSection = ({
       <DynamicHeroBackground />
 
       {/* Top Navigation */}
-      <HeroNavigation onAuthClick={onAuthClick} onPremiumClick={onPremiumClick} />
+      <Header />
 
       {/* Two-Column Hero Content */}
       <div className="relative z-10 pt-16 xs:pt-20 sm:pt-20 pb-8 sm:pb-16 lg:pt-28 lg:pb-32">

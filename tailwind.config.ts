@@ -4,10 +4,18 @@ import type { Config } from 'tailwindcss';
 export default {
   darkMode: ['class'],
   content: [
-    './pages/**/*.{ts,tsx}',
-    './components/**/*.{ts,tsx}',
-    './app/**/*.{ts,tsx}',
-    './src/**/*.{ts,tsx}',
+    './index.html',
+    './src/**/*.{ts,tsx,js,jsx}',
+  ],
+  safelist: [
+    'backdrop-blur',
+    'backdrop-blur-md',
+    'bg-background/80',
+    'bg-background/95',
+    'border-border/40',
+    'border-border',
+    'text-foreground',
+    'text-primary',
   ],
   prefix: '',
   theme: {
@@ -54,19 +62,7 @@ export default {
           foreground: 'hsl(var(--card-foreground))',
         },
         brand: {
-          primary: 'hsl(var(--brand-primary))',     // #3355FF
-          navy: 'hsl(var(--brand-navy))',           // #081426
-          white: 'hsl(var(--brand-white))',         // #F5F7FA
-          'deep-blue': 'hsl(var(--brand-deep-blue))', // #182152
-          success: 'hsl(var(--brand-success))',     // #06804D
-          error: 'hsl(var(--brand-error))',         // #D92534
-          warning: 'hsl(var(--brand-warning))',     // Warning Orange
-          'neutral-10': 'hsl(var(--brand-neutral-10))', // #DDDEE1
-          'neutral-20': 'hsl(var(--brand-neutral-20))', // #C4C6C8
-          'neutral-40': 'hsl(var(--brand-neutral-40))', // #626364
-          'neutral-60': 'hsl(var(--brand-neutral-60))', // #939496
-          black: 'hsl(var(--brand-black))',         // #080808
-          'muted-text': 'hsl(var(--brand-neutral-40))', // #626364
+          primary: '#3355FF',
         },
       },
       borderRadius: {
@@ -106,7 +102,7 @@ export default {
       },
       fontFamily: {
         'merriweather': ['Merriweather'],
-        'montserrat': ['Montserrat'],
+        'montserrat': ['Montserrat', 'ui-sans-serif', 'system-ui', 'sans-serif'],
       },
     },
   },
