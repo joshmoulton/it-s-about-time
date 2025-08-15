@@ -2,9 +2,8 @@ import { useEffect } from 'react';
 
 export const CriticalResourcePreloader = () => {
   useEffect(() => {
-    // Preload critical fonts immediately
+    // Verify self-hosted fonts are loaded
     const criticalFonts = [
-      'Inter',
       'Merriweather', 
       'Montserrat'
     ];
