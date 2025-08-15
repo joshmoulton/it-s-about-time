@@ -23,6 +23,9 @@
     
     <!-- Essential preconnections only -->
     <link rel="preconnect" href="https://wrvvlmevpvcenauglcyz.supabase.co" crossorigin />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
     
     <!-- Cache Control Headers -->
     <meta http-equiv="Cache-Control" content="public, max-age=31536000, immutable" />
@@ -81,11 +84,27 @@
       .sr-only:focus { position: static; width: auto; height: auto; padding: 0.5rem 1rem; margin: 0; overflow: visible; clip: auto; white-space: normal; }
     </style>
     
-    <!-- Google Fonts for optimal performance and comprehensive weights -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@300;400;700;800&family=Montserrat:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Self-Hosted Fonts from Supabase Storage -->
+    <link rel="preload" href="https://wrvvlmevpvcenauglcyz.supabase.co/storage/v1/object/public/Fonts/merriweather-v32-latin-regular.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="https://wrvvlmevpvcenauglcyz.supabase.co/storage/v1/object/public/Fonts/montserrat-v30-latin-regular.woff2" as="font" type="font/woff2" crossorigin>
     
+    <style>
+      @font-face {
+        font-family: 'Merriweather';
+        font-style: normal;
+        font-weight: 400;
+        font-display: swap;
+        src: url('https://wrvvlmevpvcenauglcyz.supabase.co/storage/v1/object/public/Fonts/merriweather-v32-latin-regular.woff2') format('woff2');
+      }
+      
+      @font-face {
+        font-family: 'Montserrat';
+        font-style: normal;
+        font-weight: 400;
+        font-display: swap;
+        src: url('https://wrvvlmevpvcenauglcyz.supabase.co/storage/v1/object/public/Fonts/montserrat-v30-latin-regular.woff2') format('woff2');
+      }
+    </style>
 
     <!-- Security headers optimized for Whop integration -->
     <meta http-equiv="X-Content-Type-Options" content="nosniff">
@@ -134,22 +153,11 @@
       (function(){
         try { 
           if ('fonts' in document) { 
-            document.fonts.load('300 1em Merriweather');
             document.fonts.load('400 1em Merriweather');
             document.fonts.load('700 1em Merriweather');
-            document.fonts.load('800 1em Merriweather');
-            document.fonts.load('300 1em Montserrat');
             document.fonts.load('400 1em Montserrat');
             document.fonts.load('500 1em Montserrat');
             document.fonts.load('600 1em Montserrat');
-            document.fonts.load('700 1em Montserrat');
-            document.fonts.load('800 1em Montserrat');
-            document.fonts.load('300 1em Inter');
-            document.fonts.load('400 1em Inter');
-            document.fonts.load('500 1em Inter');
-            document.fonts.load('600 1em Inter');
-            document.fonts.load('700 1em Inter');
-            document.fonts.load('800 1em Inter');
           }
           // Add loaded class when fonts are ready
           if (document.fonts && document.fonts.ready) {

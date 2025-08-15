@@ -1,27 +1,7 @@
 import { BaseAlert } from '@/components/shared/alerts/SharedAlertCard';
 import type { DegenCall } from '@/hooks/useDegenCallAlerts';
 
-// Interface for Live Alerts from live_trading_signals table  
-export interface LiveAlert {
-  id: string;
-  symbol: string;
-  trader: string;
-  entry_price: number;
-  current_price: number;
-  stop_loss_price?: number;
-  take_profit_price?: number;
-  position_type?: 'long' | 'short';
-  status: 'active' | 'awaiting' | 'closed';
-  profit_loss?: number;
-  profit_percentage?: number;
-  created_at: string;
-  size_level?: string;
-  entry_type?: string;
-  reasoning?: string;
-  targets?: number[];
-}
-
-// Interface for Live Trading Alerts from active-trades-widget (DEPRECATED - use LiveAlert)
+// Interface for Live Trading Alerts from active-trades-widget
 export interface LiveTradingAlert {
   id: string;
   symbol: string;
@@ -34,6 +14,8 @@ export interface LiveTradingAlert {
   take_profit_price?: number;
   entry_activated?: boolean;
 }
+
+// Import the actual DegenCall type from the hook instead of redefining it
 
 // Interface for Crypto Alerts from crypto_alerts table
 export interface CryptoAlert {
@@ -50,28 +32,6 @@ export interface CryptoAlert {
   profit_percentage?: number;
   entry_activated: boolean;
 }
-
-// Adapter function to convert useLiveAlerts LiveAlert to BaseAlert
-export const adaptLiveAlert = (alert: import('@/hooks/useLiveAlerts').LiveAlert): BaseAlert => {
-  // Handle entry_price conversion
-  const entryPrice = typeof alert.entry_price === 'string' 
-    ? parseFloat(alert.entry_price) || 0 
-    : alert.entry_price || 0;
-
-  return {
-    id: alert.id,
-    symbol: alert.symbol,
-    trader: alert.trader,
-    entry_price: entryPrice,
-    current_price: alert.current_price || 0,
-    stop_loss_price: alert.stop_loss_price,
-    take_profit_price: alert.take_profit_price,
-    position_type: alert.position_type || 'long',
-    status: alert.status,
-    profit_loss: alert.profit_loss,
-    profit_percentage: alert.profit_percentage,
-  };
-};
 
 // Adapter functions to convert different alert types to BaseAlert
 export const adaptLiveTradingAlert = (alert: LiveTradingAlert): BaseAlert => {
@@ -156,7 +116,7 @@ export const filterAlertsByStatus = (alerts: BaseAlert[], status?: 'active' | 'a
   return alerts.filter(alert => alert.status === status);
 };
 
-// Filter alerts by position type  
+// Filter alerts by position type
 export const filterAlertsByPosition = (alerts: BaseAlert[], positionType?: 'long' | 'short'): BaseAlert[] => {
   if (!positionType) return alerts;
   return alerts.filter(alert => alert.position_type === positionType);

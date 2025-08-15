@@ -7,9 +7,9 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { SharedAlertCard } from '@/components/shared/alerts/SharedAlertCard';
-import { useLiveAlerts } from '@/hooks/useLiveAlerts';
+import { useRealTradingAlerts } from '@/hooks/useRealTradingAlerts';
 import { 
-  adaptLiveAlert,
+  adaptLiveTradingAlert, 
   sortAlerts, 
   filterAlertsByStatus, 
   filterAlertsByPosition 
@@ -21,12 +21,12 @@ export function FullLiveAlertsView() {
   const [positionFilter, setPositionFilter] = useState<'all' | 'long' | 'short'>('all');
   const [sortBy, setSortBy] = useState<'newest' | 'oldest' | 'profit'>('newest');
 
-  const { data: alerts, isLoading, error, refetch } = useLiveAlerts();
+  const { data: alerts, isLoading, error, refetch } = useRealTradingAlerts();
 
-  // Convert LiveAlerts to BaseAlerts for compatibility
+  // Convert to BaseAlert format
   const adaptedAlerts = React.useMemo(() => {
     if (!alerts) return [];
-    return alerts.map(adaptLiveAlert);
+    return alerts.map(adaptLiveTradingAlert);
   }, [alerts]);
 
   // Filter and sort alerts

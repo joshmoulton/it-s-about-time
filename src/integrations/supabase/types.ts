@@ -796,6 +796,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "fk_auto_highlights_rule_id"
+            columns: ["rule_id"]
+            isOneToOne: false
+            referencedRelation: "chat_highlight_rules"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "fk_auto_highlights_telegram_message_id"
             columns: ["telegram_message_id"]
             isOneToOne: false
@@ -879,42 +886,6 @@ export type Database = {
           status?: string
           subscription_tier?: Database["public"]["Enums"]["subscription_tier"]
           updated_at?: string
-        }
-        Relationships: []
-      }
-      candles: {
-        Row: {
-          close: number
-          close_time: string
-          high: number
-          interval: string
-          is_final: boolean
-          low: number
-          open: number
-          open_time: string
-          ticker: string
-        }
-        Insert: {
-          close: number
-          close_time: string
-          high: number
-          interval: string
-          is_final?: boolean
-          low: number
-          open: number
-          open_time: string
-          ticker: string
-        }
-        Update: {
-          close?: number
-          close_time?: string
-          high?: number
-          interval?: string
-          is_final?: boolean
-          low?: number
-          open?: number
-          open_time?: string
-          ticker?: string
         }
         Relationships: []
       }
@@ -1788,84 +1759,6 @@ export type Database = {
         }
         Relationships: []
       }
-      live_trading_signals: {
-        Row: {
-          analyst_id: string | null
-          confidence_score: number | null
-          created_at: string | null
-          current_price: number | null
-          current_profit_pct: number | null
-          direction: Database["public"]["Enums"]["trading_direction"]
-          entry_price: number | null
-          entry_type: Database["public"]["Enums"]["entry_type"]
-          hit_targets: Json | null
-          id: string
-          invalidation_price: number | null
-          invalidation_tf: string | null
-          invalidation_type: string | null
-          max_profit_pct: number | null
-          reasoning: string | null
-          risk_score: number | null
-          size_level: Database["public"]["Enums"]["size_level"]
-          status: Database["public"]["Enums"]["signal_status"] | null
-          stop_loss_price: number | null
-          stopped_out: boolean | null
-          targets: Json | null
-          ticker: string
-          updated_at: string | null
-        }
-        Insert: {
-          analyst_id?: string | null
-          confidence_score?: number | null
-          created_at?: string | null
-          current_price?: number | null
-          current_profit_pct?: number | null
-          direction: Database["public"]["Enums"]["trading_direction"]
-          entry_price?: number | null
-          entry_type: Database["public"]["Enums"]["entry_type"]
-          hit_targets?: Json | null
-          id: string
-          invalidation_price?: number | null
-          invalidation_tf?: string | null
-          invalidation_type?: string | null
-          max_profit_pct?: number | null
-          reasoning?: string | null
-          risk_score?: number | null
-          size_level: Database["public"]["Enums"]["size_level"]
-          status?: Database["public"]["Enums"]["signal_status"] | null
-          stop_loss_price?: number | null
-          stopped_out?: boolean | null
-          targets?: Json | null
-          ticker: string
-          updated_at?: string | null
-        }
-        Update: {
-          analyst_id?: string | null
-          confidence_score?: number | null
-          created_at?: string | null
-          current_price?: number | null
-          current_profit_pct?: number | null
-          direction?: Database["public"]["Enums"]["trading_direction"]
-          entry_price?: number | null
-          entry_type?: Database["public"]["Enums"]["entry_type"]
-          hit_targets?: Json | null
-          id?: string
-          invalidation_price?: number | null
-          invalidation_tf?: string | null
-          invalidation_type?: string | null
-          max_profit_pct?: number | null
-          reasoning?: string | null
-          risk_score?: number | null
-          size_level?: Database["public"]["Enums"]["size_level"]
-          status?: Database["public"]["Enums"]["signal_status"] | null
-          stop_loss_price?: number | null
-          stopped_out?: boolean | null
-          targets?: Json | null
-          ticker?: string
-          updated_at?: string | null
-        }
-        Relationships: []
-      }
       magic_link_idempotency: {
         Row: {
           created_at: string
@@ -2250,33 +2143,6 @@ export type Database = {
         }
         Relationships: []
       }
-      price_ticks: {
-        Row: {
-          id: number
-          price: number
-          received_at: string
-          source: string
-          symbol: string | null
-          ticker: string
-        }
-        Insert: {
-          id?: number
-          price: number
-          received_at?: string
-          source: string
-          symbol?: string | null
-          ticker: string
-        }
-        Update: {
-          id?: number
-          price?: number
-          received_at?: string
-          source?: string
-          symbol?: string | null
-          ticker?: string
-        }
-        Relationships: []
-      }
       rate_limit_tracking: {
         Row: {
           attempts: number | null
@@ -2618,48 +2484,6 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
-      }
-      signal_events: {
-        Row: {
-          detail: Json | null
-          event: Database["public"]["Enums"]["event_type"]
-          happened_at: string | null
-          id: string
-          level: number | null
-          signal_id: string
-        }
-        Insert: {
-          detail?: Json | null
-          event: Database["public"]["Enums"]["event_type"]
-          happened_at?: string | null
-          id: string
-          level?: number | null
-          signal_id: string
-        }
-        Update: {
-          detail?: Json | null
-          event?: Database["public"]["Enums"]["event_type"]
-          happened_at?: string | null
-          id?: string
-          level?: number | null
-          signal_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "signal_events_signal_id_fkey"
-            columns: ["signal_id"]
-            isOneToOne: false
-            referencedRelation: "live_trading_signals"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "signal_events_signal_id_fkey"
-            columns: ["signal_id"]
-            isOneToOne: false
-            referencedRelation: "signals_overview"
-            referencedColumns: ["id"]
-          },
-        ]
       }
       subscription_tiers: {
         Row: {
@@ -3153,36 +2977,6 @@ export type Database = {
           updated_at?: string
           user_email?: string
           verification_code?: string | null
-        }
-        Relationships: []
-      }
-      ticker_mappings: {
-        Row: {
-          binance_symbol: string | null
-          cmc_id: number | null
-          coingecko_id: string | null
-          created_at: string | null
-          precision_price: number | null
-          precision_qty: number | null
-          ticker: string
-        }
-        Insert: {
-          binance_symbol?: string | null
-          cmc_id?: number | null
-          coingecko_id?: string | null
-          created_at?: string | null
-          precision_price?: number | null
-          precision_qty?: number | null
-          ticker: string
-        }
-        Update: {
-          binance_symbol?: string | null
-          cmc_id?: number | null
-          coingecko_id?: string | null
-          created_at?: string | null
-          precision_price?: number | null
-          precision_qty?: number | null
-          ticker?: string
         }
         Relationships: []
       }
@@ -3973,87 +3767,7 @@ export type Database = {
       }
     }
     Views: {
-      signals_overview: {
-        Row: {
-          analyst_id: string | null
-          confidence_score: number | null
-          created_at: string | null
-          current_price: number | null
-          current_profit_pct: number | null
-          direction: Database["public"]["Enums"]["trading_direction"] | null
-          entry_price: number | null
-          entry_type: Database["public"]["Enums"]["entry_type"] | null
-          hit_targets: Json | null
-          id: string | null
-          invalidation_price: number | null
-          invalidation_tf: string | null
-          invalidation_type: string | null
-          last_price: number | null
-          max_profit_pct: number | null
-          reasoning: string | null
-          risk_score: number | null
-          size_level: Database["public"]["Enums"]["size_level"] | null
-          status: Database["public"]["Enums"]["signal_status"] | null
-          stop_loss_price: number | null
-          stopped_out: boolean | null
-          targets: Json | null
-          ticker: string | null
-          updated_at: string | null
-        }
-        Insert: {
-          analyst_id?: string | null
-          confidence_score?: number | null
-          created_at?: string | null
-          current_price?: number | null
-          current_profit_pct?: number | null
-          direction?: Database["public"]["Enums"]["trading_direction"] | null
-          entry_price?: number | null
-          entry_type?: Database["public"]["Enums"]["entry_type"] | null
-          hit_targets?: Json | null
-          id?: string | null
-          invalidation_price?: number | null
-          invalidation_tf?: string | null
-          invalidation_type?: string | null
-          last_price?: never
-          max_profit_pct?: number | null
-          reasoning?: string | null
-          risk_score?: number | null
-          size_level?: Database["public"]["Enums"]["size_level"] | null
-          status?: Database["public"]["Enums"]["signal_status"] | null
-          stop_loss_price?: number | null
-          stopped_out?: boolean | null
-          targets?: Json | null
-          ticker?: string | null
-          updated_at?: string | null
-        }
-        Update: {
-          analyst_id?: string | null
-          confidence_score?: number | null
-          created_at?: string | null
-          current_price?: number | null
-          current_profit_pct?: number | null
-          direction?: Database["public"]["Enums"]["trading_direction"] | null
-          entry_price?: number | null
-          entry_type?: Database["public"]["Enums"]["entry_type"] | null
-          hit_targets?: Json | null
-          id?: string | null
-          invalidation_price?: number | null
-          invalidation_tf?: string | null
-          invalidation_type?: string | null
-          last_price?: never
-          max_profit_pct?: number | null
-          reasoning?: string | null
-          risk_score?: number | null
-          size_level?: Database["public"]["Enums"]["size_level"] | null
-          status?: Database["public"]["Enums"]["signal_status"] | null
-          stop_loss_price?: number | null
-          stopped_out?: boolean | null
-          targets?: Json | null
-          ticker?: string | null
-          updated_at?: string | null
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Functions: {
       aggregate_sentiment_trends: {
@@ -4263,11 +3977,9 @@ export type Database = {
         Returns: Json
       }
       format_degen_call_message: {
-        Args:
-          | { signal_id: string }
-          | {
-              signal_row: Database["public"]["Tables"]["analyst_signals"]["Row"]
-            }
+        Args: {
+          signal_row: Database["public"]["Tables"]["analyst_signals"]["Row"]
+        }
         Returns: string
       }
       generate_signal_format: {
@@ -4728,19 +4440,11 @@ export type Database = {
         | "restricted"
         | "secret"
       entry_type: "limit" | "market" | "trigger" | "conditional"
-      event_type:
-        | "target_hit"
-        | "stop_hit"
-        | "invalidation"
-        | "status_change"
-        | "note"
       feedback_category: "bug" | "feature_request" | "feedback" | "support"
       feedback_priority: "low" | "medium" | "high" | "critical"
       feedback_status: "pending" | "in_progress" | "completed" | "closed"
       market_type: "crypto" | "stocks" | "commodities" | "forex"
       risk_management_type: "stop_loss" | "conditional"
-      signal_status: "active" | "closed" | "cancelled"
-      size_level: "tiny" | "low" | "med" | "high" | "huge"
       subscription_tier: "free" | "paid" | "premium"
       trade_direction:
         | "buy"
@@ -4751,7 +4455,6 @@ export type Database = {
         | "bull"
         | "bear"
       trade_type: "spot" | "futures" | "options"
-      trading_direction: "long" | "short"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -4888,24 +4591,14 @@ export const Constants = {
         "secret",
       ],
       entry_type: ["limit", "market", "trigger", "conditional"],
-      event_type: [
-        "target_hit",
-        "stop_hit",
-        "invalidation",
-        "status_change",
-        "note",
-      ],
       feedback_category: ["bug", "feature_request", "feedback", "support"],
       feedback_priority: ["low", "medium", "high", "critical"],
       feedback_status: ["pending", "in_progress", "completed", "closed"],
       market_type: ["crypto", "stocks", "commodities", "forex"],
       risk_management_type: ["stop_loss", "conditional"],
-      signal_status: ["active", "closed", "cancelled"],
-      size_level: ["tiny", "low", "med", "high", "huge"],
       subscription_tier: ["free", "paid", "premium"],
       trade_direction: ["buy", "long", "short", "call", "put", "bull", "bear"],
       trade_type: ["spot", "futures", "options"],
-      trading_direction: ["long", "short"],
     },
   },
 } as const

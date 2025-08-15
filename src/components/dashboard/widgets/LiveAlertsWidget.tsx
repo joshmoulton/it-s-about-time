@@ -140,35 +140,20 @@ export function LiveAlertsWidget({
                     </div>
                   )}
 
-                   {/* Current Market Price & P&L Section */}
-                  <div className="bg-black/20 rounded-md p-1.5 space-y-1">
+                  {/* Current Market Price Section */}
+                  <div className="bg-black/20 rounded-md p-1.5">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-1.5">
                         <DollarSign className="w-3 h-3 text-emerald-400" />
-                        <span className="text-xs text-green-200/80">Current Price:</span>
+                        <span className="text-xs text-green-200/80">Market Price:</span>
                       </div>
                       <span className="text-white font-semibold text-sm">
-                        {alert.current_price ? formatPrice(alert.current_price) : (
-                          (() => {
-                            const currentPrice = getPriceForTicker(alert.symbol);
-                            return currentPrice ? formatPrice(currentPrice.price_usd) : 'Loading...';
-                          })()
-                        )}
+                        {(() => {
+                          const currentPrice = getPriceForTicker(alert.symbol);
+                          return currentPrice ? formatPrice(currentPrice.price_usd) : 'Loading...';
+                        })()}
                       </span>
                     </div>
-                    
-                    {/* Show P&L if available */}
-                    {alert.current_profit_pct != null && (
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-1.5">
-                          <TrendingUp className={`w-3 h-3 ${alert.current_profit_pct >= 0 ? 'text-green-400' : 'text-red-400'}`} />
-                          <span className="text-xs text-green-200/80">P&L:</span>
-                        </div>
-                        <span className={`font-semibold text-sm ${alert.current_profit_pct >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                          {alert.current_profit_pct >= 0 ? '+' : ''}{alert.current_profit_pct.toFixed(2)}%
-                        </span>
-                      </div>
-                    )}
                   </div>
 
                   {/* Trading details */}
@@ -195,50 +180,17 @@ export function LiveAlertsWidget({
                       </span>
                     </div>
 
-                    {/* Targets with hit indicators */}
+                    {/* Target */}
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-1.5">
                         <Target className="w-2.5 h-2.5 text-green-400" />
-                        <span className="text-xs text-green-200/80">Targets:</span>
+                        <span className="text-xs text-green-200/80">Target:</span>
                       </div>
-                      <div className="flex items-center gap-1">
-                        {alert.targets && alert.targets.length > 0 ? (
-                          alert.targets.slice(0, 3).map((target, index) => {
-                            const isHit = alert.hit_targets?.includes(target);
-                            return (
-                              <span 
-                                key={index} 
-                                className={`text-xs font-medium px-1.5 py-0.5 rounded ${
-                                  isHit 
-                                    ? 'bg-green-500 text-white' 
-                                    : 'bg-gray-600 text-gray-200'
-                                }`}
-                              >
-                                {formatPrice(target)}
-                              </span>
-                            );
-                          })
-                        ) : (
-                          <span className="text-white font-medium text-xs">
-                            {formatPrice(alert.take_profit_price)}
-                          </span>
-                        )}
-                      </div>
+                      <span className="text-white font-medium text-xs">
+                        {formatPrice(alert.take_profit_price)}
+                      </span>
                     </div>
 
-                    {/* Status indicators */}
-                    {(alert.stopped_out || alert.invalidation_type) && (
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-1.5">
-                          <div className={`w-2 h-2 rounded-full ${alert.stopped_out ? 'bg-red-500' : 'bg-yellow-500'}`}></div>
-                          <span className="text-xs text-green-200/80">Status:</span>
-                        </div>
-                        <span className={`font-medium text-xs ${alert.stopped_out ? 'text-red-400' : 'text-yellow-400'}`}>
-                          {alert.stopped_out ? 'Stopped Out' : alert.invalidation_type ? 'Invalidated' : 'Active'}
-                        </span>
-                      </div>
-                    )}
-                    
                     {/* Risk */}
                     {alert.risk_percentage && (
                       <div className="flex items-center justify-between">

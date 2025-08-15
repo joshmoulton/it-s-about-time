@@ -30,9 +30,3 @@ verify_jwt = false
 
 [functions.degen-call-notifier]
 verify_jwt = false
-
-[functions.price-aggregate]
-verify_jwt = false
-
-[functions.signal-engine]
-verify_jwt = false

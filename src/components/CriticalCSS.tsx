@@ -33,12 +33,14 @@ export const CriticalCSS = () => {
         font-weight: 700;
         line-height: 1.1;
         margin-bottom: 1rem;
+        font-family: 'Merriweather', serif;
       }
       
       .hero-subtitle {
         font-size: clamp(1rem, 2.5vw, 1.25rem);
         margin-bottom: 2rem;
         opacity: 0.9;
+        font-family: 'Inter', sans-serif;
       }
       
       .hero-cta {
@@ -51,6 +53,7 @@ export const CriticalCSS = () => {
         border-radius: 0.5rem;
         font-weight: 600;
         text-decoration: none;
+        font-family: 'Montserrat', sans-serif;
         transition: transform 0.2s ease;
         contain: layout;
       }
@@ -83,6 +86,7 @@ export const CriticalCSS = () => {
         font-weight: 700;
         color: white;
         text-decoration: none;
+        font-family: 'Merriweather', serif;
       }
       
       .nav-actions {
