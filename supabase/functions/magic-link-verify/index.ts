@@ -287,7 +287,7 @@ serve(async (req) => {
         user: {
           id: authUser.id,
           email: tokenData.email,
-          subscription_tier: verifiedTier,
+          subscription_tier: tokenData.tier, // Use tokenData.tier instead of undefined verifiedTier
           source: 'magic_link'
         },
         session: null // Frontend will handle session creation
@@ -299,7 +299,7 @@ serve(async (req) => {
       const redirect = new URL(req.url).searchParams.get('redirect') || 'https://www.weeklywizdom.com/dashboard';
       const redirectUrl = new URL(redirect);
       redirectUrl.searchParams.set('verified', 'true');
-      redirectUrl.searchParams.set('tier', verifiedTier);
+      redirectUrl.searchParams.set('tier', tokenData.tier);
       redirectUrl.searchParams.set('email', tokenData.email);
       redirectUrl.searchParams.set('auth_method', 'magic_link');
       
