@@ -9,6 +9,72 @@ export function AuthCallback() {
   const [status, setStatus] = useState<'processing' | 'success' | 'error'>('processing');
   const [message, setMessage] = useState('Processing authentication...');
 
+  // Helper function for verified access
+  const proceedWithVerifiedAccess = async (email: string, tier: string, status?: string) => {
+    try {
+      setMessage(`Welcome! Access verified - Tier: ${tier}`);
+      
+      // Update user metadata with verified tier
+      const { error: updateError } = await supabase.auth.updateUser({
+        data: {
+          subscription_tier: tier,
+          beehiiv_verified: true,
+          verified_at: new Date().toISOString(),
+          beehiiv_status: status || 'active'
+        }
+      });
+
+      if (updateError) {
+        console.warn('⚠️ Failed to update user metadata:', updateError);
+      }
+
+      console.log('✅ User metadata updated with verified tier:', tier);
+      setStatus('success');
+      
+      // Navigate to dashboard after successful verification
+      setTimeout(() => {
+        navigate('/dashboard', { replace: true });
+      }, 1500);
+    } catch (error) {
+      console.error('❌ Error in verified access flow:', error);
+      await proceedWithFallbackAccess(email, 'free', 'Access granted with basic permissions');
+    }
+  };
+
+  // Helper function for fallback access
+  const proceedWithFallbackAccess = async (email: string, tier: string, reason: string) => {
+    try {
+      console.log(`🔄 ${reason} for ${email}`);
+      setMessage('Welcome! You have basic access.');
+      
+      // Update user metadata with fallback tier
+      const { error: updateError } = await supabase.auth.updateUser({
+        data: {
+          subscription_tier: tier,
+          beehiiv_verified: false,
+          verified_at: new Date().toISOString(),
+          fallback_reason: reason
+        }
+      });
+
+      if (updateError) {
+        console.warn('⚠️ Failed to update fallback user metadata:', updateError);
+      }
+
+      console.log(`✅ Fallback access granted - Tier: ${tier}`);
+      setStatus('success');
+      
+      // Navigate to dashboard with fallback access
+      setTimeout(() => {
+        navigate('/dashboard', { replace: true });
+      }, 1500);
+    } catch (error) {
+      console.error('❌ Error in fallback access flow:', error);
+      setStatus('error');
+      setMessage('Unable to complete authentication. Please try again.');
+    }
+  };
+
   useEffect(() => {
     const handleAuthCallback = async () => {
       try {
@@ -71,55 +137,42 @@ export function AuthCallback() {
 
         try {
           console.log('🔍 Verifying beehiiv subscription for:', session.user.email);
+          setMessage('Checking subscription status...');
           
           const { data: verifyData, error: verifyError } = await supabase.functions.invoke('beehiiv-subscriber-verify', {
             body: { email: session.user.email }
           });
           
+          // Handle rate limiting gracefully
+          if (verifyError && verifyError.message?.includes('429')) {
+            console.warn('⚠️ Rate limited - proceeding with basic access');
+            await proceedWithFallbackAccess(session.user.email, 'free', 'Rate limited - granted basic access');
+            return;
+          }
+          
+          // Handle other verification errors with fallback
           if (verifyError) {
             console.error('❌ Beehiiv verification failed:', verifyError);
-            setStatus('error');
-            setMessage('Failed to verify subscription access. Please try again.');
+            console.log('🔄 Proceeding with fallback access...');
+            await proceedWithFallbackAccess(session.user.email, 'free', 'Verification failed - granted basic access');
             return;
           }
 
+          // Handle missing or invalid verification data
           if (!verifyData || !verifyData.tier) {
-            console.error('❌ No tier data received from beehiiv');
-            setStatus('error');
-            setMessage('Unable to verify subscription tier. Please contact support.');
+            console.warn('❌ No tier data received from beehiiv - using fallback');
+            await proceedWithFallbackAccess(session.user.email, 'free', 'Could not verify tier - granted basic access');
             return;
           }
 
           const tier = verifyData.tier;
           console.log(`✅ Beehiiv verification successful - Tier: ${tier}`);
-          
-          // Update user metadata with verified tier
-          const { error: updateError } = await supabase.auth.updateUser({
-            data: {
-              subscription_tier: tier,
-              beehiiv_verified: true,
-              verified_at: new Date().toISOString(),
-              beehiiv_status: verifyData.status || 'active'
-            }
-          });
-
-          if (updateError) {
-            console.warn('⚠️ Failed to update user metadata:', updateError);
-          }
-
-          console.log('✅ User metadata updated with verified tier:', tier);
-          setMessage(`Welcome! Access verified - Tier: ${tier}`);
-          setStatus('success');
-          
-          // Navigate to dashboard after successful verification
-          setTimeout(() => {
-            navigate('/dashboard', { replace: true });
-          }, 1500);
+          await proceedWithVerifiedAccess(session.user.email, tier, verifyData.status);
 
         } catch (verifyError) {
           console.error('❌ Beehiiv verification error:', verifyError);
-          setStatus('error');
-          setMessage('Failed to verify subscription access. Please try again.');
+          console.log('🔄 Using fallback access due to error...');
+          await proceedWithFallbackAccess(session.user.email, 'free', 'Technical error - granted basic access');
         }
 
       } catch (error) {
