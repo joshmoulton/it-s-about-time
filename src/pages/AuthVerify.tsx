@@ -129,11 +129,7 @@ const AuthVerify = () => {
         setStatus('success');
         setMessage('Successfully verified! Redirecting to dashboard...');
 
-        // Show success toast
-        toast({
-          title: "Welcome!",
-          description: "You've been successfully signed in.",
-        });
+        // Success - no toast to avoid annoying notifications
 
         // Redirect to dashboard with tier-specific access
         setTimeout(() => {
