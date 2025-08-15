@@ -16,6 +16,10 @@ const AuthVerify = () => {
   const [message, setMessage] = useState('Verifying your access link...');
 
   useEffect(() => {
+    console.log('🚀 AuthVerify component mounted');
+    console.log('🚀 Current URL:', window.location.href);
+    console.log('🚀 Search params:', new URLSearchParams(window.location.search).toString());
+    
     const verifyToken = async () => {
       const token = searchParams.get('token');
       const email = searchParams.get('email');
@@ -27,6 +31,7 @@ const AuthVerify = () => {
       });
 
       if (!token || !email) {
+        console.error('❌ Invalid or missing verification parameters');
         setStatus('error');
         setMessage('Invalid or missing verification parameters.');
         return;
