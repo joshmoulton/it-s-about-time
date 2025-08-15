@@ -357,74 +357,47 @@ export const useEnhancedAuthInitialization = ({
           }
         }
         
-        // Check if we have evidence of a previous premium user who should be authenticated
+        // Only check for previous sessions if user has active authentication method
         const lastKnownEmail = localStorage.getItem('last_known_premium_email');
-        if (lastKnownEmail) {
-          console.log('🔍 Found evidence of previous premium user:', lastKnownEmail);
+        const authMethod = localStorage.getItem('auth_method');
+        
+        if (lastKnownEmail && authMethod && authMethod !== 'none') {
+          console.log('🔍 Found evidence of previous authenticated premium user:', lastKnownEmail);
           
-          // Check if this user exists in our database and should have access
-          try {
-            const { data: subscriberData } = await supabase
-              .from('beehiiv_subscribers')
-              .select('email, subscription_tier')
-              .eq('email', lastKnownEmail)
-              .eq('subscription_tier', 'premium')
-              .maybeSingle();
-              
-            if (subscriberData) {
-              console.log('🎯 Premium user found in database, setting restoration state');
-              // Set a special state indicating session restoration is needed
-              setCurrentUser({
-                id: 'session-restoration-needed',
-                email: lastKnownEmail,
-                subscription_tier: 'premium',
-                user_type: 'needs_session_restoration' as any,
-                status: 'session_restoration_needed',
-                created_at: new Date().toISOString(),
-                updated_at: new Date().toISOString()
-              });
-              setIsLoading(false);
-              isInitialized.current = true;
-              return;
+          // Only restore if the auth method indicates they should still be authenticated
+          if (authMethod === 'supabase_admin' || authMethod === 'magic_link') {
+            try {
+              const { data: subscriberData } = await supabase
+                .from('beehiiv_subscribers')
+                .select('email, subscription_tier')
+                .eq('email', lastKnownEmail)
+                .eq('subscription_tier', 'premium')
+                .maybeSingle();
+                
+              if (subscriberData) {
+                console.log('🎯 Premium user found in database, setting restoration state');
+                setCurrentUser({
+                  id: 'session-restoration-needed',
+                  email: lastKnownEmail,
+                  subscription_tier: 'premium',
+                  user_type: 'needs_session_restoration' as any,
+                  status: 'session_restoration_needed',
+                  created_at: new Date().toISOString(),
+                  updated_at: new Date().toISOString()
+                });
+                setIsLoading(false);
+                isInitialized.current = true;
+                return;
+              }
+            } catch (error) {
+              console.warn('⚠️ Error checking for premium user:', error);
             }
-          } catch (error) {
-            console.warn('⚠️ Error checking for premium user:', error);
+          } else {
+            // Clear stale localStorage data if auth method doesn't support restoration
+            localStorage.removeItem('last_known_premium_email');
           }
         }
         
-        // DEVELOPMENT HELPER: Auto-detect premium users to test functionality
-        try {
-          console.log('🔍 Checking for any premium users in the system...');
-          const { data: premiumUsers } = await supabase
-            .from('beehiiv_subscribers')
-            .select('email, subscription_tier')
-            .eq('subscription_tier', 'premium')
-            .limit(1);
-
-          if (premiumUsers && premiumUsers.length > 0) {
-            const premiumEmail = premiumUsers[0].email;
-            console.log('🎯 Found premium user for auto-authentication:', premiumEmail);
-            
-            // Store this for future reference
-            localStorage.setItem('last_known_premium_email', premiumEmail);
-            
-            // Set restoration state
-            setCurrentUser({
-              id: 'session-restoration-needed',
-              email: premiumEmail,
-              subscription_tier: 'premium',
-              user_type: 'needs_session_restoration' as any,
-              status: 'session_restoration_needed',
-              created_at: new Date().toISOString(),
-              updated_at: new Date().toISOString()
-            });
-            setIsLoading(false);
-            isInitialized.current = true;
-            return;
-          }
-        } catch (error) {
-          console.warn('⚠️ Error auto-detecting premium users:', error);
-        }
         
         // No valid session found
         console.log('ℹ️ No valid session found, user not authenticated');

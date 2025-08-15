@@ -246,7 +246,6 @@ serve(async (req) => {
       html,
       tags: [
         { name: 'request_id', value: requestId },
-        { name: 'email', value: normalizedEmail },
         { name: 'tier', value: tier }
       ]
     });
