@@ -10,7 +10,7 @@ const Footer = () => {
       <div className="container mx-auto">
         <div className="flex flex-row md:flex-row items-start md:items-center justify-between gap-4 md:gap-6">
           <div className="flex items-center">
-            <img alt="Weekly Wizdom" className="w-full h-auto max-w-36" src="/lovable-uploads/9890ade4-e2c5-4060-95e0-654169856510.png" />
+            <img alt="Weekly Wizdom" className="w-full h-auto max-w-36" src="/lovable-uploads/9890ade4-e2c5-4060-95e0-654169856510.png" loading="lazy" decoding="async" />
           </div>
           
           <div className="flex flex-col gap-3">

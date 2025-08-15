@@ -17,7 +17,7 @@ From ex-wallstreet traders to the hottest talent among crypto natives.
             </div>
           </div>
           <div className="flex justify-center">
-            <img src="/lovable-uploads/e64c88c4-9e6a-42f0-ad0b-898db7fff778.png" alt="Newsletter, Dashboard, Community" className="rounded-lg w-80 sm:w-96 h-auto" />
+            <img src="/lovable-uploads/e64c88c4-9e6a-42f0-ad0b-898db7fff778.png" alt="Newsletter, Dashboard, Community" className="rounded-lg w-80 sm:w-96 h-auto" loading="lazy" decoding="async" />
           </div>
         </div>
 
@@ -37,7 +37,7 @@ From ex-wallstreet traders to the hottest talent among crypto natives.
 
           {/* Image - Right side */}
           <div className="lg:w-1/2 flex justify-end">
-            <img src="/lovable-uploads/e64c88c4-9e6a-42f0-ad0b-898db7fff778.png" alt="Newsletter, Dashboard, Community" className="rounded-lg w-[500px] h-auto" />
+            <img src="/lovable-uploads/e64c88c4-9e6a-42f0-ad0b-898db7fff778.png" alt="Newsletter, Dashboard, Community" className="rounded-lg w-[500px] h-auto" loading="lazy" decoding="async" />
           </div>
         </div>
       </div>

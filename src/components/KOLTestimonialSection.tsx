@@ -74,7 +74,9 @@ const KOLTestimonialSection = ({
                           className="w-full h-full object-cover" 
                           style={{
                             objectPosition: data.objectPosition
-                          }} 
+                          }}
+                          loading="lazy"
+                          decoding="async"
                         />
                       </div>
                       
@@ -114,7 +116,9 @@ const KOLTestimonialSection = ({
                           className="w-full h-full object-cover" 
                           style={{
                             objectPosition: data.objectPosition
-                          }} 
+                          }}
+                          loading="lazy"
+                          decoding="async"
                         />
                       </div>
                     </div>
