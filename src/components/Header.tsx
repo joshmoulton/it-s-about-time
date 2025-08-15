@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { useEnhancedAuth } from "@/contexts/EnhancedAuthContext";
 import { navigateToSection } from '@/utils/hashNavigation';
 import { createScrollHandler } from '@/utils/smoothScroll';
+import { getLogoUrl } from '@/utils/uploadLogo';
 
 interface HeaderProps {
   onAuthClick: () => void;
@@ -22,6 +23,7 @@ const nav = [
 export default function Header({ onAuthClick, onPremiumClick }: HeaderProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [scrollProgress, setScrollProgress] = useState(0);
+  const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const { currentUser, isAuthenticated, isLoading } = useEnhancedAuth();
   const navigate = useNavigate();
 
@@ -43,6 +45,19 @@ export default function Header({ onAuthClick, onPremiumClick }: HeaderProps) {
     };
   }, []);
 
+  useEffect(() => {
+    const loadLogo = async () => {
+      try {
+        const url = await getLogoUrl();
+        setLogoUrl(url);
+      } catch (error) {
+        console.error('Failed to load logo:', error);
+      }
+    };
+    
+    loadLogo();
+  }, []);
+
   return (
     <header className="sticky top-0 z-50 w-full backdrop-blur border-b border-border/40 bg-background/80">
       <div className="max-w-7xl mx-auto relative flex h-16 items-center px-4">
@@ -52,8 +67,16 @@ export default function Header({ onAuthClick, onPremiumClick }: HeaderProps) {
           onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
           aria-label="Home"
         >
-          <div className="h-10 w-10 rounded-md bg-brand-primary grid place-items-center">
-            <span className="text-white font-semibold text-lg leading-none">W</span>
+          <div className="h-10 w-10 rounded-md bg-brand-primary grid place-items-center overflow-hidden">
+            {logoUrl ? (
+              <img 
+                src={logoUrl} 
+                alt="Weekly Wizdom Logo" 
+                className="h-full w-full object-contain"
+              />
+            ) : (
+              <span className="text-white font-semibold text-lg leading-none">W</span>
+            )}
           </div>
         </div>
 
