@@ -11,11 +11,11 @@ import { supabase } from '@/integrations/supabase/client';
 import { authenticatedQuery } from '@/utils/supabaseAuthWrapper';
 import { TierUpgradePrompt } from '@/components/dashboard/widgets/TierUpgradePrompt';
 import { UpgradeModal } from '@/components/freemium/UpgradeModal';
-import { useAdminStatusFromContext } from '@/hooks/useAdminStatusContext';
+import { useAdminStatus } from '@/hooks/useAdminStatus';
 
 export function TierRestrictedUserProfile() {
   const { currentUser } = useEnhancedAuth();
-  const { isAdmin } = useAdminStatusFromContext();
+  const { isAdmin } = useAdminStatus();
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isEditing, setIsEditing] = useState(false);
