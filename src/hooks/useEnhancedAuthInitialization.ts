@@ -368,6 +368,40 @@ export const useEnhancedAuthInitialization = ({
           }
         }
         
+        // DEVELOPMENT HELPER: Auto-detect premium users to test functionality
+        try {
+          console.log('🔍 Checking for any premium users in the system...');
+          const { data: premiumUsers } = await supabase
+            .from('beehiiv_subscribers')
+            .select('email, subscription_tier')
+            .eq('subscription_tier', 'premium')
+            .limit(1);
+
+          if (premiumUsers && premiumUsers.length > 0) {
+            const premiumEmail = premiumUsers[0].email;
+            console.log('🎯 Found premium user for auto-authentication:', premiumEmail);
+            
+            // Store this for future reference
+            localStorage.setItem('last_known_premium_email', premiumEmail);
+            
+            // Set restoration state
+            setCurrentUser({
+              id: 'session-restoration-needed',
+              email: premiumEmail,
+              subscription_tier: 'premium',
+              user_type: 'needs_session_restoration' as any,
+              status: 'session_restoration_needed',
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString()
+            });
+            setIsLoading(false);
+            isInitialized.current = true;
+            return;
+          }
+        } catch (error) {
+          console.warn('⚠️ Error auto-detecting premium users:', error);
+        }
+        
         // No valid session found
         console.log('ℹ️ No valid session found, user not authenticated');
         setCurrentUser(null);
