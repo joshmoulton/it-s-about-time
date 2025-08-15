@@ -91,85 +91,50 @@ serve(async (req) => {
     console.log(`🔄 Marking token as used for: ${tokenData.email}`);
     const tokenToDelete = token; // Store token before we potentially lose it
 
-    // Get or create user in Supabase auth with proper error handling
-    console.log(`🔄 Looking up existing user for: ${tokenData.email}`);
-    let authUser = null;
+    // Create or get Supabase session for the user
+    console.log(`🔄 Creating session for verified email: ${tokenData.email}`);
     
-    // First try to find user by listing all users and filtering by email
-    // Note: getUserByEmail doesn't exist in current Supabase JS library
-    try {
-      const { data: usersData, error: listError } = await supabase.auth.admin.listUsers();
-      
-      if (!listError && usersData?.users) {
-        authUser = usersData.users.find(user => user.email === tokenData.email);
-        if (authUser) {
-          console.log(`✅ Found existing user: ${authUser.id}`);
-        } else {
-          console.log(`❌ No existing user found for: ${tokenData.email}`);
-        }
-      } else {
-        console.log(`⚠️ Error listing users: ${listError?.message}`);
+    // Use generateLink to create a session - this works whether user exists or not
+    const { data: authData, error: authError } = await supabase.auth.admin.generateLink({
+      type: 'magiclink',
+      email: tokenData.email,
+      options: {
+        redirectTo: `${req.headers.get('origin') || 'https://www.weeklywizdom.com'}/dashboard`
       }
-    } catch (error) {
-      console.log(`⚠️ Error looking up user: ${error.message}`);
-    }
+    });
 
-    if (!authUser) {
-      console.log(`🔐 Creating Supabase auth user for: ${tokenData.email}`);
-      
-      // Create user with email confirmation already set
-      const { data: newUser, error: createError } = await supabase.auth.admin.createUser({
-        email: tokenData.email,
-        email_confirm: true,
-        user_metadata: {
-          subscription_tier: tokenData.tier,
-          source: 'magic_link',
-          verified_at: new Date().toISOString()
-        }
+    if (authError) {
+      console.error('❌ Failed to generate auth session:', authError);
+      const errorResponse = req.method === 'POST' 
+        ? JSON.stringify({ success: false, error: 'Failed to create user session' })
+        : 'Failed to create user session';
+      return new Response(errorResponse, { 
+        status: 500,
+        headers: req.method === 'POST' ? { 'content-type': 'application/json', ...corsHeaders } : {}
       });
-
-      if (createError) {
-        console.log(`⚠️ Create user error: ${createError.message}`);
-        // If user already exists, try to find them again
-        if (createError.message?.includes('already been registered') || createError.message?.includes('email_exists')) {
-          console.log(`🔄 User already exists, re-fetching: ${tokenData.email}`);
-          try {
-            const { data: retryUsersData, error: retryListError } = await supabase.auth.admin.listUsers();
-            if (!retryListError && retryUsersData?.users) {
-              authUser = retryUsersData.users.find(user => user.email === tokenData.email);
-              if (authUser) {
-                console.log(`✅ Successfully found existing user on retry: ${authUser.id}`);
-              } else {
-                throw new Error('User exists but could not be found');
-              }
-            } else {
-              throw new Error(`Failed to list users: ${retryListError?.message}`);
-            }
-          } catch (retryError) {
-            console.error('❌ Failed to fetch existing user on retry:', retryError);
-            const errorResponse = req.method === 'POST' 
-              ? JSON.stringify({ success: false, error: 'Authentication system error' })
-              : 'Authentication system error';
-            return new Response(errorResponse, { 
-              status: 500,
-              headers: req.method === 'POST' ? { 'content-type': 'application/json', ...corsHeaders } : {}
-            });
-          }
-        } else {
-          console.error('❌ Failed to create user:', createError);
-          const errorResponse = req.method === 'POST' 
-            ? JSON.stringify({ success: false, error: 'Failed to authenticate user' })
-            : 'Failed to authenticate user';
-          return new Response(errorResponse, { 
-            status: 500,
-            headers: req.method === 'POST' ? { 'content-type': 'application/json', ...corsHeaders } : {}
-          });
-        }
-      } else {
-        authUser = newUser.user;
-        console.log(`✅ Successfully created new user: ${tokenData.email}`);
-      }
     }
+
+    console.log(`✅ Auth session generated for: ${tokenData.email}`);
+    
+    // Extract access and refresh tokens from the magic link
+    const magicLinkUrl = new URL(authData.properties.action_link);
+    const accessToken = magicLinkUrl.searchParams.get('access_token');
+    const refreshToken = magicLinkUrl.searchParams.get('refresh_token');
+
+    if (!accessToken || !refreshToken) {
+      console.error('❌ Failed to extract tokens from auth session');
+      const errorResponse = req.method === 'POST' 
+        ? JSON.stringify({ success: false, error: 'Failed to extract session tokens' })
+        : 'Failed to extract session tokens';
+      return new Response(errorResponse, { 
+        status: 500,
+        headers: req.method === 'POST' ? { 'content-type': 'application/json', ...corsHeaders } : {}
+      });
+    }
+
+    // Get user info from the auth data
+    const authUser = authData.user;
+    console.log(`✅ Session tokens extracted for user: ${authUser?.id}`);
 
     // Ensure we have a valid user at this point
     if (!authUser) {
