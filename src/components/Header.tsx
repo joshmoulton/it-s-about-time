@@ -45,8 +45,8 @@ export default function Header({ onAuthClick, onPremiumClick }: HeaderProps) {
 
   return (
     <header className="sticky top-0 z-50 w-full backdrop-blur border-b border-border/40 bg-background/80">
-      <div className="container flex h-16 items-center justify-between px-4">
-        {/* Logo */}
+      <div className="container relative flex h-16 items-center px-4">
+        {/* Logo - Left positioned */}
         <div 
           className="flex items-center cursor-pointer"
           onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
@@ -57,8 +57,8 @@ export default function Header({ onAuthClick, onPremiumClick }: HeaderProps) {
           </div>
         </div>
 
-        {/* Desktop nav */}
-        <nav className="hidden md:flex items-center gap-8">
+        {/* Desktop nav - Absolutely centered */}
+        <nav className="hidden md:flex items-center gap-8 absolute left-1/2 -translate-x-1/2">
           {nav.map((n) => (
             <a
               key={n.label}
@@ -74,8 +74,8 @@ export default function Header({ onAuthClick, onPremiumClick }: HeaderProps) {
           ))}
         </nav>
 
-        {/* Right buttons */}
-        <div className="flex items-center gap-2">
+        {/* Right buttons - Right positioned */}
+        <div className="flex items-center gap-2 ml-auto">
           {/* Dashboard/Sign In Button */}
           {!isLoading && isAuthenticated ? (
             <Button
