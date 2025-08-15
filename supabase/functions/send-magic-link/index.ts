@@ -61,9 +61,13 @@ serve(async (req) => {
     const publicationId = 'pub_e08d5f43-7f7c-4c24-b546-f301ccd42a77';
     
     let tier = 'free';
+    let isValidSubscriber = false;
+    
     if (beehiivApiKey) {
       try {
-        const beehiivUrl = `https://api.beehiiv.com/v2/publications/${publicationId}/subscriptions/by_email/${encodeURIComponent(email)}`;
+        const beehiivUrl = `https://api.beehiiv.com/v2/publications/${publicationId}/subscriptions/by_email/${encodeURIComponent(normalizedEmail)}`;
+        console.log(`🔍 Checking Beehiiv subscription for: ${normalizedEmail}`);
+        
         const beehiivResponse = await fetch(beehiivUrl, {
           method: 'GET',
           headers: {
@@ -74,10 +78,16 @@ serve(async (req) => {
 
         if (beehiivResponse.ok) {
           const beehiivData = await beehiivResponse.json();
+          console.log(`📊 Beehiiv API response for ${normalizedEmail}:`, beehiivData);
+          
           if (beehiivData?.data) {
+            isValidSubscriber = true; // Found in Beehiiv = valid subscriber
             const subscription = beehiivData.data;
             const apiTier = subscription.subscription_tier;
             
+            console.log(`📋 Subscription details - tier: ${apiTier}, status: ${subscription.status}`);
+            
+            // Determine tier based on subscription
             if (
               apiTier === 'premium' ||
               apiTier === 'Premium' ||
@@ -86,15 +96,27 @@ serve(async (req) => {
               tier = 'premium';
             } else if (apiTier === 'paid' || apiTier === 'Paid') {
               tier = 'paid';
+            } else {
+              // Free tier subscriber - still valid!
+              tier = 'free';
             }
+            
+            console.log(`✅ Valid ${tier} subscriber found: ${normalizedEmail}`);
+          } else {
+            console.log(`❌ No subscription data found for: ${normalizedEmail}`);
           }
+        } else {
+          console.error(`❌ Beehiiv API error: ${beehiivResponse.status} - ${beehiivResponse.statusText}`);
+          const errorText = await beehiivResponse.text();
+          console.error(`❌ Beehiiv API error response:`, errorText);
         }
       } catch (error) {
-        console.warn('Could not fetch Beehiiv data:', error);
+        console.error('❌ Beehiiv API request failed:', error);
       }
     }
 
-    if (tier === 'free') {
+    // Only reject if NOT found in Beehiiv (not a subscriber at all)
+    if (!isValidSubscriber) {
       return json({ 
         success: false, 
         error: 'Email not found in our subscription list. Please check your email or sign up for Weekly Wizdom newsletter first.' 
