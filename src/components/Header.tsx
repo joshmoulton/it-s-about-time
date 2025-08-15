@@ -45,7 +45,7 @@ export default function Header({ onAuthClick, onPremiumClick }: HeaderProps) {
 
   return (
     <header className="sticky top-0 z-50 w-full backdrop-blur border-b border-border/40 bg-background/80">
-      <div className="container relative flex h-16 items-center px-4">
+      <div className="max-w-7xl mx-auto relative flex h-16 items-center px-4">
         {/* Logo - Left positioned */}
         <div 
           className="flex items-center cursor-pointer"
