@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -7,20 +8,11 @@ interface DegenCommandData {
   ticker: string;
   direction: 'long' | 'short';
   entry_price?: number;
-  stop_loss?: number;
+  stop_loss_price?: number;
   targets: number[];
   size_level?: string;
   entry_type?: 'market' | 'limit' | 'conditional';
   reasoning?: string;
-}
-
-interface CoinGeckoResponse {
-  price: number;
-  change24h: number;
-  coinGeckoId: string;
-  hasError: boolean;
-  lastUpdated: string;
-  cached: boolean;
 }
 
 export function useDegenCommandParser() {
@@ -61,9 +53,9 @@ export function useDegenCommandParser() {
     "tiny": "tiny",
     "small": "low", 
     "low": "low",
-    "med": "med",
-    "medium": "med", 
-    "avg": "med",
+    "med": "medium",
+    "medium": "medium", 
+    "avg": "medium",
     "high": "high",
     "huge": "huge",
     "xl": "huge"
@@ -179,7 +171,7 @@ export function useDegenCommandParser() {
       }
 
       // Parse stop loss
-      const stop_loss = stopLossStr ? parseFloat(stopLossStr) : undefined;
+      const stop_loss_price = stopLossStr ? parseFloat(stopLossStr) : undefined;
 
       // Parse targets
       const targets: number[] = [];
@@ -197,7 +189,7 @@ export function useDegenCommandParser() {
         ticker,
         direction,
         entry_price,
-        stop_loss,
+        stop_loss_price,
         targets,
         size_level,
         entry_type: entryType,
@@ -219,20 +211,24 @@ export function useDegenCommandParser() {
       setIsProcessing(true);
       console.log('Creating official signal with data:', commandData);
 
-      const { data: signalData, error } = await supabase
+      // Map to correct database field names
+      const signalData = {
+        symbol: commandData.ticker, // Use 'symbol' instead of 'ticker'
+        direction: commandData.direction,
+        entry_type: commandData.entry_type || 'market',
+        entry_price: commandData.entry_price,
+        current_price: commandData.entry_price,
+        stop_loss_price: commandData.stop_loss_price,
+        targets: commandData.targets,
+        size_level: commandData.size_level || 'medium', // Provide default
+        risk_score: 5,
+        reasoning: commandData.reasoning || `${commandData.direction.toUpperCase()} ${commandData.ticker} - Official signal generated from command`,
+        status: 'active',
+      };
+
+      const { data: signalResult, error } = await supabase
         .from('live_trading_signals')
-        .insert({
-          ticker: commandData.ticker,
-          direction: commandData.direction,
-          entry_type: commandData.entry_type || 'market',
-          entry_price: commandData.entry_price,
-          current_price: commandData.entry_price,
-          stop_loss_price: commandData.stop_loss,
-          targets: commandData.targets,
-          risk_score: 5,
-          reasoning: commandData.reasoning || `${commandData.direction.toUpperCase()} ${commandData.ticker} - Official signal generated from command`,
-          status: 'active',
-        })
+        .insert(signalData)
         .select()
         .single();
 
@@ -246,14 +242,14 @@ export function useDegenCommandParser() {
         return null;
       }
 
-      console.log('✅ Official signal created successfully:', signalData);
+      console.log('✅ Official signal created successfully:', signalResult);
       
       toast({
         title: "Official Signal Created",
         description: `${commandData.direction.toUpperCase()} ${commandData.ticker} signal created successfully`,
       });
 
-      return signalData;
+      return signalResult;
     } catch (error) {
       console.error('❌ Unexpected error creating official signal:', error);
       toast({
@@ -277,7 +273,7 @@ export function useDegenCommandParser() {
       const { data: activeSignals, error: fetchError } = await supabase
         .from('live_trading_signals')
         .select('*')
-        .eq('ticker', ticker.toUpperCase())
+        .eq('symbol', ticker.toUpperCase()) // Use 'symbol' instead of 'ticker'
         .eq('status', 'active');
 
       if (fetchError) {
@@ -305,7 +301,7 @@ export function useDegenCommandParser() {
         .update({
           status: 'closed',
         })
-        .eq('ticker', ticker.toUpperCase())
+        .eq('symbol', ticker.toUpperCase()) // Use 'symbol' instead of 'ticker'
         .eq('status', 'active');
 
       if (updateError) {
@@ -343,20 +339,24 @@ export function useDegenCommandParser() {
       setIsProcessing(true);
       console.log('Creating signal with data:', commandData);
 
-      const { data: signalData, error } = await supabase
+      // Map to correct database field names
+      const signalData = {
+        symbol: commandData.ticker, // Use 'symbol' instead of 'ticker'
+        direction: commandData.direction,
+        entry_type: commandData.entry_type || 'market',
+        entry_price: commandData.entry_price,
+        current_price: commandData.entry_price,
+        stop_loss_price: commandData.stop_loss_price,
+        targets: commandData.targets,
+        size_level: commandData.size_level || 'medium', // Provide default
+        risk_score: 10,
+        reasoning: commandData.reasoning || `${commandData.direction.toUpperCase()} ${commandData.ticker} - Degen call generated from command`,
+        status: 'active',
+      };
+
+      const { data: signalResult, error } = await supabase
         .from('live_trading_signals')
-        .insert({
-          ticker: commandData.ticker,
-          direction: commandData.direction,
-          entry_type: commandData.entry_type || 'market',
-          entry_price: commandData.entry_price,
-          current_price: commandData.entry_price,
-          stop_loss_price: commandData.stop_loss,
-          targets: commandData.targets,
-          risk_score: 10,
-          reasoning: commandData.reasoning || `${commandData.direction.toUpperCase()} ${commandData.ticker} - Degen call generated from command`,
-          status: 'active',
-        })
+        .insert(signalData)
         .select()
         .single();
 
@@ -370,16 +370,16 @@ export function useDegenCommandParser() {
         return null;
       }
 
-      console.log('✅ Signal created successfully:', signalData);
+      console.log('✅ Signal created successfully:', signalResult);
       
       // Send notification to Telegram
       await supabase.functions.invoke('send-degen-notification', {
         body: { 
-          signalId: signalData.id,
+          signalId: signalResult.id,
           ticker: commandData.ticker,
           direction: commandData.direction,
           entryPrice: commandData.entry_price,
-          stopLoss: commandData.stop_loss,
+          stopLoss: commandData.stop_loss_price,
           targets: commandData.targets,
           sizeLevel: commandData.size_level,
           entryType: commandData.entry_type,
@@ -392,7 +392,7 @@ export function useDegenCommandParser() {
         description: `${commandData.direction.toUpperCase()} ${commandData.ticker} signal sent to Telegram successfully`,
       });
 
-      return signalData;
+      return signalResult;
     } catch (error) {
       console.error('❌ Unexpected error creating signal:', error);
       toast({
