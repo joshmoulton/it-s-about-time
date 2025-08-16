@@ -49,11 +49,11 @@ const LoadingScreen = ({ onLoadingComplete }: LoadingScreenProps) => {
   }, []);
 
   useEffect(() => {
-    // Show main logo immediately (reduced from 400ms to 100ms)
-    const logoTimer = setTimeout(() => setShowMainLogo(true), 100);
+    // Show main logo after 400ms
+    const logoTimer = setTimeout(() => setShowMainLogo(true), 400);
     
-    // Show text logo faster (reduced from 1000ms to 600ms)
-    const textTimer = setTimeout(() => setShowTextLogo(true), 600);
+    // Show text logo after 1000ms
+    const textTimer = setTimeout(() => setShowTextLogo(true), 1000);
     
     // Start fade out after 2.2 seconds
     const fadeTimer = setTimeout(() => {
@@ -87,7 +87,7 @@ const LoadingScreen = ({ onLoadingComplete }: LoadingScreenProps) => {
         <img 
           src={mainLogoUrl}
           alt="Weekly Wizdom Logo" 
-          className={`w-56 sm:w-64 lg:w-72 h-56 sm:h-64 lg:h-72 max-w-xs sm:max-w-sm lg:max-w-md object-contain transition-all duration-700 ease-out will-change-transform gpu-accelerated ${
+          className={`w-48 h-auto object-contain transition-all duration-700 ease-out ${
             showMainLogo && !isFadingOut ? 'opacity-100 scale-100' : 'opacity-0 scale-95'
           }`}
           loading="eager"
@@ -109,7 +109,7 @@ const LoadingScreen = ({ onLoadingComplete }: LoadingScreenProps) => {
         <img 
           src={textLogoUrl}
           alt="Weekly Wizdom Brand" 
-          className={`h-20 sm:h-24 lg:h-28 max-w-xs sm:max-w-sm lg:max-w-md object-contain transition-all duration-700 ease-out delay-150 will-change-transform gpu-accelerated ${
+          className={`w-64 h-auto object-contain transition-all duration-700 ease-out delay-150 ${
             showTextLogo && !isFadingOut ? 'opacity-100 scale-100' : 'opacity-0 scale-95'
           }`}
           loading="eager"

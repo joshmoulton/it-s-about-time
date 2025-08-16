@@ -66,16 +66,11 @@ const App = () => {
       }, 300);
     }
     
-    // Show React loading screen briefly if needed
-    const hasSeenLoading = sessionStorage.getItem('hasSeenLoading');
-    if (hasSeenLoading) {
-      setShowLoading(false);
-    }
+    // React loading screen will show on initial load
   }, []);
 
   const handleLoadingComplete = () => {
     setShowLoading(false);
-    sessionStorage.setItem('hasSeenLoading', 'true');
   };
 
   // Initialize safe performance optimizations
