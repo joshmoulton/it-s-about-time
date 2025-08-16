@@ -4263,11 +4263,9 @@ export type Database = {
         Returns: Json
       }
       format_degen_call_message: {
-        Args:
-          | { signal_id: string }
-          | {
-              signal_row: Database["public"]["Tables"]["analyst_signals"]["Row"]
-            }
+        Args: {
+          signal_row: Database["public"]["Tables"]["analyst_signals"]["Row"]
+        }
         Returns: string
       }
       generate_signal_format: {

@@ -69,7 +69,7 @@ serve(async (req) => {
 
   const ticker = body.ticker;
   const { data: signals, error } = await supabase
-    .from("analyst_signals")
+    .from("live_trading_signals")
     .select("*")
     .eq("ticker", ticker)
     .eq("status", "active");
@@ -107,27 +107,24 @@ serve(async (req) => {
         detail: { price: currentPrice } 
       };
       
-        await supabase.from("signal_events").insert(ev).then(async () => {
-          await supabase.from("analyst_signals").update({
-            current_price: currentPrice, 
-            current_profit_pct: curPct, 
-            max_profit_pct: maxPct, 
-            stopped_out: true, 
-            status: "closed"
-          }).eq("id", s.id);
-          
-          await notify({ 
-            ticker, 
-            kind: "position_closed", 
-            reason: "stop_loss_hit",
-            price: currentPrice, 
-            signal_id: s.id,
-            entry_price: s.entry_price,
-            profit_pct: curPct
-          });
-        }).catch((error) => {
-          console.error("Error handling stop loss:", error);
+      await supabase.from("signal_events").insert(ev).then(async () => {
+        await supabase.from("live_trading_signals").update({
+          current_price: currentPrice, 
+          current_profit_pct: curPct, 
+          max_profit_pct: maxPct, 
+          stopped_out: true, 
+          status: "closed"
+        }).eq("id", s.id);
+        
+        await notify({ 
+          ticker, 
+          kind: "stop_hit", 
+          price: currentPrice, 
+          signal_id: s.id 
         });
+      }).catch((error) => {
+        console.error("Error handling stop loss:", error);
+      });
       continue;
     }
 
@@ -150,38 +147,21 @@ serve(async (req) => {
         
         await supabase.from("signal_events").insert(ev).then(async () => {
           const newHit = [...hit, i].sort((a,b)=>a-b);
-          await supabase.from("analyst_signals").update({
+          await supabase.from("live_trading_signals").update({
             current_price: currentPrice, 
             current_profit_pct: curPct, 
             max_profit_pct: maxPct, 
             hit_targets: newHit
           }).eq("id", s.id);
           
-          // Check if all targets hit - close position
-          if (newHit.length === targets.length) {
-            await supabase.from("analyst_signals").update({
-              status: "closed"
-            }).eq("id", s.id);
-            
-            await notify({ 
-              ticker, 
-              kind: "position_closed", 
-              reason: "all_targets_hit",
-              price: currentPrice, 
-              signal_id: s.id,
-              entry_price: s.entry_price,
-              profit_pct: curPct
-            });
-          } else {
-            await notify({ 
-              ticker, 
-              kind: "target_hit", 
-              level: i+1, 
-              price: currentPrice, 
-              target: targets[i], 
-              signal_id: s.id 
-            });
-          }
+          await notify({ 
+            ticker, 
+            kind: "target_hit", 
+            level: i+1, 
+            price: currentPrice, 
+            target: targets[i], 
+            signal_id: s.id 
+          });
         }).catch((error) => {
           console.error("Error handling target hit:", error);
         });
@@ -211,24 +191,20 @@ serve(async (req) => {
           };
           
           await supabase.from("signal_events").insert(ev).then(async () => {
-            const finalProfit = pct(s.entry_price, close);
-            await supabase.from("analyst_signals").update({
+            await supabase.from("live_trading_signals").update({
               status: "closed", 
               current_price: close, 
-              current_profit_pct: finalProfit, 
+              current_profit_pct: pct(s.entry_price, close), 
               max_profit_pct: maxPct
             }).eq("id", s.id);
             
             await notify({ 
               ticker, 
-              kind: "position_closed", 
-              reason: "invalidation",
+              kind: "invalidation", 
               rule: s.invalidation_type, 
               threshold: s.invalidation_price, 
-              price: close, 
-              signal_id: s.id,
-              entry_price: s.entry_price,
-              profit_pct: finalProfit
+              close, 
+              signal_id: s.id 
             });
           }).catch((error) => {
             console.error("Error handling invalidation:", error);
@@ -239,7 +215,7 @@ serve(async (req) => {
 
     // Update current price and profit calculations
     if (currentPrice != null) {
-      await supabase.from("analyst_signals").update({
+      await supabase.from("live_trading_signals").update({
         current_price: currentPrice, 
         current_profit_pct: curPct, 
         max_profit_pct: maxPct

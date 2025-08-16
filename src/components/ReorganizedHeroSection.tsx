@@ -1,7 +1,7 @@
 
 import { ArrowRight, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import Header from "@/components/Header";
+import HeroNavigation from "./hero/HeroNavigation";
 import DynamicHeroBackground from "./DynamicHeroBackground";
 import CyclingText from "@/components/ui/cycling-text";
 import { navigateToSection } from "@/utils/hashNavigation";
@@ -33,7 +33,7 @@ const ReorganizedHeroSection = ({
       <DynamicHeroBackground />
 
       {/* Top Navigation */}
-      <Header onAuthClick={onAuthClick} onPremiumClick={onPremiumClick} />
+      <HeroNavigation onAuthClick={onAuthClick} onPremiumClick={onPremiumClick} />
 
       {/* Two-Column Hero Content */}
       <div className="relative z-10 pt-16 xs:pt-20 sm:pt-20 pb-8 sm:pb-16 lg:pt-28 lg:pb-32">
@@ -63,7 +63,7 @@ const ReorganizedHeroSection = ({
                   <Button 
                     onClick={() => navigate('/dashboard')}
                     size="lg" 
-                     className="font-bold rounded-full transition-all duration-300 font-montserrat bg-brand-primary hover:bg-background hover:text-brand-primary text-white border-2 border-brand-primary w-full sm:w-auto min-w-[280px] xs:min-w-[300px] max-w-[340px] relative overflow-hidden hover:scale-105 hover:translate-y-[-2px] before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-white/20 before:to-transparent before:translate-x-[-100%] before:animate-shimmer-subtle hover:before:opacity-0 drop-shadow-lg touch-manipulation min-h-[48px] xs:min-h-[52px] sm:h-12 md:h-14 px-6 xs:px-7 sm:px-8 text-sm xs:text-base sm:text-base"
+                     className="font-bold rounded-full transition-all duration-300 font-montserrat bg-brand-primary hover:bg-background hover:text-brand-primary text-white border-2 border-brand-primary w-full sm:w-auto min-w-[280px] xs:min-w-[300px] max-w-[340px] relative overflow-hidden sm:hover:scale-105 sm:hover:translate-y-[-2px] drop-shadow-lg touch-manipulation min-h-[48px] xs:min-h-[52px] sm:h-12 md:h-14 px-6 xs:px-7 sm:px-8 text-sm xs:text-base sm:text-base"
                   >
                     Go to Dashboard
                     <ArrowRight className="ml-2 h-4 w-4 sm:h-4 sm:w-4" />
@@ -72,7 +72,7 @@ const ReorganizedHeroSection = ({
                   <Button 
                     onClick={() => navigateToSection('pricing')}
                     size="lg" 
-                    className="font-bold rounded-full transition-all duration-300 font-montserrat bg-brand-primary hover:bg-background hover:text-brand-primary text-white border-2 border-brand-primary w-full sm:w-auto min-w-[280px] xs:min-w-[300px] max-w-[340px] relative overflow-hidden hover:scale-105 hover:translate-y-[-2px] before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-white/20 before:to-transparent before:translate-x-[-100%] before:animate-shimmer-subtle hover:before:opacity-0 drop-shadow-lg touch-manipulation min-h-[48px] xs:min-h-[52px] sm:h-12 md:h-14 px-6 xs:px-7 sm:px-8 text-sm xs:text-base sm:text-base"
+                    className="font-bold rounded-full transition-all duration-300 font-montserrat bg-brand-primary hover:bg-background hover:text-brand-primary text-white border-2 border-brand-primary w-full sm:w-auto min-w-[280px] xs:min-w-[300px] max-w-[340px] relative overflow-hidden sm:hover:scale-105 sm:hover:translate-y-[-2px] drop-shadow-lg touch-manipulation min-h-[48px] xs:min-h-[52px] sm:h-12 md:h-14 px-6 xs:px-7 sm:px-8 text-sm xs:text-base sm:text-base"
                   >
                     Get Started
                     <ArrowRight className="ml-2 h-4 w-4 sm:h-4 sm:w-4" />
