@@ -16,58 +16,58 @@ export const WelcomeView: React.FC<WelcomeViewProps> = ({
   isLoading
 }) => {
   return (
-    <div className="bg-card/95 backdrop-blur-xl rounded-3xl shadow-2xl p-8 sm:p-10 w-full max-w-lg mx-auto border border-border/50 relative overflow-hidden">
-      <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-secondary/5 opacity-60"></div>
+    <div className="bg-background/98 backdrop-blur-2xl rounded-3xl shadow-2xl p-6 sm:p-8 w-full max-w-md mx-auto border border-border/60 relative overflow-hidden">
+      <div className="absolute inset-0 bg-gradient-to-br from-primary/8 via-transparent to-primary/4 opacity-70"></div>
       <div className="relative z-10">
         {/* Close button with proper functionality */}
         {onClose && (
           <button
             onClick={onClose}
             type="button"
-            className="absolute top-4 right-4 sm:top-6 sm:right-6 text-muted-foreground hover:text-foreground transition-all duration-200 hover:scale-110 z-10 bg-background/80 hover:bg-background rounded-full p-2 shadow-lg backdrop-blur-sm"
+            className="absolute top-3 right-3 sm:top-4 sm:right-4 text-muted-foreground hover:text-foreground transition-all duration-200 hover:scale-110 z-20 bg-background/90 hover:bg-background rounded-full p-2 shadow-md backdrop-blur-sm border border-border/30"
             aria-label="Close modal"
           >
-            <X className="w-5 h-5" />
+            <X className="w-4 h-4" />
           </button>
         )}
 
-        {/* Header - more compact for mobile */}
-        <div className="text-center mb-10">
-          <div className="w-20 h-20 bg-gradient-to-br from-primary/20 to-secondary/20 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg backdrop-blur-sm border border-primary/20">
-            <Mail className="w-10 h-10 text-primary drop-shadow-sm" />
+        {/* Header - optimized for mobile */}
+        <div className="text-center mb-8 pt-2">
+          <div className="w-16 h-16 bg-gradient-to-br from-primary/30 to-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-5 shadow-lg backdrop-blur-sm border border-primary/20">
+            <Mail className="w-8 h-8 text-primary drop-shadow-sm" />
           </div>
-          <h2 className="text-3xl font-bold bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text text-transparent mb-3">
+          <h2 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-foreground via-foreground to-foreground/90 bg-clip-text text-transparent mb-3 leading-tight">
             Get access to Weekly Wizdom
           </h2>
-          <p className="text-lg text-muted-foreground px-2">
+          <p className="text-base text-muted-foreground/90 px-1 leading-relaxed">
             Access your Weekly Wizdom subscription and premium content
           </p>
         </div>
 
         {/* Primary CTA - Enhanced for mobile */}
-        <div className="mb-8">
+        <div className="mb-6">
           <Button
             onClick={() => onModeChange('magic')}
             disabled={isLoading}
-            className="w-full bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary text-primary-foreground py-4 text-base font-semibold h-14 flex items-center justify-center gap-3 text-center shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02] rounded-xl"
+            className="w-full bg-gradient-to-r from-primary to-primary hover:from-primary/95 hover:to-primary/95 text-primary-foreground py-3 text-base font-semibold h-12 sm:h-14 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.01] rounded-xl disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <Mail className="w-5 h-5" />
-            <span className="flex-1 text-center">Get Access Link (Recommended)</span>
-            <span className="text-lg">→</span>
+            <Mail className="w-5 h-5 flex-shrink-0" />
+            <span className="flex-1 text-center px-2">Get Access Link (Recommended)</span>
+            <span className="text-lg flex-shrink-0">→</span>
           </Button>
-          <div className="text-sm text-muted-foreground text-center mt-4 flex items-center justify-center gap-2 px-4 bg-muted/30 py-2 rounded-lg backdrop-blur-sm">
-            <Zap className="w-4 h-4 text-orange-500" />
-            Automatically verifies your Beehiiv subscription status
+          <div className="text-xs sm:text-sm text-muted-foreground/80 text-center mt-3 flex items-center justify-center gap-2 px-3 bg-muted/20 py-2 rounded-lg backdrop-blur-sm border border-border/30">
+            <Zap className="w-4 h-4 text-orange-500 flex-shrink-0" />
+            <span className="leading-tight">Automatically verifies your Beehiiv subscription status</span>
           </div>
         </div>
 
         {/* Alternative Options - Enhanced styling */}
-        <div className="grid grid-cols-2 gap-4 mb-10">
+        <div className="grid grid-cols-2 gap-3 mb-8">
           <Button
             variant="outline"
             onClick={() => onModeChange('signin')}
             disabled={isLoading}
-            className="py-4 text-sm h-14 border-2 hover:border-primary/50 hover:bg-muted/50 transition-all duration-300 hover:scale-[1.02] font-semibold rounded-xl"
+            className="py-3 text-sm h-11 sm:h-12 border-2 hover:border-primary/60 hover:bg-primary/5 transition-all duration-300 hover:scale-[1.01] font-medium rounded-xl disabled:opacity-50"
           >
             Sign In
           </Button>
@@ -75,32 +75,32 @@ export const WelcomeView: React.FC<WelcomeViewProps> = ({
             variant="outline"
             onClick={() => onModeChange('signup')}
             disabled={isLoading}
-            className="py-4 text-sm h-14 border-2 hover:border-primary/50 hover:bg-muted/50 transition-all duration-300 hover:scale-[1.02] font-semibold rounded-xl"
+            className="py-3 text-sm h-11 sm:h-12 border-2 hover:border-primary/60 hover:bg-primary/5 transition-all duration-300 hover:scale-[1.01] font-medium rounded-xl disabled:opacity-50"
           >
             Create Account
           </Button>
         </div>
 
         {/* Account Types - Enhanced compact design */}
-        <div className="space-y-5 pt-6 border-t border-border/50">
-          <div className="flex items-start gap-4 p-4 bg-gradient-to-br from-orange-50/50 to-orange-100/30 rounded-2xl border border-orange-200/40 shadow-sm hover:shadow-md transition-all duration-300">
-            <div className="w-10 h-10 bg-gradient-to-br from-orange-400 to-orange-500 rounded-xl flex items-center justify-center shadow-lg flex-shrink-0">
-              <Zap className="w-5 h-5 text-white" />
+        <div className="space-y-3 pt-5 border-t border-border/40">
+          <div className="flex items-start gap-3 p-3 bg-gradient-to-br from-orange-50/60 to-orange-100/40 rounded-xl border border-orange-200/50 shadow-sm hover:shadow-md transition-all duration-300">
+            <div className="w-8 h-8 bg-gradient-to-br from-orange-400 to-orange-500 rounded-lg flex items-center justify-center shadow-lg flex-shrink-0">
+              <Zap className="w-4 h-4 text-white" />
             </div>
-            <div>
-              <h4 className="font-bold text-base text-orange-700 mb-1">Premium Account</h4>
-              <p className="text-sm text-orange-600">
+            <div className="min-w-0">
+              <h4 className="font-semibold text-sm text-orange-700 mb-1">Premium Account</h4>
+              <p className="text-xs text-orange-600 leading-tight">
                 Live Trading Signals, Exclusive Content, Full Access
               </p>
             </div>
           </div>
-          <div className="flex items-start gap-4 p-4 bg-gradient-to-br from-blue-50/50 to-blue-100/30 rounded-2xl border border-blue-200/40 shadow-sm hover:shadow-md transition-all duration-300">
-            <div className="w-10 h-10 bg-gradient-to-br from-blue-400 to-blue-500 rounded-xl flex items-center justify-center shadow-lg flex-shrink-0">
-              <Mail className="w-5 h-5 text-white" />
+          <div className="flex items-start gap-3 p-3 bg-gradient-to-br from-blue-50/60 to-blue-100/40 rounded-xl border border-blue-200/50 shadow-sm hover:shadow-md transition-all duration-300">
+            <div className="w-8 h-8 bg-gradient-to-br from-blue-400 to-blue-500 rounded-lg flex items-center justify-center shadow-lg flex-shrink-0">
+              <Mail className="w-4 h-4 text-white" />
             </div>
-            <div>
-              <h4 className="font-bold text-base text-blue-700 mb-1">Free Account</h4>
-              <p className="text-sm text-blue-600">
+            <div className="min-w-0">
+              <h4 className="font-semibold text-sm text-blue-700 mb-1">Free Account</h4>
+              <p className="text-xs text-blue-600 leading-tight">
                 Newsletter Preview, Weekly Education Emails, Basic Market Insights
               </p>
             </div>
