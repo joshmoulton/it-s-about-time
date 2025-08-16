@@ -42,7 +42,7 @@ const HeroNavigation = ({
   }, []);
   
   return (
-    <nav className="fixed top-0 left-0 right-0 z-[100] px-3 sm:px-6 lg:px-12 py-2 sm:py-4 lg:py-6 backdrop-blur-md bg-background/90 shadow-sm border-b border-border/10" style={{ position: 'fixed', top: 0 }}>
+    <nav className="fixed top-0 left-0 right-0 z-50 px-3 sm:px-6 lg:px-12 py-2 sm:py-4 lg:py-6 backdrop-blur-md bg-background/90 shadow-sm border-b border-border/10" style={{ position: 'fixed', top: 0 }}>
       <div className="flex items-center justify-between w-full">
         {/* Logo - Left */}
         <div 
@@ -50,7 +50,7 @@ const HeroNavigation = ({
           onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
         >
           <LazyImage
-            src="https://wrvvlmevpvcenauglcyz.supabase.co/storage/v1/object/public/assets/Property%201=Black%20(3).png"
+            src="/lovable-uploads/97f86327-e463-4091-8474-4f835ee7556f.png"
             alt="Weekly Wizdom Logo" 
             className="h-6 xs:h-7 sm:h-6 lg:h-8 w-auto drop-shadow-md"
             loading="eager"
