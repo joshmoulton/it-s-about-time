@@ -92,7 +92,7 @@ const App = () => {
                      <SessionDetector />
                      <DeveloperToggle />
                      <main id="main-content">
-                      <Suspense fallback={<PageLoader />}>
+                      <Suspense fallback={null}>
                         <Routes>
                       <Route path="/" element={<Index />} />
                       

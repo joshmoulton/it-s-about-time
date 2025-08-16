@@ -92,17 +92,6 @@ const LoadingScreen = ({ onLoadingComplete }: LoadingScreenProps) => {
           }`}
           loading="eager"
           decoding="async"
-          onError={(e) => {
-            // Enhanced fallback with responsive sizing
-            const target = e.currentTarget;
-            target.outerHTML = `
-              <div class="w-56 sm:w-64 lg:w-72 h-56 sm:h-64 lg:h-72 max-w-xs sm:max-w-sm lg:max-w-md bg-white/20 rounded-2xl flex items-center justify-center transition-all duration-700 ease-out will-change-transform ${
-                showMainLogo && !isFadingOut ? 'opacity-100 scale-100' : 'opacity-0 scale-95'
-              }">
-                <span class="text-white text-5xl sm:text-6xl lg:text-7xl font-bold">WW</span>
-              </div>
-            `;
-          }}
         />
         
         {/* Text Logo (Brand Name) - Enhanced Responsive Sizing */}
@@ -114,18 +103,6 @@ const LoadingScreen = ({ onLoadingComplete }: LoadingScreenProps) => {
           }`}
           loading="eager"
           decoding="async"
-          onError={(e) => {
-            // Enhanced fallback to responsive text
-            const target = e.currentTarget;
-            target.outerHTML = `
-              <div class="max-w-xs sm:max-w-sm lg:max-w-md transition-all duration-700 ease-out delay-150 will-change-transform ${
-                showTextLogo && !isFadingOut ? 'opacity-100 scale-100' : 'opacity-0 scale-95'
-              }">
-                <h1 class="text-white text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-center">Weekly Wizdom</h1>
-                <p class="text-white/80 text-center text-base sm:text-lg lg:text-xl mt-2">Financial Intelligence Delivered</p>
-              </div>
-            `;
-          }}
         />
       </div>
     </div>
