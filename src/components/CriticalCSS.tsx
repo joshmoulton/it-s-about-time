@@ -9,7 +9,6 @@ export const CriticalCSS = () => {
         display: flex;
         flex-direction: column;
         position: relative;
-        contain: layout style paint;
       }
       
       .hero-content {
@@ -18,7 +17,6 @@ export const CriticalCSS = () => {
         align-items: center;
         justify-content: center;
         padding: 2rem 1rem;
-        contain: layout;
       }
       
       .hero-text {
@@ -55,7 +53,6 @@ export const CriticalCSS = () => {
         text-decoration: none;
         font-family: 'Montserrat', sans-serif;
         transition: transform 0.2s ease;
-        contain: layout;
       }
       
       .hero-cta:hover {
@@ -70,7 +67,7 @@ export const CriticalCSS = () => {
         right: 0;
         z-index: 50;
         padding: 1rem 2rem;
-        contain: layout;
+        
       }
       
       .nav-content {
@@ -134,11 +131,6 @@ export const CriticalCSS = () => {
         display: block;
       }
       
-      .perf-optimized {
-        contain: layout style paint;
-        content-visibility: auto;
-        contain-intrinsic-size: 0 200px;
-      }
     `}</style>
   );
 };

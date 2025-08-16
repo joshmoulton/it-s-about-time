@@ -1,6 +1,6 @@
 
 import { Suspense, useEffect, useState } from "react";
-import { initializePerformanceOptimizations } from "@/utils/performanceOptimizations";
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -73,11 +73,9 @@ const App = () => {
     setShowLoading(false);
   };
 
-  // Initialize safe performance optimizations
+  // Update Supabase context on app start
   useEffect(() => {
     const timeoutId = setTimeout(async () => {
-      initializePerformanceOptimizations();
-      // Update Supabase context from localStorage on app start
       await updateAuthContextFromLocalStorage();
     }, 100);
     
