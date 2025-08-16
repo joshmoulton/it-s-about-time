@@ -105,8 +105,8 @@ export default {
         'shimmer-subtle': 'shimmer-subtle 6s ease-in-out infinite'
       },
       fontFamily: {
-        'merriweather': ['Merriweather', 'serif'],
-        'montserrat': ['Montserrat', 'system-ui', '-apple-system', 'sans-serif'],
+        'merriweather': ['Merriweather'],
+        'montserrat': ['Montserrat'],
       },
     },
   },

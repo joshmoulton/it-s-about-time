@@ -49,11 +49,11 @@ const LoadingScreen = ({ onLoadingComplete }: LoadingScreenProps) => {
   }, []);
 
   useEffect(() => {
-    // Show main logo after 400ms
-    const logoTimer = setTimeout(() => setShowMainLogo(true), 400);
+    // Show main logo immediately (reduced from 400ms to 100ms)
+    const logoTimer = setTimeout(() => setShowMainLogo(true), 100);
     
-    // Show text logo after 1000ms
-    const textTimer = setTimeout(() => setShowTextLogo(true), 1000);
+    // Show text logo faster (reduced from 1000ms to 600ms)
+    const textTimer = setTimeout(() => setShowTextLogo(true), 600);
     
     // Start fade out after 2.2 seconds
     const fadeTimer = setTimeout(() => {
@@ -83,54 +83,50 @@ const LoadingScreen = ({ onLoadingComplete }: LoadingScreenProps) => {
       }`}
     >
       <div className="flex flex-col items-center justify-center space-y-4 sm:space-y-6 lg:space-y-8">
-        {/* Main Logo (Icon/Symbol) - Only show when timer triggers */}
-        {showMainLogo && (
-          <img 
-            src={mainLogoUrl}
-            alt="Weekly Wizdom Logo" 
-            className={`w-48 h-auto object-contain transition-all duration-700 ease-out ${
-              !isFadingOut ? 'opacity-100 scale-100' : 'opacity-0 scale-95'
-            }`}
-            loading="eager"
-            decoding="async"
-            onError={(e) => {
-              // Enhanced fallback with responsive sizing
-              const target = e.currentTarget;
-              target.outerHTML = `
-                <div class="w-48 h-auto bg-white/20 rounded-2xl flex items-center justify-center transition-all duration-700 ease-out ${
-                  !isFadingOut ? 'opacity-100 scale-100' : 'opacity-0 scale-95'
-                }">
-                  <span class="text-white text-5xl font-bold">WW</span>
-                </div>
-              `;
-            }}
-          />
-        )}
+        {/* Main Logo (Icon/Symbol) - Enhanced Responsive Sizing */}
+        <img 
+          src={mainLogoUrl}
+          alt="Weekly Wizdom Logo" 
+          className={`w-56 sm:w-64 lg:w-72 h-56 sm:h-64 lg:h-72 max-w-xs sm:max-w-sm lg:max-w-md object-contain transition-all duration-700 ease-out will-change-transform gpu-accelerated ${
+            showMainLogo && !isFadingOut ? 'opacity-100 scale-100' : 'opacity-0 scale-95'
+          }`}
+          loading="eager"
+          decoding="async"
+          onError={(e) => {
+            // Enhanced fallback with responsive sizing
+            const target = e.currentTarget;
+            target.outerHTML = `
+              <div class="w-56 sm:w-64 lg:w-72 h-56 sm:h-64 lg:h-72 max-w-xs sm:max-w-sm lg:max-w-md bg-white/20 rounded-2xl flex items-center justify-center transition-all duration-700 ease-out will-change-transform ${
+                showMainLogo && !isFadingOut ? 'opacity-100 scale-100' : 'opacity-0 scale-95'
+              }">
+                <span class="text-white text-5xl sm:text-6xl lg:text-7xl font-bold">WW</span>
+              </div>
+            `;
+          }}
+        />
         
-        {/* Text Logo (Brand Name) - Only show when timer triggers */}
-        {showTextLogo && (
-          <img 
-            src={textLogoUrl}
-            alt="Weekly Wizdom Brand" 
-            className={`w-64 h-auto object-contain transition-all duration-700 ease-out delay-150 ${
-              !isFadingOut ? 'opacity-100 scale-100' : 'opacity-0 scale-95'
-            }`}
-            loading="eager"
-            decoding="async"
-            onError={(e) => {
-              // Enhanced fallback to responsive text
-              const target = e.currentTarget;
-              target.outerHTML = `
-                <div class="w-64 transition-all duration-700 ease-out delay-150 ${
-                  !isFadingOut ? 'opacity-100 scale-100' : 'opacity-0 scale-95'
-                }">
-                  <h1 class="text-white text-3xl sm:text-4xl font-bold tracking-tight text-center">Weekly Wizdom</h1>
-                  <p class="text-white/80 text-center text-base sm:text-lg mt-2">Financial Intelligence Delivered</p>
-                </div>
-              `;
-            }}
-          />
-        )}
+        {/* Text Logo (Brand Name) - Enhanced Responsive Sizing */}
+        <img 
+          src={textLogoUrl}
+          alt="Weekly Wizdom Brand" 
+          className={`h-20 sm:h-24 lg:h-28 max-w-xs sm:max-w-sm lg:max-w-md object-contain transition-all duration-700 ease-out delay-150 will-change-transform gpu-accelerated ${
+            showTextLogo && !isFadingOut ? 'opacity-100 scale-100' : 'opacity-0 scale-95'
+          }`}
+          loading="eager"
+          decoding="async"
+          onError={(e) => {
+            // Enhanced fallback to responsive text
+            const target = e.currentTarget;
+            target.outerHTML = `
+              <div class="max-w-xs sm:max-w-sm lg:max-w-md transition-all duration-700 ease-out delay-150 will-change-transform ${
+                showTextLogo && !isFadingOut ? 'opacity-100 scale-100' : 'opacity-0 scale-95'
+              }">
+                <h1 class="text-white text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-center">Weekly Wizdom</h1>
+                <p class="text-white/80 text-center text-base sm:text-lg lg:text-xl mt-2">Financial Intelligence Delivered</p>
+              </div>
+            `;
+          }}
+        />
       </div>
     </div>
   );
